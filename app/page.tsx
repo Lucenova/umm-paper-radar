@@ -27,6 +27,7 @@ type Paper = {
   rollout?: string;
   evaluation?: string;
   featured?: boolean;
+  idea?: boolean;
 };
 
 const papers: Paper[] = [
@@ -728,7 +729,7 @@ const papers: Paper[] = [
     experiment:
       "固定 Qwen3、IBQ、clean-token head、数据和总 FLOPs，比较单 [MASK]、随机 multi-mask、IBQ metric-cluster multi-mask、semantic-cluster multi-mask 与 URSA metric path；统一报告 OCRBench、DocVQA、TextVQA、T2I、4/8/16/32 步质量、训练稳定性和峰值显存。",
     paper: "https://arxiv.org/abs/2607.19686",
-    featured: true,
+    featured: false,
   },
   {
     id: "self-gradient-forcing",
@@ -757,7 +758,7 @@ const papers: Paper[] = [
       "固定 Qwen3、IBQ、序列长度和训练预算，比较 teacher forcing、self-rollout + stop-grad cache、截断 BPTT 与 SGF two-pass；报告 2/4/8/16 帧目标身份漂移、坐标误差、短时威胁召回、cache 梯度范数、吞吐和显存。",
     paper: "https://arxiv.org/abs/2607.20368",
     code: "https://github.com/zhuang2002/Self_Gradient_Forcing",
-    featured: true,
+    featured: false,
   },
   {
     id: "perceptdrive",
@@ -785,7 +786,7 @@ const papers: Paper[] = [
     experiment:
       "固定 Qwen3、总参数量、视觉 token 数和训练数据，比较简单相加、静态加权、cross-attention 双流与 scene-conditioned router；分别测试 OCR/DocVQA、T2I、未来 latent 误差、目标轨迹、反事实动作敏感性和专家路由稳定性。",
     paper: "https://arxiv.org/abs/2607.20175",
-    featured: true,
+    featured: false,
   },
   {
     id: "kinebench",
@@ -814,7 +815,7 @@ const papers: Paper[] = [
       "对 AR、URSA 和 ELF 世界模型使用同一解码器及固定轨迹提取器；除 FVD/LPIPS 外，比较目标持续性、轨迹平滑度、碰撞/越界率、闭环任务成功和 horizon error，并用真实 action/轨迹作为上限控制组。",
     paper: "https://arxiv.org/abs/2607.19876",
     code: "https://github.com/minecraft-zzz/KineBench",
-    featured: true,
+    featured: false,
   },
   {
     id: "recap-activation-explanations",
@@ -839,24 +840,115 @@ const papers: Paper[] = [
     experiment:
       "对同一 URSA hidden state/SAE feature 比较自动标签、minimal-pair claim flip、独立 probe、evaluator swap 与因果干预；只把同时通过 grounded、decodable、causal 三道门槛的 feature 计入 UMM 共享语义比例。",
     paper: "https://arxiv.org/abs/2607.20379",
+    featured: false,
+  },
+  {
+    id: "transfusion",
+    index: "32",
+    title: "Transfusion: Predict the Next Token and Diffuse Images with One Multi-Modal Model",
+    shortTitle: "Transfusion",
+    date: "2024-08-20 · 基础补读",
+    category: "统一多模态",
+    paradigm: "Hybrid AR + Continuous Diffusion",
+    state: "离散文本 token + 连续图像 patch / VAE latent",
+    objective: "文本 next-token CE + 图像 diffusion denoising loss",
+    decoding: "文本顺序生成；图像块在同一上下文中并行去噪",
+    sharing: "共享单一 Transformer 与混合序列上下文；模态编码器和输出目标分离",
+    open: "论文与官方代码已公开",
+    priority: "精读",
+    summary:
+      "在一个 Transformer 内同时训练文本 next-token prediction 与图像 diffusion：文本保持离散 AR，图像保持连续表示和并行去噪，不强迫两种模态共用同一种状态空间或输出 head。",
+    why:
+      "它是 URSA 与 ELF 之外最有价值的混合对照。URSA追求视觉 token 与语言接口尽量统一，ELF把生成整体搬到连续流；Transfusion则只共享主干与上下文，把每种模态留在更自然的损失空间。它能检验“完全统一”是否真的优于“共享 Transformer、保留模态特化 head”。",
+    inspiration:
+      "对 Qwen3 + IBQ，可保留文本 AR 与理解路径，同时把图像生成分支换成连续 VAE/IBQ embedding diffusion；再与共享词表 CE 的 URSA比较。若混合模型生成更好但理解不退化，说明共享主干可能比共享 vocabulary/output head 更重要。",
+    experiment:
+      "固定 Qwen3 主干、数据、视觉 token 数和训练 FLOPs，比较：共享词表 URSA、ELF 连续 flow、Transfusion 式双目标。分别冻结/解冻视觉 decoder，并记录 OCRBench、TextVQA、T2I、梯度冲突、峰值显存和跨模态 attention 利用率。",
+    paper: "https://arxiv.org/abs/2408.11039",
+    code: "https://github.com/facebookresearch/transfusion",
     featured: true,
+    idea: true,
+  },
+  {
+    id: "mar",
+    index: "33",
+    title: "Autoregressive Image Generation without Vector Quantization",
+    shortTitle: "MAR",
+    date: "2024-06-17 · 基础补读",
+    category: "自回归建模",
+    paradigm: "Continuous-token AR / Masked AR + Diffusion Loss",
+    state: "连续图像 token embedding",
+    objective: "每个 token 的条件 diffusion loss",
+    decoding: "顺序 AR 或 masked AR；每个位置内部进行连续去噪",
+    sharing: "序列级 Transformer 可共享；离散 LM head 被 diffusion head 取代",
+    open: "论文、训练代码与模型已公开",
+    priority: "精读",
+    summary:
+      "Kaiming He 团队证明 AR 的关键是因果/序列依赖，而不是必须预测离散类别：MAR直接对连续图像 token 建模，并用每个位置上的 diffusion loss 表达多峰条件分布，同时支持标准 AR 与随机顺序 masked AR。",
+    why:
+      "MAR把“生成顺序”和“状态空间/损失”拆开，是设计公平对照时非常关键的思想。它能避免把 AR 等同于离散 CE，也避免把连续生成等同于全局 Flow Matching，为 URSA→ELF 提供一个中间点。",
+    inspiration:
+      "你可以保留 URSA/IBQ 的 token 序列与 Qwen3 主干，只把分类 head 替换为连续 code-embedding diffusion head；这样能单独测试提升来自连续目标，还是来自 ELF 的全局同步 flow。MAR也提示 masked order 本身可以独立于 token 表示进行消融。",
+    experiment:
+      "同一 IBQ encoder/decoder 下比较：token-ID AR+CE、continuous MAR diffusion loss、URSA metric-path CE、ELF global velocity。统一采样预算后，额外测 codebook 最近邻回投错误、OCR 字符稳定性与不同位置的累计误差。",
+    paper: "https://arxiv.org/abs/2406.11838",
+    code: "https://github.com/LTH14/mar",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "magvit-v2",
+    index: "34",
+    title: "Language Model Beats Diffusion — Tokenizer is Key to Visual Generation",
+    shortTitle: "MAGVIT-v2",
+    date: "2023-10-09 · 经典基础",
+    category: "统一视觉 Token",
+    paradigm: "LFQ Unified Image / Video Tokenizer",
+    state: "共享的离散图像与视频 token ID",
+    objective: "高压缩视觉重建 + 下游 next-token modeling",
+    decoding: "由下游 causal LM 顺序生成，再经统一 decoder 重建",
+    sharing: "图像与视频共享视觉 vocabulary/tokenizer；是否共享语言词表由下游决定",
+    open: "论文公开；官方实现可通过 VideoPoet/MAGVIT 系列资源参考",
+    priority: "精读",
+    summary:
+      "MAGVIT-v2用 Lookup-Free Quantization 构建统一、紧凑且高容量的图像/视频 vocabulary，显示强 tokenizer 足以显著抬高语言模型式视觉生成的上限，并把图像和视频放进同一离散接口。",
+    why:
+      "这篇经典工作提醒你：比较 URSA、ELF、AR 或 masked diffusion 前，必须先锁定 tokenizer。否则生成质量、OCR 与长视频一致性的差异很可能来自量化器容量、压缩率和重建上限，而不是建模方式。",
+    inspiration:
+      "IBQ 审计不应只看 rFID。要同时测文字、细粒度目标、跨帧 code consistency、codebook usage 与语义 linear probe；还应增加“同一生成模型、更换 tokenizer”和“同一 tokenizer、更换建模方式”两条正交实验线。",
+    experiment:
+      "建立 tokenizer × model 二维表：IBQ、LFQ/MAGVIT-v2-style、语义对齐 IBQ 分别搭配 AR、URSA 和 ELF。先报告 encode-decode 上限，再报告端到端性能，并用相同 token 数、分辨率与训练预算归因增益。",
+    paper: "https://arxiv.org/abs/2310.05737",
+    featured: true,
+    idea: true,
   },
 ];
 
-const categories = [
-  "今日精选",
-  "连续 Flow",
-  "离散 Diffusion",
-  "自回归建模",
-  "统一多模态",
-  "世界模型",
-  "统一视觉 Token",
-  "语义对齐",
-  "可解释性",
-  "多帧推理",
-  "评测诊断",
+const shortcuts = ["今日精选", "精读清单", "借鉴优先"];
+const directions = [
+  "建模方式",
+  "UMM 与视觉表征",
+  "世界模型与行动",
+  "可解释性与可靠推理",
+  "评测与实验诊断",
 ];
-const categoryIcons = ["★", "≋", "∴", "→", "◇", "◉", "▦", "◎", "⌁", "◫", "✓"];
+const categoryGroups: Record<string, string[]> = {
+  "建模方式": ["连续 Flow", "离散 Diffusion", "自回归建模"],
+  "UMM 与视觉表征": ["统一多模态", "统一视觉 Token", "语义对齐"],
+  "世界模型与行动": ["世界模型"],
+  "可解释性与可靠推理": ["可解释性", "多帧推理"],
+  "评测与实验诊断": ["评测诊断"],
+};
+const categoryIcons: Record<string, string> = {
+  "今日精选": "★",
+  "精读清单": "◆",
+  "借鉴优先": "↗",
+  "建模方式": "≋",
+  "UMM 与视觉表征": "◇",
+  "世界模型与行动": "◉",
+  "可解释性与可靠推理": "⌁",
+  "评测与实验诊断": "✓",
+};
 
 function ArrowIcon() {
   return <span aria-hidden="true">↗</span>;
@@ -866,6 +958,7 @@ export default function Home() {
   const [active, setActive] = useState("今日精选");
   const [query, setQuery] = useState("");
   const [saved, setSaved] = useState<string[]>([]);
+  const [expanded, setExpanded] = useState<string[]>([]);
 
   useEffect(() => {
     const value = window.localStorage.getItem("umm-reading-list");
@@ -888,10 +981,25 @@ export default function Home() {
     });
   };
 
+  const selectDeepReads = () => {
+    setActive("精读清单");
+    window.requestAnimationFrame(() => document.querySelector("#papers")?.scrollIntoView({ behavior: "smooth" }));
+  };
+
+  const toggleExpanded = (id: string) => {
+    setExpanded((current) => current.includes(id)
+      ? current.filter((item) => item !== id)
+      : [...current, id]);
+  };
+
   const visiblePapers = useMemo(() => {
     const q = query.trim().toLowerCase();
     return papers.filter((paper) => {
-      const categoryMatch = active === "今日精选" ? paper.featured : paper.category === active;
+      const categoryMatch =
+        (active === "今日精选" && paper.featured) ||
+        (active === "精读清单" && paper.priority === "精读") ||
+        (active === "借鉴优先" && paper.idea) ||
+        (categoryGroups[active]?.includes(paper.category) ?? false);
       const queryMatch = !q || [paper.title, paper.paradigm, paper.summary, paper.category]
         .join(" ")
         .toLowerCase()
@@ -927,7 +1035,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.07.23</strong>
+        <strong>DAILY BRIEF · 2026.07.24</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -936,15 +1044,30 @@ export default function Home() {
         <aside className="sidebar">
           <h2>研究目录</h2>
           <div className="side-nav">
-            {categories.map((category, index) => (
-              <button
-                className={active === category ? "selected" : ""}
-                key={category}
-                onClick={() => setActive(category)}
-              >
-                <span>{categoryIcons[index]}</span>{category}
-              </button>
-            ))}
+            <div className="nav-group">
+              <h3>快捷入口</h3>
+              {shortcuts.map((category) => (
+                <button
+                  className={active === category ? "selected" : ""}
+                  key={category}
+                  onClick={() => setActive(category)}
+                >
+                  <span>{categoryIcons[category]}</span>{category}
+                </button>
+              ))}
+            </div>
+            <div className="nav-group">
+              <h3>五个研究方向</h3>
+              {directions.map((category) => (
+                <button
+                  className={active === category ? "selected" : ""}
+                  key={category}
+                  onClick={() => setActive(category)}
+                >
+                  <span>{categoryIcons[category]}</span>{category}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="side-filter">
             <h3>当前筛选</h3>
@@ -958,16 +1081,22 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 009]</p>
-              <h1>从 ELF、URSA 走向<br />可预测、可行动的世界模型</h1>
-              <p className="hero-copy">对比 UMM 与世界模型在 token 空间、动力学目标、生成顺序和共享组件上的关键差异，追踪“理解—生成—预测—行动”的可控扩展路线。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 010]</p>
+              <h1>研究问题归方向，<br />Flow / AR / Diffusion 归建模方式</h1>
+              <p className="hero-copy">目录压缩为五个上层研究方向，同时保留每篇论文的精细建模标签。新增精读与借鉴入口，让你可以从研究问题出发，再横向比较连续 Flow、离散 Diffusion、AR 与混合路线。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
-                <a className="text-button" href="#matrix">打开实验矩阵 <span>→</span></a>
+                <button className="text-button" onClick={selectDeepReads}>打开精读清单 <span>→</span></button>
+              </div>
+              <div className="taxonomy-note">
+                <b>新的分类逻辑</b>
+                <span>方向回答“研究什么”</span>
+                <i>→</i>
+                <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>31</b><span>精选论文</span></div>
-                <div><b>11</b><span>研究方向</span></div>
+                <div><b>34</b><span>精选论文</span></div>
+                <div><b>05</b><span>研究方向</span></div>
                 <div><b>02</b><span>比较矩阵</span></div>
               </div>
             </div>
@@ -1002,27 +1131,43 @@ export default function Home() {
                         <h3>{paper.title}</h3>
                         <div className="tags"><span>{paper.paradigm}</span><span>{paper.category}</span><span>{paper.date}</span></div>
                       </div>
-                      <span className={`priority ${paper.priority === "精读" ? "high" : ""}`}>{paper.priority}</span>
+                      <button
+                        className={`priority ${paper.priority === "精读" ? "high" : ""}`}
+                        onClick={paper.priority === "精读" ? selectDeepReads : undefined}
+                        title={paper.priority === "精读" ? "查看全部精读论文" : "建议泛读"}
+                      >
+                        {paper.priority}
+                      </button>
                     </div>
                     <p className="summary">{paper.summary}</p>
-                    <div className="reason-grid">
-                      <section><h4>为什么推荐</h4><p>{paper.why}</p></section>
-                      <section><h4>可能给你的启发</h4><p>{paper.inspiration}</p></section>
-                    </div>
-                    <div className="experiment-note"><strong>建议实验</strong><p>{paper.experiment}</p></div>
-                    <div className="paper-specs">
-                      <span><b>建模状态</b>{paper.state}</span>
-                      <span><b>训练目标</b>{paper.objective}</span>
-                      <span><b>解码方式</b>{paper.decoding}</span>
-                      <span><b>共享结构</b>{paper.sharing}</span>
-                    </div>
-                    {paper.action && (
-                      <div className="world-specs">
-                        <span><b>动作接口</b>{paper.action}</span>
-                        <span><b>Rollout / 闭环</b>{paper.rollout}</span>
-                        <span><b>世界模型评价</b>{paper.evaluation}</span>
+                    <button
+                      className="mobile-read-toggle"
+                      onClick={() => toggleExpanded(paper.id)}
+                      aria-expanded={expanded.includes(paper.id)}
+                    >
+                      {expanded.includes(paper.id) ? "收起完整推荐" : "查看完整推荐"}
+                      <span>{expanded.includes(paper.id) ? "↑" : "↓"}</span>
+                    </button>
+                    <div className={`paper-details ${expanded.includes(paper.id) ? "expanded" : ""}`}>
+                      <div className="reason-grid">
+                        <section><h4>为什么推荐</h4><p>{paper.why}</p></section>
+                        <section><h4>可能给你的启发</h4><p>{paper.inspiration}</p></section>
                       </div>
-                    )}
+                      <div className="experiment-note"><strong>建议实验</strong><p>{paper.experiment}</p></div>
+                      <div className="paper-specs">
+                        <span><b>建模状态</b>{paper.state}</span>
+                        <span><b>训练目标</b>{paper.objective}</span>
+                        <span><b>解码方式</b>{paper.decoding}</span>
+                        <span><b>共享结构</b>{paper.sharing}</span>
+                      </div>
+                      {paper.action && (
+                        <div className="world-specs">
+                          <span><b>动作接口</b>{paper.action}</span>
+                          <span><b>Rollout / 闭环</b>{paper.rollout}</span>
+                          <span><b>世界模型评价</b>{paper.evaluation}</span>
+                        </div>
+                      )}
+                    </div>
                     <div className="paper-footer">
                       <span className="open-status"><i />{paper.open}</span>
                       <div>
@@ -1043,6 +1188,7 @@ export default function Home() {
               <div><p className="eyebrow">CONTROLLED COMPARISON</p><h2>UMM 建模方式实验矩阵</h2></div>
               <p>固定主干、tokenizer、数据与预算，只改变生成机制</p>
             </div>
+            <p className="scroll-hint">移动端可横向滑动查看完整矩阵 →</p>
             <div className="matrix-wrap">
               <table>
                 <thead><tr><th>路线</th><th>状态空间</th><th>预测目标</th><th>生成顺序</th><th>最关键变量</th></tr></thead>
@@ -1056,6 +1202,9 @@ export default function Home() {
                   <tr><th>LLaDA2.0-Uni</th><td>SigLIP-VQ 离散 token</td><td>Masked clean-token CE</td><td>Block-level 并行去掩码</td><td>mask path、block size、二级 decoder</td></tr>
                   <tr><th>ARM</th><td>语义化离散 token</td><td>Next-token CE + RL</td><td>左到右 AR</td><td>tokenizer 语义监督、累计误差</td></tr>
                   <tr><th>SPAR</th><td>语义/像素双流 latent</td><td>Flow Matching + self-align</td><td>连续 latent ODE</td><td>双流容量、动态层路由</td></tr>
+                  <tr><th>Transfusion</th><td>文本 ID + 连续图像 patch</td><td>文本 CE + 图像 diffusion loss</td><td>文本 AR / 图像并行去噪</td><td>共享主干与模态特化 head 的边界</td></tr>
+                  <tr><th>MAR</th><td>连续图像 token</td><td>逐 token diffusion loss</td><td>AR 或 masked AR + 内层去噪</td><td>生成顺序与状态空间解耦</td></tr>
+                  <tr><th>MAGVIT-v2</th><td>LFQ 离散图像/视频 token</td><td>tokenizer 重建 + 下游 CE</td><td>下游 causal LM</td><td>先锁定 tokenizer 上限再比模型</td></tr>
                   <tr><th>TokLIP</th><td>VQ + 语义特征</td><td>理解/生成解耦</td><td>沿用下游模型</td><td>语义增益与重建保持</td></tr>
                   <tr><th>InternVLA-A1</th><td>语义 token + VAE latent + action</td><td>未来 latent + action velocity</td><td>并行预见 + Flow ODE</td><td>三专家分工、动态预测收益</td></tr>
                   <tr><th>Multi-Mask DLM</th><td>token ID + 多 mask state</td><td>Clean-token CE + distill</td><td>并行恢复 / 4–16 步</td><td>mask 分工、IBQ 聚类、少步一致性</td></tr>
@@ -1077,6 +1226,7 @@ export default function Home() {
               <div><p className="eyebrow">WORLD MODEL COMPARISON</p><h2>世界模型：状态、动作与动力学矩阵</h2></div>
               <p>不只比较画质：同时检查因果可控性、闭环成功率与 horizon error</p>
             </div>
+            <p className="scroll-hint">移动端可横向滑动查看状态、动作与闭环列 →</p>
             <div className="matrix-wrap">
               <table className="world-table">
                 <thead><tr><th>路线</th><th>观测状态</th><th>动作接口</th><th>动力学目标</th><th>建模方式</th><th>Rollout / 规划</th><th>与 UMM 的关系</th></tr></thead>
