@@ -587,7 +587,7 @@ const papers: Paper[] = [
     paper: "https://arxiv.org/abs/2601.02456",
     code: "https://github.com/InternRobotics/InternVLA-A-series",
     codeLabel: "代码",
-    featured: true,
+    featured: false,
   },
   {
     id: "dworldeval",
@@ -617,7 +617,7 @@ const papers: Paper[] = [
     paper: "https://arxiv.org/abs/2604.22152",
     code: "https://dworldeval.github.io/",
     codeLabel: "项目页",
-    featured: true,
+    featured: false,
   },
   {
     id: "qwen-robotworld",
@@ -645,7 +645,7 @@ const papers: Paper[] = [
     experiment:
       "固定 Qwen3 语义主干和视频/IBQ decoder，比较 A: 单流共享 token，B: 语义—latent 双流 cross-attention，C: MoT 三专家。控制总参数与 FLOPs，测静态 OCR/VQA、未来帧一致性、action sensitivity、2/4/8 帧 rollout 错误和推理延迟。",
     paper: "https://arxiv.org/abs/2606.17030",
-    featured: true,
+    featured: false,
   },
   {
     id: "being-h07",
@@ -675,7 +675,7 @@ const papers: Paper[] = [
     paper: "https://arxiv.org/abs/2605.00078",
     code: "https://research.beingbeyond.com/being-h07",
     codeLabel: "项目页",
-    featured: true,
+    featured: false,
   },
   {
     id: "world-model-roadmap",
@@ -703,6 +703,142 @@ const papers: Paper[] = [
     experiment:
       "为所有候选世界模型统一增加三组测试：action-shuffling 因果敏感性、rollout horizon 误差曲线、闭环任务成功率；再将其与静态理解、T2I 和 OCR 指标分开，防止 tokenizer 或画质提升掩盖动力学缺陷。",
     paper: "https://arxiv.org/abs/2607.06401",
+    featured: false,
+  },
+  {
+    id: "multi-mask-dlm",
+    index: "27",
+    title: "Multi-Mask Diffusion Language Models for Few-Step Generation",
+    shortTitle: "Multi-Mask DLM",
+    date: "2026-07-22 · COLM 2026",
+    category: "离散 Diffusion",
+    paradigm: "Multi-state Masked Discrete Diffusion",
+    state: "离散 token ID + 多个专用 mask state",
+    objective: "clean-token posterior / CE + mask-state identification + consistency distillation",
+    decoding: "并行迭代恢复；蒸馏后支持 4/8/16 步",
+    sharing: "保留原 clean-token head；可从预训练 masked DLM 低成本适配",
+    open: "论文公开；截至核对时未见官方代码仓库",
+    priority: "精读",
+    summary:
+      "把单一 [MASK] 扩展为多个具有分工的噪声状态：每个 clean token 先映射到指定 mask，随后 mask 间继续混合。该设计提高了中间状态的信息容量，并通过共享 Gumbel 耦合的离散 consistency distillation 压缩到少步生成。",
+    why:
+      "它正好补上单 mask diffusion 与 URSA metric path 之间的空白：两者都预测 clean-token logits，但前者仍使用显式噪声符号，URSA则在完整词表上按 token 距离连续迁移。把它加入对照，能判断 URSA 的收益来自 metric-aware path，还是只来自更丰富的中间噪声状态。",
+    inspiration:
+      "对 IBQ 可把 codebook 按像素距离、DINO/SigLIP 语义或 OCR/布局属性聚类，每一簇对应一个 mask state。若 metric-cluster multi-mask 接近 URSA，说明无需在全词表上构造复杂 transition；若仍落后，metric path 的细粒度几何确实重要。",
+    experiment:
+      "固定 Qwen3、IBQ、clean-token head、数据和总 FLOPs，比较单 [MASK]、随机 multi-mask、IBQ metric-cluster multi-mask、semantic-cluster multi-mask 与 URSA metric path；统一报告 OCRBench、DocVQA、TextVQA、T2I、4/8/16/32 步质量、训练稳定性和峰值显存。",
+    paper: "https://arxiv.org/abs/2607.19686",
+    featured: true,
+  },
+  {
+    id: "self-gradient-forcing",
+    index: "28",
+    title: "Self Gradient Forcing: Native Long Video Extrapolation",
+    shortTitle: "Self Gradient Forcing",
+    date: "2026-07-22",
+    category: "世界模型",
+    paradigm: "Autoregressive Video Diffusion + Two-pass Gradient Recovery",
+    state: "连续 Video-VAE latent + causal KV memory",
+    objective: "未来 video latent denoising；恢复 future-to-history context gradient",
+    decoding: "分块 AR rollout；每个视频块内部 diffusion 去噪",
+    sharing: "共享 causal DiT 与滚动 KV；不共享 UMM 的视觉 tokenizer / vocabulary",
+    action: "当前工作无显式控制 action；以文本与自生成历史作为条件",
+    rollout: "5 秒训练窗口可外推到分钟级；仍是开放环视频 rollout",
+    evaluation: "长时主体、布局和运动一致性；还需补充动作因果与闭环任务成功率",
+    open: "论文、项目页与仓库已公开；代码/模型资产标注为即将发布",
+    priority: "精读",
+    summary:
+      "指出 Self Forcing 在使用自生成历史时会把历史 KV cache stop-gradient，导致未来损失无法监督模型如何把早期状态写入记忆。SGF 用无梯度真实 rollout 加一次并行重算，在不做完整 BPTT 的情况下恢复有界的历史上下文梯度。",
+    why:
+      "这不是单纯改善视频画质，而是在回答长时世界模型的核心训练问题：错误为什么随 rollout horizon 累积。你的多帧威胁检测同样依赖早期帧如何写入时序记忆；若这些状态只被当作不可训练缓存，后续目标持续性损失无法纠正早期记忆。",
+    inspiration:
+      "可以把 SGF 的两遍训练移植到 Qwen3+IBQ：第一遍用模型生成未来 IBQ token 和时序 cache，第二遍并行重算选定历史片段，让后续目标类别、坐标与态势损失反向约束早期 memory writing，而无需对完整长序列做 BPTT。",
+    experiment:
+      "固定 Qwen3、IBQ、序列长度和训练预算，比较 teacher forcing、self-rollout + stop-grad cache、截断 BPTT 与 SGF two-pass；报告 2/4/8/16 帧目标身份漂移、坐标误差、短时威胁召回、cache 梯度范数、吞吐和显存。",
+    paper: "https://arxiv.org/abs/2607.20368",
+    code: "https://github.com/zhuang2002/Self_Gradient_Forcing",
+    featured: true,
+  },
+  {
+    id: "perceptdrive",
+    index: "29",
+    title: "PerceptDrive: Perception Prior World-Action Modeling",
+    shortTitle: "PerceptDrive",
+    date: "2026-07-22",
+    category: "世界模型",
+    paradigm: "Routed Multi-expert Latent World Model + Rectified-flow Actor",
+    state: "VLM 高层先验 + 自监督视频 encoder 稠密 latent",
+    objective: "action-free / action-conditioned next-latent L2 + action velocity Flow Matching",
+    decoding: "预测未来四个 latent；动作以 25 步 Euler ODE 积分",
+    sharing: "共享场景上下文，但感知专家、世界模型与动作 head 分工",
+    action: "连续 ego trajectory；scene-conditioned soft router 自适应组合专家",
+    rollout: "短期 latent foresight 条件化闭环驾驶策略；非长视频像素模拟器",
+    evaluation: "NAVSIM 闭环规划指标；仍应审计 route 可解释性和 horizon drift",
+    open: "论文公开；截至核对时未见官方代码仓库",
+    priority: "精读",
+    summary:
+      "冻结 VLM 的几何/语义/动态先验与视频 encoder 的稠密观测 latent，通过可学习 queries 保留不同专家信息，再由场景条件路由器融合；世界模型预测短期未来 latent，Rectified Flow actor 生成连续轨迹。",
+    why:
+      "它给 UMM 一个重要反例：理解、像素细节、时序动力学和动作不一定应该被压进同一 embedding。对 Qwen3+IBQ 而言，性能瓶颈可能来自强行让一个 code space 同时承担 OCR、重建和未来预测，而不是生成范式本身。",
+    inspiration:
+      "可把 IBQ 重建流、DINO/SigLIP 语义流、OCR/layout 流和多帧 motion 流视为四个专家，由场景路由器决定威胁判断依赖哪些信息。路由权重还可作为跨模态归因，检查模型是否真正使用了文字、运动或目标外观证据。",
+    experiment:
+      "固定 Qwen3、总参数量、视觉 token 数和训练数据，比较简单相加、静态加权、cross-attention 双流与 scene-conditioned router；分别测试 OCR/DocVQA、T2I、未来 latent 误差、目标轨迹、反事实动作敏感性和专家路由稳定性。",
+    paper: "https://arxiv.org/abs/2607.20175",
+    featured: true,
+  },
+  {
+    id: "kinebench",
+    index: "30",
+    title: "KineBench: Embodied World Models via IDM-Free Kinematic Grounding",
+    shortTitle: "KineBench",
+    date: "2026-07-22 · ECCV 2026",
+    category: "世界模型",
+    paradigm: "World-model Evaluation via Simulator Grounding",
+    state: "模型生成 RGB 视频，经视觉基础模型恢复 6D 末端位姿",
+    objective: "不训练统一生成器；评估运动学可执行性、平滑性与可操作度",
+    decoding: "生成视频 → 位姿提取 → ManiSkill3 物理执行",
+    sharing: "评价协议独立于 tokenizer、生成器和动作 head",
+    action: "从视频恢复 6D end-effector pose，不依赖学习型 inverse dynamics model",
+    rollout: "把开放环视频转成模拟器执行，直接观察任务是否可完成",
+    evaluation: "Execution Success、SPARC Smoothness、Manipulability；覆盖基础、迁移、视觉 OOD 和复杂度扩展",
+    open: "论文、代码与数据集均已公开",
+    priority: "泛读",
+    summary:
+      "不再只以 FVD/LPIPS 判断具身世界模型，而是用级联视觉基础模型从生成视频恢复末端执行器轨迹，并在物理模拟器中真实执行，从而避免学习型 IDM 把额外误差混入评价。",
+    why:
+      "世界模型看起来逼真，不代表它产生的运动可执行。KineBench给你的雷达补上了‘生成结果如何落到任务成功’这一层，也能防止将视觉 tokenizer 变好误判为动力学或规划能力变强。",
+    inspiration:
+      "多帧威胁研究可做对应的 detector-free/grounding audit：把预测视频或未来 token 解码后送入固定目标检测、几何跟踪与态势规则，再测目标轨迹、威胁排序和决策是否可执行；同时单独报告提取器误差，避免评价器掩盖模型缺陷。",
+    experiment:
+      "对 AR、URSA 和 ELF 世界模型使用同一解码器及固定轨迹提取器；除 FVD/LPIPS 外，比较目标持续性、轨迹平滑度、碰撞/越界率、闭环任务成功和 horizon error，并用真实 action/轨迹作为上限控制组。",
+    paper: "https://arxiv.org/abs/2607.19876",
+    code: "https://github.com/minecraft-zzz/KineBench",
+    featured: true,
+  },
+  {
+    id: "recap-activation-explanations",
+    index: "31",
+    title: "Train the Model, Not the Reader: Verifiable Activation Explanations",
+    shortTitle: "RECAP",
+    date: "2026-07-22",
+    category: "可解释性",
+    paradigm: "Decodability-supervised Activation Explanation",
+    state: "LLM activation → natural-language explanation + independently decodable claims",
+    objective: "activation reconstruction + designated claim probes / RECAP",
+    decoding: "不改变基础模型生成；审计解释文本中的具体声明",
+    sharing: "可附加在 SAE、verbalizer 或跨模态 attribution 系统之后",
+    open: "论文公开；截至核对时未见官方代码仓库",
+    priority: "泛读",
+    summary:
+      "发现仅用 activation reconstruction 评价自然语言解释，会允许系统靠语义 gist 或私有编码通过测试，而具体声明并不由 activation 支持。RECAP增加独立线性探针，使指定内容必须能从同一 activation 中被解码。",
+    why:
+      "这会直接改变你如何验证 URSA/JSAE/SAE 的 feature label：解释文本看起来合理、甚至能重建激活，都不等于其中的‘物体、位置、帧号或 OCR 字符’真的被该 feature 编码，更不等于它具有因果作用。",
+    inspiration:
+      "把视觉 feature 的可验证声明限定为对象类别、OCR 字符串、frame index、坐标和去噪阶段；要求独立 probe 能读出这些属性，再做 suppression/injection。这样可把‘语义可读’、‘可解码’与‘因果有效’三个层次分开。",
+    experiment:
+      "对同一 URSA hidden state/SAE feature 比较自动标签、minimal-pair claim flip、独立 probe、evaluator swap 与因果干预；只把同时通过 grounded、decodable、causal 三道门槛的 feature 计入 UMM 共享语义比例。",
+    paper: "https://arxiv.org/abs/2607.20379",
     featured: true,
   },
 ];
@@ -791,7 +927,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.07.22</strong>
+        <strong>DAILY BRIEF · 2026.07.23</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -822,7 +958,7 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 008]</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 009]</p>
               <h1>从 ELF、URSA 走向<br />可预测、可行动的世界模型</h1>
               <p className="hero-copy">对比 UMM 与世界模型在 token 空间、动力学目标、生成顺序和共享组件上的关键差异，追踪“理解—生成—预测—行动”的可控扩展路线。</p>
               <div className="hero-actions">
@@ -830,7 +966,7 @@ export default function Home() {
                 <a className="text-button" href="#matrix">打开实验矩阵 <span>→</span></a>
               </div>
               <div className="stats">
-                <div><b>26</b><span>精选论文</span></div>
+                <div><b>31</b><span>精选论文</span></div>
                 <div><b>11</b><span>研究方向</span></div>
                 <div><b>02</b><span>比较矩阵</span></div>
               </div>
@@ -922,6 +1058,7 @@ export default function Home() {
                   <tr><th>SPAR</th><td>语义/像素双流 latent</td><td>Flow Matching + self-align</td><td>连续 latent ODE</td><td>双流容量、动态层路由</td></tr>
                   <tr><th>TokLIP</th><td>VQ + 语义特征</td><td>理解/生成解耦</td><td>沿用下游模型</td><td>语义增益与重建保持</td></tr>
                   <tr><th>InternVLA-A1</th><td>语义 token + VAE latent + action</td><td>未来 latent + action velocity</td><td>并行预见 + Flow ODE</td><td>三专家分工、动态预测收益</td></tr>
+                  <tr><th>Multi-Mask DLM</th><td>token ID + 多 mask state</td><td>Clean-token CE + distill</td><td>并行恢复 / 4–16 步</td><td>mask 分工、IBQ 聚类、少步一致性</td></tr>
                 </tbody>
               </table>
             </div>
@@ -948,6 +1085,9 @@ export default function Home() {
                   <tr><th>dWorldEval</th><td>MAGVIT-v2 离散视觉 token</td><td>FAST 离散 action token</td><td>未来视觉 token + progress token</td><td>Masked Discrete Diffusion</td><td>闭环 imagined rollout + 稀疏记忆</td><td>视觉/语言/动作统一序列，最接近 URSA 对照</td></tr>
                   <tr><th>Qwen-RobotWorld</th><td>Qwen2.5-VL 语义流 + Video-VAE latent</td><td>自然语言动作</td><td>未来视频 latent</td><td>Double-stream MMDiT diffusion</td><td>视频轨迹；用于数据、评测与规划信号</td><td>统一语义接口，不共享 tokenizer / vocabulary</td></tr>
                   <tr><th>Being-H0.7</th><td>V-JEPA future embedding + latent query</td><td>连续动作 Flow</td><td>future-informed hidden alignment</td><td>Latent world-action + privileged target</td><td>无像素 rollout；低延迟闭环</td><td>共享上下文与主干，把预测性压入语义 latent</td></tr>
+                  <tr><th>Self Gradient Forcing</th><td>Video-VAE latent + causal KV</td><td>文本 / 自生成历史</td><td>未来 latent denoising + context gradient</td><td>分块 AR + diffusion + two-pass</td><td>分钟级开放环视频 rollout</td><td>可迁移到 IBQ 时序 cache，解决历史记忆 stop-grad</td></tr>
+                  <tr><th>PerceptDrive</th><td>VLM 先验 + 稠密视频 latent</td><td>连续 ego trajectory</td><td>next latent L2 + action velocity</td><td>专家路由 + Rectified Flow</td><td>短期预见条件化闭环规划</td><td>语义/像素/动力学分工，不强求统一 token</td></tr>
+                  <tr><th>KineBench</th><td>生成 RGB → 6D pose</td><td>恢复的末端执行器轨迹</td><td>无生成训练目标；运动学审计</td><td>视觉 grounding + 物理执行</td><td>模拟器闭环执行评价</td><td>区分画质、动力学与任务成功，适合所有 UMM 世界模型</td></tr>
                 </tbody>
               </table>
             </div>
