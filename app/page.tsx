@@ -981,9 +981,15 @@ export default function Home() {
     });
   };
 
-  const selectDeepReads = () => {
+  const selectDeepReads = (paperId?: string) => {
     setActive("精读清单");
-    window.requestAnimationFrame(() => document.querySelector("#papers")?.scrollIntoView({ behavior: "smooth" }));
+    if (paperId) {
+      setExpanded((current) => current.includes(paperId) ? current : [...current, paperId]);
+    }
+    window.requestAnimationFrame(() => {
+      const target = paperId ? document.querySelector(`#paper-${paperId}`) : document.querySelector("#papers");
+      target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   };
 
   const toggleExpanded = (id: string) => {
@@ -1086,7 +1092,7 @@ export default function Home() {
               <p className="hero-copy">目录压缩为五个上层研究方向，同时保留每篇论文的精细建模标签。新增精读与借鉴入口，让你可以从研究问题出发，再横向比较连续 Flow、离散 Diffusion、AR 与混合路线。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
-                <button className="text-button" onClick={selectDeepReads}>打开精读清单 <span>→</span></button>
+                <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
               </div>
               <div className="taxonomy-note">
                 <b>新的分类逻辑</b>
@@ -1123,7 +1129,7 @@ export default function Home() {
             </div>
             <div className="paper-list">
               {visiblePapers.map((paper) => (
-                <article className="paper-card" key={paper.id}>
+                <article className="paper-card" id={`paper-${paper.id}`} key={paper.id}>
                   <div className="paper-number">[{paper.index}]</div>
                   <div className="paper-main">
                     <div className="paper-title-row">
@@ -1133,8 +1139,8 @@ export default function Home() {
                       </div>
                       <button
                         className={`priority ${paper.priority === "精读" ? "high" : ""}`}
-                        onClick={paper.priority === "精读" ? selectDeepReads : undefined}
-                        title={paper.priority === "精读" ? "查看全部精读论文" : "建议泛读"}
+                        onClick={paper.priority === "精读" ? () => selectDeepReads(paper.id) : undefined}
+                        title={paper.priority === "精读" ? "展开论文完整推荐" : "建议泛读"}
                       >
                         {paper.priority}
                       </button>
