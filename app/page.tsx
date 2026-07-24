@@ -866,7 +866,7 @@ const papers: Paper[] = [
       "固定 Qwen3 主干、数据、视觉 token 数和训练 FLOPs，比较：共享词表 URSA、ELF 连续 flow、Transfusion 式双目标。分别冻结/解冻视觉 decoder，并记录 OCRBench、TextVQA、T2I、梯度冲突、峰值显存和跨模态 attention 利用率。",
     paper: "https://arxiv.org/abs/2408.11039",
     code: "https://github.com/facebookresearch/transfusion",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -893,7 +893,7 @@ const papers: Paper[] = [
       "同一 IBQ encoder/decoder 下比较：token-ID AR+CE、continuous MAR diffusion loss、URSA metric-path CE、ELF global velocity。统一采样预算后，额外测 codebook 最近邻回投错误、OCR 字符稳定性与不同位置的累计误差。",
     paper: "https://arxiv.org/abs/2406.11838",
     code: "https://github.com/LTH14/mar",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -919,6 +919,146 @@ const papers: Paper[] = [
     experiment:
       "建立 tokenizer × model 二维表：IBQ、LFQ/MAGVIT-v2-style、语义对齐 IBQ 分别搭配 AR、URSA 和 ELF。先报告 encode-decode 上限，再报告端到端性能，并用相同 token 数、分辨率与训练预算归因增益。",
     paper: "https://arxiv.org/abs/2310.05737",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "worldweaver",
+    index: "35",
+    title: "WorldWeaver: Streaming Multi-Agent Autoregressive Diffusion with World State Registers",
+    shortTitle: "WorldWeaver",
+    date: "2026-07-23",
+    category: "世界模型",
+    paradigm: "Streaming AR Diffusion + World-State Registers",
+    state: "视频 latent + 持久化 world / agent register token",
+    objective: "分块视频去噪 + agent state / BEV / scene-text 辅助监督",
+    decoding: "chunk-autoregressive diffusion；每块结束后提交并更新 register",
+    sharing: "联合 self-attention；MoT 为状态 token 与画面 token 使用角色特化权重",
+    action: "当前动作、个体位置/速度/朝向与全局场景状态",
+    rollout: "双智能体同步长时 rollout；register 跨窗口保留世界状态",
+    evaluation: "视觉质量 + movement grounding、memory、building consistency 与 world score",
+    open: "项目页与官方仓库已公开；代码和 checkpoint 标注为即将发布",
+    priority: "精读",
+    summary:
+      "为流式视频世界模型加入可持续更新的 World State Registers：专门保存共享世界信息和个体状态，避免每一步都从有限视觉窗口重新推断场景；再用 agent statistics、鸟瞰图和场景文本让这些状态可监督、可检查。",
+    why:
+      "这是今天最值得读的一篇。它把长时世界模型的瓶颈从“如何生成下一帧”推进到“跨 rollout 究竟保存什么状态”，而这恰好也是多帧威胁检测容易发生身份漂移、轨迹遗忘和态势反复推断的根因。",
+    inspiration:
+      "在 Qwen3 + IBQ/URSA/ELF 中，不必让全部历史图像 token 永久留在 KV cache。可以增加少量 target registers，显式保存目标身份、坐标、速度、威胁等级与不确定性；生成路径仍可分别使用离散 URSA 或连续 ELF，状态记忆则成为独立控制变量。",
+    experiment:
+      "固定 Qwen3、IBQ、帧数与 token 预算，比较完整历史、仅 KV cache、无监督 learned registers、由目标/轨迹/全局态势监督的 registers；共同记录 ID-switch、轨迹误差、短时目标召回、horizon drift、延迟和峰值显存，并在删帧后检查 register 是否保留真实证据而非语言先验。",
+    paper: "https://arxiv.org/abs/2607.21594",
+    code: "https://vail-ucla.github.io/worldweaver/",
+    codeLabel: "项目页",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "context-weighted-dfm",
+    index: "36",
+    title: "Context-weighted Discrete Flow Matching",
+    shortTitle: "Context-weighted DFM",
+    date: "2026-07-23",
+    category: "离散 Diffusion",
+    paradigm: "Context-weighted Discrete Flow Matching",
+    state: "离散 token ID / 连续时间 Markov chain 状态",
+    objective: "context-scaled clean-token Cross-Entropy",
+    decoding: "任意顺序、按局部上下文密度加权的离散采样",
+    sharing: "兼容共享 vocabulary / LM head，也可从 AR/LLM 权重初始化",
+    open: "论文已公开；截至核对时未见官方代码仓库",
+    priority: "精读",
+    summary:
+      "指出标准离散 Flow 把低熵易预测 token 与高熵歧义 token 混在同一因子化目标中；通过把局部上下文密度写入 CTMC sampler 与 scaled CE，在几乎不增加开销的情况下显著改善生成困惑度，并保留 any-order generation。",
+    why:
+      "它是 URSA 今天最直接的新对照。URSA用 codebook/token 距离定义转移几何，这篇则用上下文信息量决定哪些 token 更值得学习和先恢复；二者分别解决“token 与谁相近”和“当前位置有多难”两个正交问题。",
+    inspiration:
+      "图像网格的局部上下文极强，但 OCR 字符、目标边界、重复纹理和背景 token 的熵完全不同。可以把 URSA metric path 与 spatial/semantic context weighting 组合，避免训练被大量容易背景 token 主导，也让文字和小目标获得更高有效梯度。",
+    experiment:
+      "固定 Qwen3、IBQ、URSA path、数据和总 FLOPs，仅比较 uniform loss/sampler、confidence weighting、空间邻域 context weighting、DINO/SigLIP 语义邻域 weighting；报告 OCRBench/TextVQA、边缘与文字 token 错误、4/8/16 步质量、吞吐和梯度方差。",
+    paper: "https://arxiv.org/abs/2607.21427",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "remo",
+    index: "37",
+    title: "Out of Sight, Still in Mind: Token Compression for Omni-LLMs",
+    shortTitle: "ReMo",
+    date: "2026-07-23",
+    category: "统一多模态",
+    paradigm: "Training-free Cross-modal Token Compression",
+    state: "连续音视频 embedding + 紧凑 object / location 文本代理",
+    objective: "无需训练；按跨模态独特信息与冗余选择 token",
+    decoding: "保持原 Omni-LLM 解码方式不变",
+    sharing: "利用现有音频、视频与语言 embedding 对齐，不修改主干",
+    open: "论文已公开；截至核对时未见官方代码仓库",
+    priority: "精读",
+    summary:
+      "ReMo只保留无法由其他模态或其他视觉 token 解释的信息，并把部分对象级视觉 token 替换为描述对象及位置的文本代理；在 Qwen2.5-Omni 上删除约 54% 输入 token 而不降低平均准确率。",
+    why:
+      "它比随机抽三帧或统一 pooling 更适合你的多帧任务：压缩标准不是“看起来相似”，而是信息是否已经被其他帧、音频或文字覆盖。不过对 OCR 任务，语义代理可能丢失精确字符和版面，因此非常适合作为任务感知压缩的压力测试。",
+    inspiration:
+      "可把每个 IBQ token 的保留分数拆成跨帧独特性、目标重要性和 OCR 保护三项；对象与位置可压成文本代理，但文字区域、低置信小目标和短暂出现的威胁应保留原始视觉 token。",
+    experiment:
+      "固定视觉 token 总预算，比较随机帧、时间冗余剪枝、YOLO/object proxy、ReMo 式跨模态冗余压缩和 OCR-protected ReMo；共同测目标召回、短时目标召回、OCRBench/TextVQA、证据引用正确率、延迟与显存。",
+    paper: "https://arxiv.org/abs/2607.21179",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "faithfulness-rl",
+    index: "38",
+    title: "Training Large Language Models for Self-Explanation Faithfulness",
+    shortTitle: "Faithfulness RL",
+    date: "2026-07-23 · ICLR 2026 Re-Align",
+    category: "可解释性",
+    paradigm: "RL for Causal Self-explanation Faithfulness",
+    state: "生成的 CoT / explanation + 干预前后模型行为",
+    objective: "Phi-CCT 因果相关性奖励 + RL",
+    decoding: "不改变基础 LLM 解码；训练解释与真实行为变化一致",
+    sharing: "直接在 Llama3.1-8B 与 Qwen3-8B 上后训练",
+    open: "论文已公开；截至核对时未见官方代码仓库",
+    priority: "精读",
+    summary:
+      "把解释忠实性指标转成逐样本 RL reward，通过随机词插入和用户偏置插入等干预，奖励解释是否准确披露真正影响答案的因素；在 Qwen3-8B 等模型上显著提高同分布忠实性，但跨干预泛化仍不稳定。",
+    why:
+      "这篇与 Qwen3 直接相关，而且清楚展示“解释更像证据”不等于跨场景忠实。你的威胁检测链条包含检测、排序、态势和决策，尤其容易在答案正确时生成事后合理化的视觉 CoT。",
+    inspiration:
+      "应把删帧、交换目标类别/坐标、插入误导威胁提示作为因果干预，并要求解释中声明的关键帧、目标和证据与模型实际行为变化一致；奖励准确率与忠实性要分开，防止模型学会迎合评价器。",
+    experiment:
+      "构建同一答案下的 frame deletion、label/coordinate swap 和 misleading-hint 三类干预；比较普通 SFT、结果奖励 GRPO 与 Phi-CCT-style 忠实性奖励，报告任务准确率、解释—行为相关、OOD 干预泛化和 reward hacking。",
+    paper: "https://arxiv.org/abs/2607.21090",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "structured-dynamics",
+    index: "39",
+    title: "Self-Supervised Learning of Structured Dynamics from Videos",
+    shortTitle: "SDM",
+    date: "2026-07-23",
+    category: "世界模型",
+    paradigm: "Structured JEPA / Future-feature Prediction",
+    state: "冻结 ViT 语义特征 + primary / residual motion token",
+    objective: "future-feature prediction；分解主导变化与残余动力学",
+    decoding: "无需像素级视频去噪；在语义特征空间短期外推",
+    sharing: "可复用理解侧视觉特征，动力学由轻量结构化模块承担",
+    action: "无显式 action；primary / residual token 表示可迁移的局部运动变换",
+    rollout: "支持短期 feature extrapolation；长时反复应用会产生漂移",
+    evaluation: "ProbeMotion 分离 camera / object motion，并评测动作识别与跨场景探针",
+    open: "项目页与官方代码仓库已公开",
+    priority: "精读",
+    summary:
+      "从冻结图像 ViT 特征学习视频动力学，先用 primary token解释主导的全局变化，再用 residual token补充独立物体运动；通过 future-feature prediction 把相机运动与目标运动显式拆开，而无需生成完整像素视频。",
+    why:
+      "多帧威胁检测很容易把平台抖动、镜头平移误判为目标运动。SDM提供了一个比直接堆帧更有针对性的归纳偏置，也说明世界模型不必总以高成本视频生成作为中间表示。",
+    inspiration:
+      "在 Qwen3/IBQ 上增加 camera-motion token 与 object-residual token，分别预测未来语义 feature 或目标状态；这能把“理解当前画面”和“建模变化来源”分开，并与 ELF 的连续 future-embedding flow形成低成本对照。",
+    experiment:
+      "固定主干、帧序列和训练预算，比较单一 future-latent prediction、camera/object 双分解、IBQ next-token CE 与 ELF future-velocity；评测相机抖动鲁棒性、目标轨迹误差、静止/运动分类、不同 horizon 的 drift 和推理延迟。",
+    paper: "https://arxiv.org/abs/2607.21576",
+    code: "https://lukasknobel.github.io/projects/StructuredDynamics/",
+    codeLabel: "项目页",
     featured: true,
     idea: true,
   },
@@ -1087,7 +1227,7 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 010]</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 011]</p>
               <h1>研究问题归方向，<br />Flow / AR / Diffusion 归建模方式</h1>
               <p className="hero-copy">目录压缩为五个上层研究方向，同时保留每篇论文的精细建模标签。新增精读与借鉴入口，让你可以从研究问题出发，再横向比较连续 Flow、离散 Diffusion、AR 与混合路线。</p>
               <div className="hero-actions">
@@ -1101,7 +1241,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>34</b><span>精选论文</span></div>
+                <div><b>39</b><span>精选论文</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>02</b><span>比较矩阵</span></div>
               </div>
@@ -1214,6 +1354,8 @@ export default function Home() {
                   <tr><th>TokLIP</th><td>VQ + 语义特征</td><td>理解/生成解耦</td><td>沿用下游模型</td><td>语义增益与重建保持</td></tr>
                   <tr><th>InternVLA-A1</th><td>语义 token + VAE latent + action</td><td>未来 latent + action velocity</td><td>并行预见 + Flow ODE</td><td>三专家分工、动态预测收益</td></tr>
                   <tr><th>Multi-Mask DLM</th><td>token ID + 多 mask state</td><td>Clean-token CE + distill</td><td>并行恢复 / 4–16 步</td><td>mask 分工、IBQ 聚类、少步一致性</td></tr>
+                  <tr><th>Context-weighted DFM</th><td>离散 token / CTMC</td><td>Context-scaled clean-token CE</td><td>任意顺序加权采样</td><td>局部信息密度、难 token 梯度与恢复顺序</td></tr>
+                  <tr><th>ReMo</th><td>音视频 embedding + 文本代理</td><td>无需训练；跨模态冗余选择</td><td>保持原模型解码</td><td>token 独特性、OCR 保护与压缩率</td></tr>
                 </tbody>
               </table>
             </div>
@@ -1244,6 +1386,8 @@ export default function Home() {
                   <tr><th>Self Gradient Forcing</th><td>Video-VAE latent + causal KV</td><td>文本 / 自生成历史</td><td>未来 latent denoising + context gradient</td><td>分块 AR + diffusion + two-pass</td><td>分钟级开放环视频 rollout</td><td>可迁移到 IBQ 时序 cache，解决历史记忆 stop-grad</td></tr>
                   <tr><th>PerceptDrive</th><td>VLM 先验 + 稠密视频 latent</td><td>连续 ego trajectory</td><td>next latent L2 + action velocity</td><td>专家路由 + Rectified Flow</td><td>短期预见条件化闭环规划</td><td>语义/像素/动力学分工，不强求统一 token</td></tr>
                   <tr><th>KineBench</th><td>生成 RGB → 6D pose</td><td>恢复的末端执行器轨迹</td><td>无生成训练目标；运动学审计</td><td>视觉 grounding + 物理执行</td><td>模拟器闭环执行评价</td><td>区分画质、动力学与任务成功，适合所有 UMM 世界模型</td></tr>
+                  <tr><th>WorldWeaver</th><td>视频 latent + world / agent registers</td><td>当前动作 + 个体/全局状态</td><td>下一视频块 + 可监督世界状态</td><td>Streaming AR diffusion + MoT</td><td>双智能体长时同步 rollout</td><td>在 UMM 生成器之外增加可持续、可检查的状态记忆</td></tr>
+                  <tr><th>Structured Dynamics</th><td>冻结 ViT feature + 两类 motion token</td><td>隐式局部运动变换</td><td>future feature / primary-residual 分解</td><td>JEPA 式预测表征</td><td>短期 latent 外推；长时会漂移</td><td>复用理解特征，低成本补充相机/目标动力学</td></tr>
                 </tbody>
               </table>
             </div>
