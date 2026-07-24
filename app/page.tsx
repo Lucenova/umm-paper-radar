@@ -950,7 +950,7 @@ const papers: Paper[] = [
     paper: "https://arxiv.org/abs/2607.21594",
     code: "https://vail-ucla.github.io/worldweaver/",
     codeLabel: "项目页",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -976,7 +976,7 @@ const papers: Paper[] = [
     experiment:
       "固定 Qwen3、IBQ、URSA path、数据和总 FLOPs，仅比较 uniform loss/sampler、confidence weighting、空间邻域 context weighting、DINO/SigLIP 语义邻域 weighting；报告 OCRBench/TextVQA、边缘与文字 token 错误、4/8/16 步质量、吞吐和梯度方差。",
     paper: "https://arxiv.org/abs/2607.21427",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1002,7 +1002,7 @@ const papers: Paper[] = [
     experiment:
       "固定视觉 token 总预算，比较随机帧、时间冗余剪枝、YOLO/object proxy、ReMo 式跨模态冗余压缩和 OCR-protected ReMo；共同测目标召回、短时目标召回、OCRBench/TextVQA、证据引用正确率、延迟与显存。",
     paper: "https://arxiv.org/abs/2607.21179",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1028,7 +1028,7 @@ const papers: Paper[] = [
     experiment:
       "构建同一答案下的 frame deletion、label/coordinate swap 和 misleading-hint 三类干预；比较普通 SFT、结果奖励 GRPO 与 Phi-CCT-style 忠实性奖励，报告任务准确率、解释—行为相关、OOD 干预泛化和 reward hacking。",
     paper: "https://arxiv.org/abs/2607.21090",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1059,6 +1059,33 @@ const papers: Paper[] = [
     paper: "https://arxiv.org/abs/2607.21576",
     code: "https://lukasknobel.github.io/projects/StructuredDynamics/",
     codeLabel: "项目页",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "llamagen",
+    index: "40",
+    title: "Autoregressive Model Beats Diffusion: Llama for Scalable Image Generation",
+    shortTitle: "LlamaGen",
+    date: "2024-06-10 · 重要基础补读",
+    category: "自回归建模",
+    paradigm: "Vanilla Discrete Visual Autoregression",
+    state: "VQ-VAE 离散视觉 token ID",
+    objective: "raster-scan next-token Cross-Entropy",
+    decoding: "按二维栅格顺序逐 token 生成；已提交 token 不再修改",
+    sharing: "采用标准 Llama-style Transformer；视觉 tokenizer 与词表独立，原论文从头训练",
+    open: "论文、MIT 代码、tokenizer、模型权重与 vLLM 推理均已公开",
+    priority: "精读",
+    summary:
+      "LlamaGen使用几乎不加入视觉归纳偏置的标准 Llama 架构，把图像经 VQ-VAE 变成离散 token 后，按从左到右、从上到下的顺序执行 next-token prediction；它证明只要 tokenizer、数据和模型规模足够，最朴素的视觉 AR 也能达到强图像生成性能。",
+    why:
+      "它是 URSA 最干净的 AR 对照。X-Omni和 ARM 还混入语义 tokenizer、统一理解生成或 RL，VAR又改变了预测尺度；LlamaGen主要保留“离散 token + causal Transformer + next-token CE”，更容易判断 URSA 的提升究竟来自 metric path 和全局 refinement，还是仅来自 tokenizer、模型规模与训练数据。",
+    inspiration:
+      "对 Qwen3 + IBQ，可以完全复用视觉 embedding、vocabulary 和 LM head，只将 URSA 的双向 metric-path训练改成 causal raster-scan CE。若 AR 在 OCR 上更强，可能说明文字的局部顺序依赖有利；若 URSA在布局与多目标一致性上更强，则说明全局反复修正具有真实收益。",
+    experiment:
+      "固定 Qwen3、IBQ、视觉词表、训练样本、可训练参数和总 FLOPs，比较 LlamaGen-style AR 与 URSA。除 OCRBench、TextVQA、GenEval、DPG 外，同时报告 N-token AR 的 KV-cache 延迟、URSA K-step 全序列计算、峰值显存、累计错误率和 token flip/revision 能力；效率必须用真实 wall-clock 与吞吐比较，不能只比较“生成步数”。",
+    paper: "https://arxiv.org/abs/2406.06525",
+    code: "https://github.com/FoundationVision/LlamaGen",
     featured: true,
     idea: true,
   },
@@ -1181,7 +1208,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.07.24</strong>
+        <strong>DAILY BRIEF · 2026.07.25</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -1227,7 +1254,7 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 011]</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 012]</p>
               <h1>研究问题归方向，<br />Flow / AR / Diffusion 归建模方式</h1>
               <p className="hero-copy">目录压缩为五个上层研究方向，同时保留每篇论文的精细建模标签。新增精读与借鉴入口，让你可以从研究问题出发，再横向比较连续 Flow、离散 Diffusion、AR 与混合路线。</p>
               <div className="hero-actions">
@@ -1241,7 +1268,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>39</b><span>精选论文</span></div>
+                <div><b>40</b><span>精选论文</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>02</b><span>比较矩阵</span></div>
               </div>
@@ -1356,6 +1383,7 @@ export default function Home() {
                   <tr><th>Multi-Mask DLM</th><td>token ID + 多 mask state</td><td>Clean-token CE + distill</td><td>并行恢复 / 4–16 步</td><td>mask 分工、IBQ 聚类、少步一致性</td></tr>
                   <tr><th>Context-weighted DFM</th><td>离散 token / CTMC</td><td>Context-scaled clean-token CE</td><td>任意顺序加权采样</td><td>局部信息密度、难 token 梯度与恢复顺序</td></tr>
                   <tr><th>ReMo</th><td>音视频 embedding + 文本代理</td><td>无需训练；跨模态冗余选择</td><td>保持原模型解码</td><td>token 独特性、OCR 保护与压缩率</td></tr>
+                  <tr><th>LlamaGen</th><td>VQ 离散视觉 token ID</td><td>Raster-scan next-token CE</td><td>从左到右、从上到下 AR</td><td>累计误差、KV Cache、tokenizer 上限与真实延迟</td></tr>
                 </tbody>
               </table>
             </div>
