@@ -1063,8 +1063,119 @@ const papers: Paper[] = [
     idea: true,
   },
   {
-    id: "llamagen",
+    id: "fast-dvlm",
     index: "40",
+    title: "Fast-dVLM: Efficient Block-Diffusion VLM via Direct Conversion from Autoregressive VLM",
+    shortTitle: "Fast-dVLM",
+    date: "2026-04-08 · 重要补读",
+    category: "离散 Diffusion",
+    paradigm: "AR-to-Block-Diffusion VLM Conversion",
+    state: "连续视觉输入特征 + 离散文本 token / mask state",
+    objective: "block masked clean-token CE",
+    decoding: "块间 causal AR，块内并行去掩码 + speculative block decoding",
+    sharing: "保留原 Qwen2.5-VL 视觉对齐、Transformer 与文本词表；只改文本解码方式",
+    open: "Apache-2.0 训练/推理代码、模型权重与 SGLang 集成已公开",
+    priority: "精读",
+    summary:
+      "直接把已经完成多模态对齐的 Qwen2.5-VL-3B 从 AR 解码改造成 block diffusion：历史块保持 causal 并可复用 KV cache，当前块内部双向并行恢复。论文还比较了“先改 LLM、再做多模态训练”和“直接转换完整 VLM”，后者在相近预算下明显更好。",
+    why:
+      "它是今天最值得精读的一篇，因为它把你的核心问题变成了一个低混杂、可执行的实验：不重新训练视觉 encoder，不更换多模态数据，只改变输出文本的建模方式。它也说明从 AR 权重迁移到 diffusion 时，保住已有跨模态 alignment 比先做纯文本转换更重要。",
+    inspiration:
+      "对 Qwen3 + IBQ，建议分别转换文本输出、image-token 生成和二者联合输出。视觉输入仍保持现有 projector/IBQ 接口，而生成侧使用 block-causal mask：这能判断 URSA 所需的是全序列双向 refinement，还是更便于 KV-cache 的局部双向块已经足够。",
+    experiment:
+      "从同一 Qwen3+IBQ checkpoint 出发，比较 AR、block diffusion（8/16/32 token block）与 URSA full-sequence metric path；固定样本、更新 token 数和训练 FLOPs，报告 OCRBench、DocVQA、TextVQA、生成质量、首 token/总延迟、实际吞吐、KV-cache、显存及 AR 能力遗忘。",
+    paper: "https://arxiv.org/abs/2604.06832",
+    code: "https://github.com/NVlabs/Fast-dLLM",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "maskgit",
+    index: "41",
+    title: "MaskGIT: Masked Generative Image Transformer",
+    shortTitle: "MaskGIT",
+    date: "2022-02-08 · CVPR 2022 经典基础",
+    category: "离散 Diffusion",
+    paradigm: "Bidirectional Masked Visual Token Modeling",
+    state: "VQGAN 离散视觉 token ID + 单一 [MASK]",
+    objective: "随机 masked clean-token Cross-Entropy",
+    decoding: "全位置并行初始化，按置信度反复提交/重掩码，约 8–16 轮",
+    sharing: "视觉 tokenizer 与 Transformer 分离；原作不与语言共享 vocabulary/head",
+    open: "官方 JAX 推理代码与 ImageNet tokenizer/模型 checkpoint 已公开，仓库现为只读归档",
+    priority: "精读",
+    summary:
+      "MaskGIT用双向 Transformer 预测随机遮挡的视觉 token，推理时从全 Mask 开始并行生成，再按置信度迭代修正。它把视觉生成从 raster-scan AR 变成 any-order refinement，是后来 masked image generation 与许多离散 diffusion 路线的直接基础。",
+    why:
+      "要判断 URSA 的 metric path 是否真正有效，不能只和 AR 比；必须有一个不使用 token 距离、只使用单一 Mask 的最小基线。MaskGIT正好保留离散 token、clean-token CE 和全局双向 attention，只移除 URSA 的细粒度概率路径。",
+    inspiration:
+      "对 IBQ 网格可直接复用同一 vocabulary、embedding 和 LM head，训练 MaskGIT-style mask-only 版本。若它已经接近 URSA，收益可能主要来自双向 refinement；若 URSA在 OCR、边缘或近邻 code 上显著更强，才说明 metric geometry 提供了额外信息。",
+    experiment:
+      "固定 Qwen3、IBQ、数据与总训练 token，比较 raster AR、MaskGIT single-mask、Multi-Mask、URSA metric path；统一 4/8/16/32 次前向预算，记录 token flip、字符错误、局部边缘错误、GenEval/DPG、吞吐与不同 scheduler 的稳定性。",
+    paper: "https://arxiv.org/abs/2202.04200",
+    code: "https://github.com/google-research/maskgit",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "var",
+    index: "42",
+    title: "Visual Autoregressive Modeling: Scalable Image Generation via Next-Scale Prediction",
+    shortTitle: "VAR",
+    date: "2024-04-03 · NeurIPS 2024 经典基础",
+    category: "自回归建模",
+    paradigm: "Coarse-to-Fine Next-Scale Autoregression",
+    state: "多尺度 VQ 离散 token maps",
+    objective: "next-scale token-map Cross-Entropy",
+    decoding: "尺度之间 AR；同一尺度内 token 并行生成",
+    sharing: "GPT-style Transformer；依赖专门的 residual multi-scale VQ tokenizer",
+    open: "训练代码、模型、VQ tokenizer 与在线 demo 已公开",
+    priority: "精读",
+    summary:
+      "VAR不再把二维图像展平成 raster token 序列，而是从 1×1 token map 开始逐尺度预测更高分辨率 token map；尺度间保持自回归因果性，尺度内并行。它说明所谓“AR”并不等于逐像素左到右，生成顺序本身是一项核心建模选择。",
+    why:
+      "LlamaGen和X-Omni代表 next-token AR，VAR则代表 next-scale AR。把二者都纳入后，你才能区分 URSA相对 AR 的优势到底来自可修改已生成 token，还是仅来自恢复了二维空间结构与 coarse-to-fine 顺序。",
+    inspiration:
+      "IBQ本身是单尺度 tokenizer，因此可先做不更换 tokenizer 的 stride pyramid：从稀疏全局位置到稠密局部位置逐级预测。若收益接近原版 VAR，就无需立刻重训多尺度 VQ；若差距明显，再判断 residual multi-scale tokenizer 是否是关键。",
+    experiment:
+      "固定 Qwen3+IBQ，比较 raster AR、stride-pyramid AR、原生 multi-scale tokenizer VAR 与 URSA；分别报告 tokenizer-only 上限和端到端结果，统一生成 FLOPs后测 OCR文字顺序、全局布局、小目标、每尺度错误累积、吞吐和峰值显存。",
+    paper: "https://arxiv.org/abs/2404.02905",
+    code: "https://github.com/FoundationVision/VAR",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "vjepa2",
+    index: "43",
+    title: "V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning",
+    shortTitle: "V-JEPA 2",
+    date: "2025-06-11 · 2026-04-26 版本更新",
+    category: "世界模型",
+    paradigm: "JEPA + Action-Conditioned Latent World Model",
+    state: "视频语义 embedding / masked latent feature",
+    objective: "masked future-feature prediction；V-JEPA 2-AC 预测 action-conditioned next representation",
+    decoding: "不生成像素；block-causal Transformer 自回归预测下一帧语义表征",
+    sharing: "视频 encoder 可对齐 LLM；世界模型复用冻结语义空间但使用独立 300M predictor",
+    action: "真实机器人连续动作 + goal image",
+    rollout: "在 latent 空间进行候选动作 rollout，并用于 MPC/zero-shot planning",
+    evaluation: "运动理解、动作预判、VideoQA 与真实机器人 reach/grasp/pick-and-place 成功率",
+    open: "官方 PyTorch 代码、V-JEPA 2/2-AC/2.1 checkpoint 与训练配置已公开",
+    priority: "精读",
+    summary:
+      "先在超大规模无动作视频上学习可预测的语义表示，再用不到 62 小时机器人视频训练 action-conditioned latent predictor；规划时比较 latent future 与目标图像，而非生成高成本像素视频。该体系同时展示理解、预测、LLM 对齐与零样本机器人规划。",
+    why:
+      "它为“统一理解—生成—预测—行动”提供了一个重要反例：预测和规划未必需要复用像素生成 latent。对你的多帧威胁研究，真正关键的可能是目标身份、运动和因果变化，而不是下一帧每个纹理像素。",
+    inspiration:
+      "可以保留 IBQ/URSA负责静态重建与生成，同时增加 V-JEPA-style semantic dynamics head，只预测未来 DINO/SigLIP/Qwen视觉 hidden state。它与 ELF future-embedding flow、IBQ next-token CE构成三种动力学目标的公平对照。",
+    experiment:
+      "固定 Qwen3、帧序列和训练预算，比较未来 IBQ-token CE、ELF velocity、V-JEPA semantic-feature prediction；在相同 horizon 下测目标持续性、相机运动鲁棒性、反事实动作敏感性、horizon drift、VideoQA与规划/威胁决策成功率，同时单独记录是否生成像素带来的延迟。",
+    paper: "https://arxiv.org/abs/2506.09985",
+    code: "https://github.com/facebookresearch/vjepa2",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "llamagen",
+    index: "44",
     title: "Autoregressive Model Beats Diffusion: Llama for Scalable Image Generation",
     shortTitle: "LlamaGen",
     date: "2024-06-10 · 重要基础补读",
@@ -1268,7 +1379,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>40</b><span>精选论文</span></div>
+                <div><b>44</b><span>精选论文</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>02</b><span>比较矩阵</span></div>
               </div>
@@ -1383,6 +1494,9 @@ export default function Home() {
                   <tr><th>Multi-Mask DLM</th><td>token ID + 多 mask state</td><td>Clean-token CE + distill</td><td>并行恢复 / 4–16 步</td><td>mask 分工、IBQ 聚类、少步一致性</td></tr>
                   <tr><th>Context-weighted DFM</th><td>离散 token / CTMC</td><td>Context-scaled clean-token CE</td><td>任意顺序加权采样</td><td>局部信息密度、难 token 梯度与恢复顺序</td></tr>
                   <tr><th>ReMo</th><td>音视频 embedding + 文本代理</td><td>无需训练；跨模态冗余选择</td><td>保持原模型解码</td><td>token 独特性、OCR 保护与压缩率</td></tr>
+                  <tr><th>Fast-dVLM</th><td>视觉特征 + 离散文本 token</td><td>Block masked clean-token CE</td><td>块间 causal / 块内并行</td><td>AR 对齐保留、block size、KV cache 与真实延迟</td></tr>
+                  <tr><th>MaskGIT</th><td>VQ 离散视觉 token ID</td><td>随机 masked clean-token CE</td><td>全局并行迭代 + 置信度提交</td><td>single mask、scheduler、双向 refinement</td></tr>
+                  <tr><th>VAR</th><td>多尺度 VQ token maps</td><td>Next-scale token-map CE</td><td>尺度间 AR / 尺度内并行</td><td>生成顺序与 tokenizer 多尺度结构的混杂</td></tr>
                   <tr><th>LlamaGen</th><td>VQ 离散视觉 token ID</td><td>Raster-scan next-token CE</td><td>从左到右、从上到下 AR</td><td>累计误差、KV Cache、tokenizer 上限与真实延迟</td></tr>
                 </tbody>
               </table>
@@ -1416,6 +1530,7 @@ export default function Home() {
                   <tr><th>KineBench</th><td>生成 RGB → 6D pose</td><td>恢复的末端执行器轨迹</td><td>无生成训练目标；运动学审计</td><td>视觉 grounding + 物理执行</td><td>模拟器闭环执行评价</td><td>区分画质、动力学与任务成功，适合所有 UMM 世界模型</td></tr>
                   <tr><th>WorldWeaver</th><td>视频 latent + world / agent registers</td><td>当前动作 + 个体/全局状态</td><td>下一视频块 + 可监督世界状态</td><td>Streaming AR diffusion + MoT</td><td>双智能体长时同步 rollout</td><td>在 UMM 生成器之外增加可持续、可检查的状态记忆</td></tr>
                   <tr><th>Structured Dynamics</th><td>冻结 ViT feature + 两类 motion token</td><td>隐式局部运动变换</td><td>future feature / primary-residual 分解</td><td>JEPA 式预测表征</td><td>短期 latent 外推；长时会漂移</td><td>复用理解特征，低成本补充相机/目标动力学</td></tr>
+                  <tr><th>V-JEPA 2-AC</th><td>视频语义 embedding</td><td>真实连续动作 + goal image</td><td>action-conditioned next representation</td><td>JEPA + block-causal AR predictor</td><td>latent rollout + MPC；真实机器人零样本规划</td><td>理解 encoder 可对齐 LLM；动力学复用语义空间而不生成像素</td></tr>
                 </tbody>
               </table>
             </div>
