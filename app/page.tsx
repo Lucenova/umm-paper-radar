@@ -1086,7 +1086,7 @@ const papers: Paper[] = [
       "从同一 Qwen3+IBQ checkpoint 出发，比较 AR、block diffusion（8/16/32 token block）与 URSA full-sequence metric path；固定样本、更新 token 数和训练 FLOPs，报告 OCRBench、DocVQA、TextVQA、生成质量、首 token/总延迟、实际吞吐、KV-cache、显存及 AR 能力遗忘。",
     paper: "https://arxiv.org/abs/2604.06832",
     code: "https://github.com/NVlabs/Fast-dLLM",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1113,7 +1113,7 @@ const papers: Paper[] = [
       "固定 Qwen3、IBQ、数据与总训练 token，比较 raster AR、MaskGIT single-mask、Multi-Mask、URSA metric path；统一 4/8/16/32 次前向预算，记录 token flip、字符错误、局部边缘错误、GenEval/DPG、吞吐与不同 scheduler 的稳定性。",
     paper: "https://arxiv.org/abs/2202.04200",
     code: "https://github.com/google-research/maskgit",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1140,7 +1140,7 @@ const papers: Paper[] = [
       "固定 Qwen3+IBQ，比较 raster AR、stride-pyramid AR、原生 multi-scale tokenizer VAR 与 URSA；分别报告 tokenizer-only 上限和端到端结果，统一生成 FLOPs后测 OCR文字顺序、全局布局、小目标、每尺度错误累积、吞吐和峰值显存。",
     paper: "https://arxiv.org/abs/2404.02905",
     code: "https://github.com/FoundationVision/VAR",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1170,7 +1170,7 @@ const papers: Paper[] = [
       "固定 Qwen3、帧序列和训练预算，比较未来 IBQ-token CE、ELF velocity、V-JEPA semantic-feature prediction；在相同 horizon 下测目标持续性、相机运动鲁棒性、反事实动作敏感性、horizon drift、VideoQA与规划/威胁决策成功率，同时单独记录是否生成像素带来的延迟。",
     paper: "https://arxiv.org/abs/2506.09985",
     code: "https://github.com/facebookresearch/vjepa2",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1197,6 +1197,150 @@ const papers: Paper[] = [
       "固定 Qwen3、IBQ、视觉词表、训练样本、可训练参数和总 FLOPs，比较 LlamaGen-style AR 与 URSA。除 OCRBench、TextVQA、GenEval、DPG 外，同时报告 N-token AR 的 KV-cache 延迟、URSA K-step 全序列计算、峰值显存、累计错误率和 token flip/revision 能力；效率必须用真实 wall-clock 与吞吐比较，不能只比较“生成步数”。",
     paper: "https://arxiv.org/abs/2406.06525",
     code: "https://github.com/FoundationVision/LlamaGen",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "show-o",
+    index: "45",
+    title: "Show-o: One Single Transformer to Unify Multimodal Understanding and Generation",
+    shortTitle: "Show-o",
+    date: "2024-08-22 · ICLR / NeurIPS 2025 基础补读",
+    category: "统一多模态",
+    paradigm: "Text AR + Image Masked Discrete Diffusion",
+    state: "文本 token ID + MAGVIT-v2 离散视觉 token / [MASK]",
+    objective: "文本 next-token CE + 图像 masked clean-token CE",
+    decoding: "文本 causal AR；图像全局并行去掩码与反复修正",
+    sharing: "共享同一 Transformer；视觉理解 encoder、生成 tokenizer 与模态 head 仍有分工",
+    open: "官方代码、模型权重、推理脚本与在线 demo 已公开",
+    priority: "精读",
+    summary:
+      "Show-o在单一 Transformer 中为文本保留自回归建模，为图像使用离散 masked diffusion；同一上下文可完成 VQA、图像生成、编辑、补全与图文交错生成。它不是把所有模态强行变成同一种概率过程，而是共享语义主干、保留模态适配的生成目标。",
+    why:
+      "它是检验“统一主干是否必须统一生成过程”的关键基线。URSA尝试让视觉离散 token 使用 metric path，ELF把连续 flow扩展到语言；Show-o则接受文本 AR、图像 diffusion 的异构目标。若它在相同预算下更稳，说明 UMM 的关键可能是共享语义计算，而不是统一噪声过程。",
+    inspiration:
+      "对 Qwen3 + IBQ，可以保留文本原生 AR head，仅把 image-token 区域切换为 mask-only或 URSA metric path；这样能避免文本能力因 diffusion 化而退化，并检查共享 Transformer 是否足以形成跨模态语义。OCR任务还可比较文字区域是否需要更强的局部因果顺序。",
+    experiment:
+      "从同一 Qwen3+IBQ checkpoint 出发，比较全 AR、Show-o式 text-AR/image-mask、text-AR/image-URSA 与全 URSA；固定数据和训练 FLOPs，分别测语言能力遗忘、VQA/OCRBench、T2I、图文交错生成、4/8/16/32步质量及两类 token 的梯度冲突。",
+    paper: "https://arxiv.org/abs/2408.12528",
+    code: "https://github.com/showlab/Show-o",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "fluid",
+    index: "46",
+    title: "Fluid: Scaling Autoregressive Text-to-Image Generative Models with Continuous Tokens",
+    shortTitle: "Fluid",
+    date: "2024-10-17 · ICLR 2025 基础补读",
+    category: "自回归建模",
+    paradigm: "Random-order AR + Per-token Diffusion Loss",
+    state: "连续图像 tokenizer latent；未知位置使用可学习 mask",
+    objective: "每个连续 token 的 diffusion noise prediction",
+    decoding: "BERT式双向 random-order；外层约64轮位置提交，内层连续 diffusion采样",
+    sharing: "T5 文本 encoder + 独立视觉 Transformer；原作不共享 LLM vocabulary/head",
+    open: "论文与完整实现细节公开；未找到官方训练代码或 checkpoint",
+    priority: "精读",
+    summary:
+      "Fluid把“状态表示”和“生成顺序”拆成两个正交轴，系统比较离散/连续 token 与 raster/random order四种组合。结果显示连续 token更有利于视觉质量，而随机顺序双向建模更有利于计数、位置与全局构图；最终模型以 MaskGIT式外层顺序选择配合连续 token diffusion loss。",
+    why:
+      "它直接提醒你：AR、Diffusion和Flow不能只按论文名称分类。Fluid在位置依赖上是随机顺序 AR，在单个 token 的条件分布上却使用 diffusion loss。它能避免把 ELF 相对 URSA 的差异误归因于单一因素，因为连续状态、局部生成器与外层顺序同时都会改变结果。",
+    inspiration:
+      "可以在 IBQ 上构造二维控制变量：状态用离散 ID或连续 code embedding，顺序用 raster或 random-confidence；连续版本可再比较 diffusion noise、ELF velocity与直接 L2。若 OCR下降只发生在 random order，而非连续状态，说明问题更可能来自文字顺序而非 embedding建模。",
+    experiment:
+      "固定 Qwen3、视觉 token数量、训练数据和总 FLOPs，做2×2比较：离散/连续状态 × raster/random order；连续单 token head再比较 noise与velocity。报告OCR字符顺序、计数/位置、GenEval、tokenizer重建上限、内外层总前向次数、KV cache、吞吐和显存。",
+    paper: "https://arxiv.org/abs/2410.13863",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "genie",
+    index: "47",
+    title: "Genie: Generative Interactive Environments",
+    shortTitle: "Genie",
+    date: "2024-02-23 · ICML 2024 世界模型基础",
+    category: "世界模型",
+    paradigm: "Latent Action + Frame-AR / Within-frame MaskGIT",
+    state: "时空视频 tokenizer 的离散视觉 token",
+    objective: "latent-action inference + 下一帧 masked clean-token CE",
+    decoding: "时间上逐帧 AR；每帧内部约25步 MaskGIT并行恢复",
+    sharing: "video tokenizer、latent-action model、dynamics model分离；不共享 UMM/LLM 主干",
+    action: "从无标注相邻帧推断的离散 latent action；推理时由用户控制替代",
+    rollout: "逐帧闭环交互，可持续生成可操作2D环境",
+    evaluation: "动作可控性、latent-action一致性、视频质量与未见视频行为模仿",
+    open: "论文与项目材料公开；官方训练代码未释放，社区有非官方复现",
+    priority: "精读",
+    summary:
+      "Genie从无动作标签互联网视频中同时学习视频 tokenizer、latent action model和动力学模型。时间维度按下一帧自回归，每一帧内部用 MaskGIT恢复离散视觉 token，使静态视频数据变成可逐步操控的生成环境。",
+    why:
+      "它提供了把 URSA 从静态图像生成扩展到世界模型的最直接模板：未来帧之间保持因果顺序，帧内仍可并行修正；同时用 latent action吸收缺失的控制变量。相比直接预测未来视频，这种分解更适合做清晰的动作敏感性实验。",
+    inspiration:
+      "对多帧威胁数据，即使没有完整平台动作标注，也可以从相邻帧学习 camera/agent latent action，再条件化未来 IBQ token。它有望把“目标自身运动”和“相机/载体运动”分开，并把 UMM扩展成统一理解—生成—预测—隐式行动表示。",
+    experiment:
+      "固定 Qwen3+IBQ，比较无动作 next-frame CE、真实元数据 action、学习到的 latent action，以及随机打乱 action；帧内分别使用 MaskGIT、URSA和ELF。评测不同 horizon目标轨迹、action-shuffling敏感性、短时目标召回、闭环可控性、每帧延迟与误差累积。",
+    paper: "https://arxiv.org/abs/2402.15391",
+    code: "https://sites.google.com/view/genie-2024/",
+    codeLabel: "项目页",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "diamond",
+    index: "48",
+    title: "DIAMOND: Diffusion for World Modeling — Visual Details Matter in Atari",
+    shortTitle: "DIAMOND",
+    date: "2024-05-20 · NeurIPS 2024 Spotlight 基础补读",
+    category: "世界模型",
+    paradigm: "Action-conditioned Pixel Diffusion World Model",
+    state: "像素图像观测 + 过去帧历史",
+    objective: "EDM-style next-frame denoising；reward/termination由独立模块预测",
+    decoding: "环境时间逐帧 AR；每一帧内部3步扩散采样",
+    sharing: "world model与actor-critic协同训练，但不共享 LLM/UMM tokenizer或主干",
+    action: "环境真实离散 action",
+    rollout: "支持长时 imagined rollout、闭环RL训练与可交互神经游戏引擎",
+    evaluation: "Atari 100k闭环回报、细节保真、长时稳定性、CS:GO可玩性与采样延迟",
+    open: "MIT代码、预训练agent、Atari/CS:GO可玩世界模型均已公开",
+    priority: "精读",
+    summary:
+      "DIAMOND绕开离散 tokenizer，直接用低步数像素 diffusion预测动作条件下一帧。作者发现EDM在1–3步下比DDPM更能抵抗自回归误差，并证明小目标与关键像素细节的保留可以直接提升在模型内部训练出的策略表现。",
+    why:
+      "它是 IBQ 世界模型不可缺少的反例：离散 token可减少长时漂移，却可能丢失决定动作的小目标、文字或指示灯。对你的威胁检测和OCR研究，仅看未来 latent loss可能掩盖任务关键细节已经从 tokenizer中消失。",
+    inspiration:
+      "可把 DIAMOND作为像素上限对照，并尝试只对高威胁小目标或文字区域增加局部连续 residual diffusion，而全局动力学仍由IBQ/URSA建模。这比完全放弃离散 token更节省计算，也能定位 IBQ丢失信息的空间位置。",
+    experiment:
+      "固定历史帧、动作和训练预算，比较像素EDM、IBQ next-token CE、URSA metric path与ELF latent velocity；除FVD/LPIPS外，重点测小目标/OCR未来可读性、action intervention、闭环策略成功率、1/3/5步延迟及horizon error。另做“IBQ主干+局部像素residual”混合组。",
+    paper: "https://arxiv.org/abs/2405.12399",
+    code: "https://github.com/eloialonso/diamond",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "dreamerv3",
+    index: "49",
+    title: "DreamerV3: Mastering Diverse Control Tasks through World Models",
+    shortTitle: "DreamerV3",
+    date: "2023-01-10 · Nature 2025 世界模型基础",
+    category: "世界模型",
+    paradigm: "Categorical Latent RSSM + Imagined Actor-Critic",
+    state: "encoder视觉特征 + categorical stochastic latent + recurrent deterministic state",
+    objective: "next latent、reconstruction、reward与continuation prediction",
+    decoding: "RSSM按环境时间一步展开；策略在latent imagination中多步训练",
+    sharing: "encoder/world model/actor/critic协同但模块化；不与LLM vocabulary或生成head共享",
+    action: "环境真实离散或连续 action",
+    rollout: "支持长时 latent imagination；actor-critic直接在模型内训练，无需生成可视视频",
+    evaluation: "150+任务固定超参数、数据效率、Minecraft长程稀疏奖励与真实环境回报",
+    open: "官方JAX代码、配置、checkpoint与复现实验说明已公开",
+    priority: "精读",
+    summary:
+      "DreamerV3用RSSM学习动作条件的categorical latent dynamics，同时预测观测、reward和episode continuation；actor与critic在想象轨迹中优化。它的核心价值不是生成逼真视频，而是让预测状态对决策和长期回报足够有用，并用一套稳定化机制覆盖大量任务。",
+    why:
+      "它为你的世界模型比较提供了真正的决策端基线。Genie和DIAMOND强调可视化未来，V-JEPA强调语义未来，而DreamerV3要求预测最终改善闭环策略。若未来视频更清晰却没有提高威胁决策成功率，就不能证明建模方式更好。",
+    inspiration:
+      "可在Qwen3视觉hidden state上增加轻量RSSM，预测未来IBQ/语义latent以及任务reward（如目标持续、威胁升级、决策正确性）。这让“理解—生成—预测—行动”不必所有部分共享同一个输出head，但可以共享上下文与表示。",
+    experiment:
+      "固定Qwen3编码和序列数据，比较像素/IBQ/ELF/JEPA/RSSM五种动力学目标；每组同时训练相同大小的决策head，报告horizon误差、reward/value校准、数据效率、闭环威胁决策成功率、推理延迟与显存。用任务成功率而非重建画质选择世界模型。",
+    paper: "https://arxiv.org/abs/2301.04104",
+    code: "https://github.com/danijar/dreamerv3",
     featured: true,
     idea: true,
   },
@@ -1319,7 +1463,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.07.25</strong>
+        <strong>DAILY BRIEF · 2026.07.26</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -1365,7 +1509,7 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 012]</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 013]</p>
               <h1>研究问题归方向，<br />Flow / AR / Diffusion 归建模方式</h1>
               <p className="hero-copy">目录压缩为五个上层研究方向，同时保留每篇论文的精细建模标签。新增精读与借鉴入口，让你可以从研究问题出发，再横向比较连续 Flow、离散 Diffusion、AR 与混合路线。</p>
               <div className="hero-actions">
@@ -1379,7 +1523,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>44</b><span>精选论文</span></div>
+                <div><b>49</b><span>精选论文</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>02</b><span>比较矩阵</span></div>
               </div>
@@ -1498,6 +1642,8 @@ export default function Home() {
                   <tr><th>MaskGIT</th><td>VQ 离散视觉 token ID</td><td>随机 masked clean-token CE</td><td>全局并行迭代 + 置信度提交</td><td>single mask、scheduler、双向 refinement</td></tr>
                   <tr><th>VAR</th><td>多尺度 VQ token maps</td><td>Next-scale token-map CE</td><td>尺度间 AR / 尺度内并行</td><td>生成顺序与 tokenizer 多尺度结构的混杂</td></tr>
                   <tr><th>LlamaGen</th><td>VQ 离散视觉 token ID</td><td>Raster-scan next-token CE</td><td>从左到右、从上到下 AR</td><td>累计误差、KV Cache、tokenizer 上限与真实延迟</td></tr>
+                  <tr><th>Show-o</th><td>文本ID + MAGVIT-v2离散视觉token</td><td>文本next-token CE + 图像masked CE</td><td>文本AR / 图像并行迭代</td><td>共享主干与异构生成目标是否优于统一概率过程</td></tr>
+                  <tr><th>Fluid</th><td>连续视觉token</td><td>单token diffusion noise</td><td>random-order外层 + diffusion内层</td><td>状态、位置顺序和局部条件分布三者解耦</td></tr>
                 </tbody>
               </table>
             </div>
@@ -1531,6 +1677,9 @@ export default function Home() {
                   <tr><th>WorldWeaver</th><td>视频 latent + world / agent registers</td><td>当前动作 + 个体/全局状态</td><td>下一视频块 + 可监督世界状态</td><td>Streaming AR diffusion + MoT</td><td>双智能体长时同步 rollout</td><td>在 UMM 生成器之外增加可持续、可检查的状态记忆</td></tr>
                   <tr><th>Structured Dynamics</th><td>冻结 ViT feature + 两类 motion token</td><td>隐式局部运动变换</td><td>future feature / primary-residual 分解</td><td>JEPA 式预测表征</td><td>短期 latent 外推；长时会漂移</td><td>复用理解特征，低成本补充相机/目标动力学</td></tr>
                   <tr><th>V-JEPA 2-AC</th><td>视频语义 embedding</td><td>真实连续动作 + goal image</td><td>action-conditioned next representation</td><td>JEPA + block-causal AR predictor</td><td>latent rollout + MPC；真实机器人零样本规划</td><td>理解 encoder 可对齐 LLM；动力学复用语义空间而不生成像素</td></tr>
+                  <tr><th>Genie</th><td>时空离散视频token</td><td>无标注视频推断的latent action</td><td>下一帧离散token</td><td>帧间AR + 帧内MaskGIT</td><td>逐帧闭环交互与latent-action控制</td><td>可将IBQ/URSA扩展为离散交互环境，但模块不共享LLM</td></tr>
+                  <tr><th>DIAMOND</th><td>像素图像 + 历史帧</td><td>真实离散action</td><td>下一帧像素denoising</td><td>帧间AR + 3-step EDM</td><td>闭环RL imagination与可玩模拟器</td><td>像素细节上限对照；可与IBQ局部residual混合</td></tr>
+                  <tr><th>DreamerV3</th><td>categorical latent + recurrent state</td><td>真实离散/连续action</td><td>next latent + reward + continuation</td><td>RSSM latent dynamics</td><td>长时latent imagination + actor-critic</td><td>以闭环成功而非视频画质检验UMM世界模型价值</td></tr>
                 </tbody>
               </table>
             </div>
