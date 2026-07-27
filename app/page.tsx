@@ -1224,7 +1224,7 @@ const papers: Paper[] = [
       "从同一 Qwen3+IBQ checkpoint 出发，比较全 AR、Show-o式 text-AR/image-mask、text-AR/image-URSA 与全 URSA；固定数据和训练 FLOPs，分别测语言能力遗忘、VQA/OCRBench、T2I、图文交错生成、4/8/16/32步质量及两类 token 的梯度冲突。",
     paper: "https://arxiv.org/abs/2408.12528",
     code: "https://github.com/showlab/Show-o",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1250,7 +1250,7 @@ const papers: Paper[] = [
     experiment:
       "固定 Qwen3、视觉 token数量、训练数据和总 FLOPs，做2×2比较：离散/连续状态 × raster/random order；连续单 token head再比较 noise与velocity。报告OCR字符顺序、计数/位置、GenEval、tokenizer重建上限、内外层总前向次数、KV cache、吞吐和显存。",
     paper: "https://arxiv.org/abs/2410.13863",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1281,7 +1281,7 @@ const papers: Paper[] = [
     paper: "https://arxiv.org/abs/2402.15391",
     code: "https://sites.google.com/view/genie-2024/",
     codeLabel: "项目页",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1311,7 +1311,7 @@ const papers: Paper[] = [
       "固定历史帧、动作和训练预算，比较像素EDM、IBQ next-token CE、URSA metric path与ELF latent velocity；除FVD/LPIPS外，重点测小目标/OCR未来可读性、action intervention、闭环策略成功率、1/3/5步延迟及horizon error。另做“IBQ主干+局部像素residual”混合组。",
     paper: "https://arxiv.org/abs/2405.12399",
     code: "https://github.com/eloialonso/diamond",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1341,6 +1341,141 @@ const papers: Paper[] = [
       "固定Qwen3编码和序列数据，比较像素/IBQ/ELF/JEPA/RSSM五种动力学目标；每组同时训练相同大小的决策head，报告horizon误差、reward/value校准、数据效率、闭环威胁决策成功率、推理延迟与显存。用任务成功率而非重建画质选择世界模型。",
     paper: "https://arxiv.org/abs/2301.04104",
     code: "https://github.com/danijar/dreamerv3",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "drae",
+    index: "50",
+    title: "dRAE: Representation Autoencoder with Hyper-Spherical Codes",
+    shortTitle: "dRAE",
+    date: "2026-07-24 · 今日新收录",
+    category: "统一视觉 Token",
+    paradigm: "Semantic RAE + Hyper-Spherical Quantization",
+    state: "SigLIP2 / DINO 高维语义 feature → HSQ 离散 token ID",
+    objective: "重建 + cosine codebook loss + commitment；可选 encoder distillation",
+    decoding: "角度路由分配 code；下游可接离散 diffusion 或统一 MLLM",
+    sharing: "同一离散 tokenizer 同时服务理解与生成；语义方向与重建幅值解耦",
+    open: "MIT 代码、项目页与训练配置已公开",
+    priority: "精读",
+    summary:
+      "dRAE指出高维视觉基础特征的语义主要编码在方向上，而结构与纹理仍依赖幅值；传统欧氏 VQ 会让 code assignment 被范数主导并产生 codebook collapse。HSQ只用 cosine similarity决定路由，却保留未归一化的量化输出，词表可扩展到131,072并保持100%利用率。",
+    why:
+      "这篇几乎命中你当前 Qwen3 + IBQ 的核心变量：URSA的 metric path、ELF的 embedding flow以及视觉词表扩展都默认 codebook几何有意义。如果 code assignment本身被幅值而非语义方向支配，后续比较的其实是一个失真的状态空间。",
+    inspiration:
+      "不要只在 IBQ embedding 上增加 MLP或调初始化；应先分开测方向与范数承担的职责。可以保留原始幅值给 decoder重建，同时用球面方向定义 code分配、URSA token距离与语义蒸馏目标；这也可能让 ELF的 cosine/Bregman目标比普通 L2更合理。",
+    experiment:
+      "固定 Qwen3、decoder、视觉 token数、数据与总FLOPs，对比 IBQ欧氏量化、L2-normalized VQ、HSQ和HSQ+语义蒸馏。逐层报告codebook utilization/perplexity、角度覆盖、重建/OCR、TextVQA/DocVQA、T2I以及URSA/ELF下的训练稳定性；再交叉替换 Euclidean、cosine 和 learned metric path，区分 tokenizer几何与生成建模收益。",
+    paper: "https://arxiv.org/abs/2607.22148",
+    code: "https://github.com/martian422/dRAE",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "native-mm-scaling",
+    index: "51",
+    title: "Scaling Native Multimodal Pre-Training From Scratch",
+    shortTitle: "Native-MM Scaling",
+    date: "2026-07-24 · 今日新收录",
+    category: "统一多模态",
+    paradigm: "Encoder-free Native Multimodal Decoder-only MoE",
+    state: "单层 patch embedding 的连续视觉 token + 离散文本 token",
+    objective: "文本 next-token loss；视觉位置不直接计算生成 loss",
+    decoding: "decoder-only causal Transformer；论文聚焦理解预训练而非图像生成",
+    sharing: "图像与文本从预训练起共享同一 MoE 主干；没有独立 vision encoder",
+    open: "论文与完整缩放配置公开；截至核对时未见官方代码或权重",
+    priority: "精读",
+    summary:
+      "该工作完全去掉传统 vision encoder，只用一层 patch embedding把图像送入 decoder-only MoE，并在71M至3B配置上测量原生多模态预训练的计算最优缩放规律。语言目标对数据配比相对稳定，多模态目标却强烈依赖配比；文本占比高的混合数据只有在更大模型上才更计算有效。",
+    why:
+      "你计划比较不同 UMM 建模方式，但若 AR、URSA、ELF使用不同的多模态数据比例或参数规模，结论会被资源分配污染。这篇提供了一个重要警告：同样总FLOPs不代表各路线处在各自的 compute-optimal点，尤其是从Qwen3后改与从头原生训练的比较。",
+    inspiration:
+      "可把“是否使用独立视觉 encoder”提升为正交控制轴：Qwen3视觉编码器、单层patch embedding、IBQ离散token三种输入接口分别搭配同一生成目标。还应固定有效激活参数和各模态实际token FLOPs，而不只是固定样本数。",
+    experiment:
+      "建立两阶段预算协议：先在小规模网格上分别为AR、URSA、ELF估计最优模型/数据配比，再在同一总FLOPs下比较。输入侧同时测Qwen3-VL encoder、encoder-free patch embedding和IBQ；评价纯文本遗忘、空间推理、OCRBench、DocVQA、T2I、梯度冲突和每模态单位算力收益。",
+    paper: "https://arxiv.org/abs/2607.22043",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "innotext",
+    index: "52",
+    title: "InnoText: A Unified Model for Visual Text Generation and Editing",
+    shortTitle: "InnoText",
+    date: "2026-07-24 · ECCV 2026",
+    category: "连续 Flow",
+    paradigm: "OCR-specialized DiT Flow Matching",
+    state: "图像 VAE latent + glyph、mask与连续 font-size map",
+    objective: "velocity Flow Matching；编辑区域使用尺寸感知加权 loss",
+    decoding: "连续 latent ODE采样；同一DiT支持生成与局部编辑",
+    sharing: "生成/编辑共享DiT与latent空间，但不共享LLM词表或理解主干",
+    open: "论文与双语数据构造细节公开；截至核对时未见官方代码仓库",
+    priority: "精读",
+    summary:
+      "InnoText用同一DiT统一中英文视觉文字生成与编辑，并以Font Size-Aware Modulation、微小字符区域放大增强和任务专属区域加权Flow loss，显式解决小字与复杂汉字在连续生成中的细节丢失。",
+    why:
+      "它不是通用UMM，却是非常有价值的OCR压力测试上限：如果URSA或ELF在一般图像指标上接近，但小字、重复字符和中文字形明显退化，问题可能不是全局建模范式，而是训练目标没有给高信息密度区域足够权重。",
+    inspiration:
+      "可把font-size map替换为OCR detector置信度、字符密度或DocVQA证据区域，作为URSA token CE、ELF velocity loss和GRPO reward的空间权重。它还提示生成与编辑可以共享主干，却使用不同的局部/全局监督分配。",
+    experiment:
+      "固定Qwen3+IBQ与同一文字数据，对AR、URSA、ELF分别比较全局均匀loss和OCR-region/size-aware weighting；按字符高度分桶报告CER、NED、OCRBench、TextVQA、重复字符错误、中文笔画完整度、非文字区域FID及推理开销，避免平均指标掩盖小字失败。",
+    paper: "https://arxiv.org/abs/2607.22101",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "vssd",
+    index: "53",
+    title: "Visual Saliency Steering Distillation for Multimodal Chain-of-Thought Reasoning",
+    shortTitle: "VSSD",
+    date: "2026-07-24 · ICASSP 2026",
+    category: "可解释性",
+    paradigm: "Causal Visual Perturbation + Steering Distillation",
+    state: "MLLM attention map、扰动图像与跨层视觉 steering vector",
+    objective: "任务 loss + 显著性 steering 的层间蒸馏 loss",
+    decoding: "不改变文本解码；训练阶段把视觉差分方向注入中间层",
+    sharing: "教师与学生共享多模态任务语义；视觉显著性作为因果干预信号",
+    open: "论文、训练与评测代码已公开",
+    priority: "精读",
+    summary:
+      "VSSD利用教师MLLM attention构造任务敏感的图像扰动，再对原图与扰动图的特征差做SVD，提取主导steering direction并用于学生模型层间蒸馏；目标是防止小模型在多模态融合后抹平细微但任务关键的视觉差异。",
+    why:
+      "这与小字OCR、细粒度目标和多帧威胁判断高度一致：同一问题配不同图像，或同一图像配不同指令时，模型可能形成几乎相同的融合表示并依赖语言先验。仅看attention热图不能证明因果性，而扰动—差分—注入提供了更接近干预的训练信号。",
+    inspiration:
+      "可以围绕字符、坐标、小目标或关键帧生成受控扰动，提取Qwen3内部真正改变答案的方向，再监督IBQ projector或URSA hidden state保持这些差异。steering强度必须做扫参，过强会扭曲原有语义。",
+    experiment:
+      "构造same-text/different-image与same-image/different-question配对，比较普通SFT、feature distillation、VSSD和activation patching。报告答案准确率、视觉反事实敏感性、删帧/删字符影响、steering dose-response、跨数据集泛化及解释中引用证据与真实因果影响的一致性。",
+    paper: "https://arxiv.org/abs/2607.22013",
+    code: "https://github.com/BGWH123/VSSD",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "koopman-dreamer",
+    index: "54",
+    title: "Koopman Dreamer: Spectrally Constrained Latent Dynamics for Stable World-Model Imagination",
+    shortTitle: "Koopman Dreamer",
+    date: "2026-07-22 · 近期重点补读",
+    category: "世界模型",
+    paradigm: "Spectral Koopman Latent Dynamics + Dreamer",
+    state: "结构化确定性latent + categorical stochastic state",
+    objective: "one-step consistency + 多步teacher/prior rollout + observation/reward prediction",
+    decoding: "受控latent dynamics逐步展开；策略在想象轨迹中actor-critic优化",
+    sharing: "沿用Dreamer模块化encoder/world model/actor/critic；不共享LLM词表",
+    action: "真实连续action；线性项与低秩双线性state-action项共同控制动力学",
+    rollout: "支持长时posterior-free imagination与闭环控制；谱半径显式约束误差放大",
+    evaluation: "DMC与UAV-LiDAR的open-loop horizon error、reward预测和闭环成功率",
+    open: "论文与完整实现细节公开；截至核对时未见官方代码仓库",
+    priority: "精读",
+    summary:
+      "Koopman Dreamer把长时确定性动力学写成带有有界半径的二维旋转—缩放块，并用动作线性项、低秩双线性交互和随机状态局部修正适配非线性控制。它还联合训练一步、多步与开放环目标，显式处理posterior训练和prior imagination之间的分布差。",
+    why:
+      "DreamerV3告诉你要看闭环成功，Koopman Dreamer进一步回答为什么长时latent rollout会炸掉或遗忘：谱半径太大导致误差几何放大，太小又会抹去持久目标。这个稳定—记忆折中同样存在于多帧威胁跟踪和未来IBQ/ELF预测。",
+    inspiration:
+      "可在Qwen3视觉状态之上增加少量可解释的旋转/衰减动态mode，让静止目标、周期运动、持续威胁与相机运动对应不同时间常数；IBQ/URSA负责可生成细节，Koopman latent负责长时稳定记忆，而非强迫一个生成器同时承担两种职责。",
+    experiment:
+      "固定Qwen3/IBQ、action输入和world-model参数量，对比MLP/RSSM、Koopman latent、URSA next-token与ELF future-velocity。统一做8/16/32/64步open-loop、谱半径扫描、action shuffle、目标持续性、轨迹误差、reward/value校准与闭环决策成功率；同时检查低latent MSE是否只是过度收缩而丢失可用信息。",
+    paper: "https://arxiv.org/abs/2607.19719",
     featured: true,
     idea: true,
   },
@@ -1463,7 +1598,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.07.26</strong>
+        <strong>DAILY BRIEF · 2026.07.27</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -1509,9 +1644,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 013]</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 014]</p>
               <h1>研究问题归方向，<br />Flow / AR / Diffusion 归建模方式</h1>
-              <p className="hero-copy">目录压缩为五个上层研究方向，同时保留每篇论文的精细建模标签。新增精读与借鉴入口，让你可以从研究问题出发，再横向比较连续 Flow、离散 Diffusion、AR 与混合路线。</p>
+              <p className="hero-copy">目录压缩为五个上层研究方向，同时保留每篇论文的精细建模标签。今日新增球面离散视觉 token、Encoder-free 原生预训练、OCR-aware Flow 与稳定长时动力学，让 tokenizer、生成机制和世界模型能够分轴比较。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -1523,7 +1658,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>49</b><span>精选论文</span></div>
+                <div><b>54</b><span>精选论文</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>02</b><span>比较矩阵</span></div>
               </div>
@@ -1644,6 +1779,9 @@ export default function Home() {
                   <tr><th>LlamaGen</th><td>VQ 离散视觉 token ID</td><td>Raster-scan next-token CE</td><td>从左到右、从上到下 AR</td><td>累计误差、KV Cache、tokenizer 上限与真实延迟</td></tr>
                   <tr><th>Show-o</th><td>文本ID + MAGVIT-v2离散视觉token</td><td>文本next-token CE + 图像masked CE</td><td>文本AR / 图像并行迭代</td><td>共享主干与异构生成目标是否优于统一概率过程</td></tr>
                   <tr><th>Fluid</th><td>连续视觉token</td><td>单token diffusion noise</td><td>random-order外层 + diffusion内层</td><td>状态、位置顺序和局部条件分布三者解耦</td></tr>
+                  <tr><th>dRAE</th><td>高维语义feature → HSQ离散ID</td><td>cosine codebook + commitment + 重建</td><td>tokenizer本身无固定生成顺序</td><td>球面语义方向、幅值重建信息与codebook利用率</td></tr>
+                  <tr><th>Native-MM Scaling</th><td>连续patch embedding + 文本ID</td><td>文本next-token loss</td><td>decoder-only causal预训练</td><td>encoder-free输入、数据配比与compute-optimal预算</td></tr>
+                  <tr><th>InnoText</th><td>VAE latent + glyph/mask/size map</td><td>尺寸/区域加权Flow velocity</td><td>连续latent ODE</td><td>小字信息密度、中文笔画与局部/全局监督分配</td></tr>
                 </tbody>
               </table>
             </div>
@@ -1680,6 +1818,7 @@ export default function Home() {
                   <tr><th>Genie</th><td>时空离散视频token</td><td>无标注视频推断的latent action</td><td>下一帧离散token</td><td>帧间AR + 帧内MaskGIT</td><td>逐帧闭环交互与latent-action控制</td><td>可将IBQ/URSA扩展为离散交互环境，但模块不共享LLM</td></tr>
                   <tr><th>DIAMOND</th><td>像素图像 + 历史帧</td><td>真实离散action</td><td>下一帧像素denoising</td><td>帧间AR + 3-step EDM</td><td>闭环RL imagination与可玩模拟器</td><td>像素细节上限对照；可与IBQ局部residual混合</td></tr>
                   <tr><th>DreamerV3</th><td>categorical latent + recurrent state</td><td>真实离散/连续action</td><td>next latent + reward + continuation</td><td>RSSM latent dynamics</td><td>长时latent imagination + actor-critic</td><td>以闭环成功而非视频画质检验UMM世界模型价值</td></tr>
+                  <tr><th>Koopman Dreamer</th><td>谱结构确定性latent + stochastic state</td><td>连续action + 双线性state-action</td><td>一步/多步latent、observation与reward</td><td>有界谱半径Koopman dynamics + Dreamer</td><td>长时prior imagination + actor-critic闭环</td><td>为IBQ/ELF未来预测增加可控时间尺度与误差稳定性</td></tr>
                 </tbody>
               </table>
             </div>
