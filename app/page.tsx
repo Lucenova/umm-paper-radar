@@ -1614,6 +1614,141 @@ const papers: Paper[] = [
     featured: true,
     idea: true,
   },
+  {
+    id: "unifusion",
+    index: "60",
+    title: "UNIFUSION: Adapting Autoregressive Language Models into Discrete Diffusion under a Unified Reverse-Rate Objective",
+    shortTitle: "UNIFUSION",
+    date: "2026-07-27 · 新提交",
+    category: "离散 Diffusion",
+    paradigm: "AR-to-Uniform-Noise Discrete Diffusion",
+    state: "离散 token ID；uniform kernel 下任意 token 都可跳转、持续可编辑",
+    objective: "统一 reverse-rate generalized KL；由 clean-token x₀ 预测转换为 score / posterior / jump rate",
+    decoding: "全序列迭代采样；16–256 步，可在 mask 与 uniform corruption kernel 间切换",
+    sharing: "从 GPT-2 AR checkpoint 继续预训练，复用 token embedding、Transformer 与 x₀ 输出接口",
+    open: "论文与推导已公开；截至核对时未见官方代码仓库",
+    priority: "精读",
+    summary:
+      "UNIFUSION把 SEDD、MDLM/GIDD、M2S 与 Neural CTMC 的条件损失统一为 reverse-rate 上的 generalized KL，并推导 clean-token 预测到多种离散扩散参数化的转换。它首次直接把预训练 AR 模型适配到 uniform-noise diffusion，而不局限于单一 [MASK]；每个 token 在采样中都保持可编辑。",
+    why:
+      "这是目前最适合补入“Qwen3 AR → URSA”控制链的一篇。它把 AR 权重初始化、corruption kernel 和输出参数化拆开：同一个 x₀ head 可以分别承载 mask path、uniform path 与 URSA metric path，从而避免把新 head、重新对齐或损失接口变化误判成 metric geometry 的收益。",
+    inspiration:
+      "对 Qwen3+IBQ，可保留 64K visual vocabulary 与 clean-token CE 接口，只把前向核替换为 single-mask、uniform replacement 和 IBQ-distance metric path。UNIFUSION还提示：如果 uniform kernel 已能通过“所有 token 可修订”接近 URSA，那么 URSA 的额外价值应由近邻转移效率、OCR局部错误和少步质量证明。",
+    experiment:
+      "从同一 AR checkpoint 出发，固定 Qwen3、IBQ、数据、训练 token与FLOPs，比较 raster AR、MaskGIT、UNIFUSION uniform kernel和URSA metric path；共享 x₀ visual head并统一4/8/16/32/64次前向预算，报告OCRBench、DocVQA、TextVQA、T2I、token修订率、转移距离、吞吐、显存及训练稳定性。",
+    paper: "https://arxiv.org/abs/2607.24507",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "pard",
+    index: "61",
+    title: "Rethinking the Generation Order of Block Diffusion Language Models",
+    shortTitle: "PARD",
+    date: "2026-07-27 · 新提交",
+    category: "离散 Diffusion",
+    paradigm: "Training-free Parallel Autoregressive Decoding for Block Diffusion",
+    state: "block diffusion 的离散 token ID / [MASK] 状态",
+    objective: "不改训练目标；沿用原 block masked clean-token 分布",
+    decoding: "保持左到右的 unmask 结构，但每轮并行提交多个 token",
+    sharing: "采样器级改造；不改 tokenizer、embedding、Transformer 或输出 head",
+    open: "论文已公开；截至核对时未见官方代码仓库",
+    priority: "精读",
+    summary:
+      "论文发现近期 block diffusion LM 的条件结构天然比经典全序列 masked model更偏向左到右。基于这一点，PARD在不训练的情况下保留左到右解掩码结构，同时并行提交 token；其质量优于常见并行 sampler，速度又明显快于纯 AR。",
+    why:
+      "它说明“模型是 diffusion”并不等于最优解码顺序必须完全自由。对于 OCR、文档文字和视觉栅格，局部因果顺序可能很重要；因此比较 URSA、MaskGIT 与 block diffusion 时，训练目标和采样顺序必须作为两个独立变量。",
+    inspiration:
+      "可以把 PARD移植到 image-token block：按图像 raster、文字阅读顺序或 coarse-to-fine block 推进，块内按置信度并行提交。这样既保留文字和边界的局部先后关系，也比逐token AR减少前向次数，并能与URSA全局confidence scheduler形成纯推理对照。",
+    experiment:
+      "固定同一 block-diffusion checkpoint，仅切换全局置信度、随机、PARD左到右、二维蛇形和OCR-reading-order五种采样器；在相同前向次数与提交token数下测字符顺序错误、DocVQA/TextVQA、T2I布局、真实延迟和token revision，避免重新训练带来的混杂。",
+    paper: "https://arxiv.org/abs/2607.24306",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "rp-opsd",
+    index: "62",
+    title: "RP-OPSD: Resolution-Privileged On-Policy Self-Distillation for Multimodal Large Language Models",
+    shortTitle: "RP-OPSD",
+    date: "2026-07-27 · 新提交",
+    category: "评测诊断",
+    paradigm: "Resolution-Privileged On-Policy Self-Distillation",
+    state: "同一图像的 1/4 分辨率 student 视觉 token与原分辨率 teacher视觉 token",
+    objective: "student on-policy trajectory 上的 teacher–student 输出分布 divergence",
+    decoding: "不改变基础 MLLM 解码；teacher只在训练时使用高分辨率特权信息",
+    sharing: "teacher/student共享模型族与输出词表；论文在Qwen3.5-9B上验证",
+    open: "论文已公开；截至核对时未见官方代码仓库",
+    priority: "精读",
+    summary:
+      "RP-OPSD让学生从四分之一分辨率图像生成自己的on-policy轨迹，再由读取原分辨率图像的教师沿这些轨迹提供dense token-level监督。它只需要图像—问题对，不需要外部解题轨迹、人工框或额外教师；论文报告原分辨率推理平均相对提升5.45%，训练较OPSD加速1.78×。",
+    why:
+      "这与Qwen3、OCR/DocVQA和视觉token预算直接相关：低分辨率不是单纯的数据增强，而可以变成可控的privileged-information gap。它能检验IBQ/merge造成的信息损失是否可被行为蒸馏补回，而不必立即提高整个训练过程的分辨率和显存。",
+    inspiration:
+      "可把原图teacher与IBQ下采样、Token-Shuffle或低token-budget student配对；teacher监督的不只是最终答案，还包括字符、证据引用、目标类别与坐标posterior。若蒸馏能恢复语义但无法恢复OCR，说明瓶颈可能是tokenizer已不可逆地丢失像素证据。",
+    experiment:
+      "固定Qwen3与总训练FLOPs，比较原分辨率SFT、低分辨率SFT、off-policy distill与RP-OPSD；student再分为原IBQ、2×2 folding和低分辨率IBQ。报告OCRBench/DocVQA/TextVQA、短时小目标召回、teacher-student KL、训练吞吐、显存和原分辨率迁移收益。",
+    paper: "https://arxiv.org/abs/2607.24447",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "quote-retrieve-attribution",
+    index: "63",
+    title: "Evidence Attribution in Visual Document Understanding without Coordinates or Region Labels",
+    shortTitle: "Quote-and-Retrieve",
+    date: "2026-07-27 · 新提交",
+    category: "可解释性",
+    paradigm: "Language-interface Evidence Attribution + GRPO",
+    state: "文档图像、答案中的逐字证据引用与retriever返回的region crop",
+    objective: "答案正确性 + retrieved evidence crop上的归因judge reward",
+    decoding: "先输出答案与原文证据quote，再由多模态retriever/layout parser定位区域",
+    sharing: "不要求MLLM直接生成坐标；回答模型与检索/布局模块通过文本证据接口协作",
+    open: "论文、CiteVQA评测设定与方法细节已公开；截至核对时未见官方代码仓库",
+    priority: "精读",
+    summary:
+      "论文指出MLLM即使答案正确，也常在坐标接口中框错证据，形成attribution hallucination。它改用quote-and-retrieve：模型逐字引用证据，retriever再定位区域。双语CiteVQA上证据召回由最高8提升到26–47，幻觉约减半；无需region label的GRPO又把8B模型严格归因准确率从22.4提高到33.8。",
+    why:
+      "这直接对应DocVQA、TextVQA和多帧威胁检测：让模型同时生成答案、框坐标和解释，可能把“看懂内容”与“精确定位”混成一个脆弱输出接口。换成可核验quote或帧证据ID，能更可靠地区分语义正确、坐标错误和纯粹幻觉。",
+    inspiration:
+      "对文档任务可要求输出最小证据字符串，再由OCR/layout检索定位；对多帧威胁任务可让模型引用帧号、目标标签和可观察属性，再由检测器检索对应crop。奖励只在检索到的证据真正支持答案时成立，从而降低事后合理化CoT。",
+    experiment:
+      "固定Qwen3与回答数据，比较直接bbox、文本quote、quote+retrieval和quote+GRPO；统一测答案准确率、evidence recall、hallucination、严格归因准确率与坐标误差。再做删帧/遮挡证据的反事实测试，检查模型是否真正依赖所引用区域。",
+    paper: "https://arxiv.org/abs/2607.24651",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "rofacto",
+    index: "64",
+    title: "Robot-Factored World Models via Robot Rendering",
+    shortTitle: "RoFacto",
+    date: "2026-07-24 · 近期新作",
+    category: "世界模型",
+    paradigm: "Robot-factored Action-conditioned Video Diffusion",
+    state: "静态RGB/深度场景 + URDF渲染机器人几何与末端深度",
+    objective: "动作条件未来视频/场景响应的diffusion denoising",
+    decoding: "先由控制器与运动学展开nominal trajectory，再渲染为视觉条件并生成未来视频",
+    sharing: "跨相机与机器人复用统一视觉条件接口；不要求共享LLM词表或UMM主干",
+    action: "raw command → controller/kinematics nominal trajectory → rendered robot geometry",
+    rollout: "支持动作编辑、未来交互视频生成与未见机器人embodiment迁移；未报告闭环规划器",
+    evaluation: "DROID/RoboCasa视频预测、动作编辑可控性、接触/遮挡与zero-shot embodiment泛化",
+    open: "项目页与GitHub仓库公开；README标注训练代码coming soon",
+    priority: "精读",
+    summary:
+      "RoFacto把raw action到机器人运动的实现过程，以及机器人外观/几何，从world model内部移出。命令先通过真实控制器和运动学形成部署时可得的nominal trajectory，再用URDF渲染成相机对齐的机器人几何；模型只需学习接触后场景如何响应，并用末端与场景深度区分遮挡和真实接触。",
+    why:
+      "它提供了世界模型公平比较中常被忽略的控制变量：动作表示本身会决定模型难度。若一个模型输入raw action，另一个输入已泄漏未来的realized state，不能把性能差异归因于AR、Diffusion或Flow。RoFacto给出位于两者之间、部署时可用且不泄漏结果的中间接口。",
+    inspiration:
+      "对多帧威胁与平台运动，可先把云台/载体命令通过已知运动学渲染成预期视场变化，再让Qwen3+IBQ/URSA/ELF只预测目标和环境对该运动的残差响应。这样能把ego-motion从目标运动中剥离，并将不同平台动作映射到共享视觉语义空间。",
+    experiment:
+      "固定同一视频生成主干和训练数据，比较raw action vector、nominal state、rendered RGB geometry、rendered geometry+depth与泄漏realized state；统一评测action-shuffling、接触/遮挡、未见平台迁移、未来目标轨迹、horizon drift、FVD与闭环任务成功率。",
+    paper: "https://arxiv.org/abs/2607.22535",
+    code: "https://github.com/bjkim95/rofacto",
+    codeLabel: "代码（预告）",
+    featured: true,
+    idea: true,
+  },
 ];
 
 const shortcuts = ["今日精选", "精读清单", "借鉴优先"];
@@ -1780,9 +1915,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 015]</p>
-              <h1>研究问题归方向，<br />Flow / AR / Diffusion 归建模方式</h1>
-              <p className="hero-copy">今日把 URSA 代码结论与离散 image-token merge 调研纳入同一条证据链：区分连续 DiT patchify、离散 URSA 原始网格，以及 fixed folding、局部 AR 还原、动态 patchification 与 product-code folding。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 016]</p>
+              <h1>同一 x₀ 接口，<br />公平比较 AR、Mask、Uniform 与 URSA</h1>
+              <p className="hero-copy">今日重点补齐 AR checkpoint 到离散 Diffusion 的统一转换、Block Diffusion 的生成顺序，以及低分辨率蒸馏、可核验证据归因和动作接口分解。建模方式、采样器与 tokenizer 继续分开比较。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -1794,7 +1929,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>59</b><span>精选条目</span></div>
+                <div><b>64</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -1922,6 +2057,8 @@ export default function Home() {
                   <tr><th>SynerGen-VL</th><td>folded 离散 VQ token</td><td>局部 causal head 还原原始 IDs</td><td>全局 AR / 块内 AR</td><td>全局—局部计算分工与 encoder-free 统一</td></tr>
                   <tr><th>DPAR</th><td>熵引导可变长 patch</td><td>local decoder 原始 ID CE</td><td>动态 patch AR / token AR</td><td>信息量自适应、边界稳定与真实加速</td></tr>
                   <tr><th>ImageFolder</th><td>同位置 semantic + detail IDs</td><td>两组独立 K-way CE</td><td>位置间 AR / 双 code 并行</td><td>语义—细节分工与独立性假设</td></tr>
+                  <tr><th>UNIFUSION</th><td>uniform kernel离散token ID；所有位置可编辑</td><td>统一reverse-rate KL，经x₀转换为score/posterior/jump rate</td><td>全序列16–256步迭代</td><td>从同一AR checkpoint公平切换mask、uniform与URSA metric kernel</td></tr>
+                  <tr><th>PARD</th><td>block masked离散token</td><td>沿用原clean-token分布；training-free</td><td>左到右结构 + 每轮并行提交</td><td>把训练kernel与推理生成顺序拆成两个控制变量</td></tr>
                 </tbody>
               </table>
             </div>
@@ -1991,6 +2128,7 @@ export default function Home() {
                   <tr><th>DIAMOND</th><td>像素图像 + 历史帧</td><td>真实离散action</td><td>下一帧像素denoising</td><td>帧间AR + 3-step EDM</td><td>闭环RL imagination与可玩模拟器</td><td>像素细节上限对照；可与IBQ局部residual混合</td></tr>
                   <tr><th>DreamerV3</th><td>categorical latent + recurrent state</td><td>真实离散/连续action</td><td>next latent + reward + continuation</td><td>RSSM latent dynamics</td><td>长时latent imagination + actor-critic</td><td>以闭环成功而非视频画质检验UMM世界模型价值</td></tr>
                   <tr><th>Koopman Dreamer</th><td>谱结构确定性latent + stochastic state</td><td>连续action + 双线性state-action</td><td>一步/多步latent、observation与reward</td><td>有界谱半径Koopman dynamics + Dreamer</td><td>长时prior imagination + actor-critic闭环</td><td>为IBQ/ELF未来预测增加可控时间尺度与误差稳定性</td></tr>
+                  <tr><th>RoFacto</th><td>静态RGB/深度 + 渲染机器人几何</td><td>raw command经控制器/运动学变成nominal trajectory并渲染</td><td>接触后的未来视频/场景响应</td><td>Robot-factored video diffusion</td><td>动作编辑与未来视频；闭环规划未报告</td><td>先统一动作视觉接口，再公平比较URSA/ELF世界动力学</td></tr>
                 </tbody>
               </table>
             </div>
