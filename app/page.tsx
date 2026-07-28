@@ -1479,6 +1479,141 @@ const papers: Paper[] = [
     featured: true,
     idea: true,
   },
+  {
+    id: "ursa-code-audit",
+    index: "55",
+    title: "URSA 代码审计：DiffusionTransformer 与离散 URSA 主干不是同一条路径",
+    shortTitle: "URSA Code Audit",
+    date: "2026-07-28 · 官方 main 分支核对",
+    category: "离散 Diffusion",
+    paradigm: "Implementation Audit · DiT vs Discrete DFM",
+    state: "DiT 文件处理连续 latent patch；URSA 主干处理离散 image token ID",
+    objective: "DiT 输出连续 patch 值；URSA 输出每位置 64K 视觉词表 logits / CE",
+    decoding: "DiT 由外部 scheduler 迭代去噪；URSA 走 metric-path 全局离散 refinement",
+    sharing: "两套独立实现；离散主干是 Qwen3Model + visual lm_head",
+    open: "官方仓库与训练代码公开；结论基于 2026-07-28 main 分支",
+    priority: "精读",
+    summary:
+      "diffnext/models/diffusion_transformer.py 确实实现了标准 DiT 组件：Conv2d patch embedding、timestep embedding、AdaLN 调制与连续输出 head。patch_size=2 时，Linear(embed_dim, 4×image_dim) 一次恢复一个 2×2 latent patch 的四个连续向量，顺序为左上、右上、左下、右下；它不是一次预测四个离散 token ID。当前离散 URSA 主路径位于 transformer_ursa.py，使用 Qwen3Model 与 64K visual lm_head，为原始 IBQ 网格的每个位置预测一个词表分布。",
+    why:
+      "这能纠正一个会直接影响实验设计的误读：代码中的 patch embedding 是连续 DiT 的计算降采样，不等于 URSA 对离散 image token 做 token merge。把两者混在一起，会错误估计序列长度、head 参数量、监督目标和采样顺序。",
+    inspiration:
+      "原始 URSA 只有 VAE/IBQ tokenizer 的空间下采样，进入 Qwen3 后没有额外 2×2 token folding。若要压缩序列，需要显式新增 fold encoder 与 unshuffle/local decoder，并保证 scheduler 最终仍能更新原始 H×W 个 ID。",
+    experiment:
+      "先锁定原始 URSA 为 no-merge 基线，再比较：2×2 fixed fold + parallel shared head、2×2 fold + local causal head、DPAR dynamic patch。不要直接使用 Linear(D,4K)：D=2048、K=64000 时约 5.24 亿权重；更合理的是 Linear(D,4dᵥ)→reshape→共享 K-way visual head。",
+    paper: "https://github.com/baaivision/URSA/blob/main/diffnext/models/diffusion_transformer.py",
+    code: "https://github.com/baaivision/URSA/blob/main/diffnext/models/transformers/transformer_ursa.py",
+    codeLabel: "离散主干",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "token-shuffle",
+    index: "56",
+    title: "Token-Shuffle: Towards High-Resolution Image Generation with Autoregressive Models",
+    shortTitle: "Token-Shuffle",
+    date: "2025-04-24 · v2 2025-04-27",
+    category: "自回归建模",
+    paradigm: "Fixed Spatial Token Folding + AR",
+    state: "局部 s×s 离散 VQ token embedding 沿通道合并",
+    objective: "Token-unshuffle 后对每个原始 ID 做共享词表 CE",
+    decoding: "压缩序列按组 AR；组内 s² 个 ID 并行预测",
+    sharing: "Transformer 看 N/s² 个 folded token；输出端恢复原空间槽位",
+    open: "论文与项目页公开；截至核对时未见完整官方训练代码",
+    priority: "精读",
+    summary:
+      "Token-Shuffle先降低单个视觉 code embedding 维度，再把空间相邻的 s×s 个 token 沿 channel 拼成一个 Transformer token；输出端用 Token-Unshuffle 恢复 s² 个槽位，并通过共享 visual vocabulary classifier 预测原始 VQ ID。它是真正的离散 image-token merge，不是只在 tokenizer 内做下采样。",
+    why:
+      "它提供了把 Qwen3 序列长度从 N 降到 N/s² 的最小改动方案，而且不需要改变 IBQ codebook。对高分辨率 T2I 很有吸引力，也最适合作为 URSA 固定合并的第一条效率基线。",
+    inspiration:
+      "其代价是 folded block 内采用并行条件独立预测，可能损害文字笔画、密集小目标和边界细节。对你的 OCRBench/DocVQA 任务，这不是附带指标，而是判断 merge 是否可接受的核心指标。",
+    experiment:
+      "固定 Qwen3、IBQ、训练 FLOPs与原始 H×W 监督，比较 no-merge、2×2 shuffle 与4×4 shuffle；同时报告 block 内 token accuracy、OCR、小目标召回、视觉 token 吞吐和峰值显存。加入 OCR-aware 局部不合并策略检验高信息区域是否应保留原粒度。",
+    paper: "https://arxiv.org/abs/2504.17789",
+    code: "https://ma-xu.github.io/token-shuffle/",
+    codeLabel: "项目页",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "synergen-vl",
+    index: "57",
+    title: "SynerGen-VL: Synergistic Understanding and Generation with Token Folding",
+    shortTitle: "SynerGen-VL",
+    date: "2024-12-12 · 关键基础补读",
+    category: "统一多模态",
+    paradigm: "Encoder-free UMM + Token Folding",
+    state: "局部离散 VQ IDs → folded LLM token",
+    objective: "统一 next-token CE；局部视觉 head 还原原始 IDs",
+    decoding: "LLM 在 folded 序列上 AR；小型 causal head 在块内顺序生成",
+    sharing: "理解/生成共享 encoder-free LLM；视觉 expert 与局部 head 专门化",
+    open: "论文公开；作者声明将开源，完整代码与模型仍需跟踪",
+    priority: "精读",
+    summary:
+      "SynerGen-VL在 encoder-free 统一理解生成模型中引入 token folding：主 LLM 只处理压缩后的视觉序列，而一个浅层 causal Transformer 根据全局 hidden state 在 folded block 内自回归还原原始视觉 IDs。它把昂贵的全局依赖与便宜的局部依赖分层建模。",
+    why:
+      "相较 Token-Shuffle 的组内并行 head，SynerGen-VL保留了块内 token 的条件依赖，因此更适合 OCR、局部结构和细粒度纹理；它也是最接近 Qwen3+IBQ 统一模型接口的 token-merge 论文。",
+    inspiration:
+      "可以让 Qwen3/URSA只在 N/4 个 folded state 上建模，再用 2–4 层 local causal decoder 生成四个原始 ID。这样既减少全局 attention，又避免直接假设 2×2 block 内四个 token 独立。",
+    experiment:
+      "在相同 N/4 全局长度下，严格比较 parallel unshuffle head 与 local causal head；把总前向 FLOPs对齐，并单独报告文字区域、物体边界与平坦背景的组内条件互信息和恢复误差。",
+    paper: "https://arxiv.org/abs/2412.09604",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "dpar",
+    index: "58",
+    title: "DPAR: Dynamic Patchification for Efficient Autoregressive Visual Generation",
+    shortTitle: "DPAR",
+    date: "2025-12-26 · CVPR 2026",
+    category: "自回归建模",
+    paradigm: "Entropy-guided Dynamic Token Patching",
+    state: "离散 VQ IDs → 可变长连续 patch representation",
+    objective: "局部 decoder 对原始 token ID 做 K-way CE",
+    decoding: "global patch AR + local causal token decoder",
+    sharing: "轻量 patch encoder/decoder 包裹 Llama 式全局 Transformer",
+    open: "论文与算法细节公开；截至核对时未见官方代码仓库",
+    priority: "精读",
+    summary:
+      "DPAR用轻量 AR 模型的 next-token entropy 衡量信息量：低熵连续 token 被动态合并，高熵区域保留细粒度，且不跨图像行合并。全局 Transformer 只处理可变数量的 patch，局部 causal decoder 最终仍逐个预测原始 VQ ID。",
+    why:
+      "它比固定 2×2 merge 更符合 OCR 与威胁检测：天空、墙面可激进压缩，文字、小目标和复杂边界保留原 token。论文报告 token 数减少 1.81×/2.06×、训练 FLOPs最多降低40%，同时不必丢弃二维结构。",
+    inspiration:
+      "URSA可以把 entropy 换成 timestep-aware difficulty：根据当前 posterior entropy、OCR proposal、目标检测不确定性决定哪些位置合并。难点是 patch 边界会随去噪步变化，因此更适合作为 AR 基线或采用固定分区、动态计算分配的折中版。",
+    experiment:
+      "比较 fixed 2×2、DPAR entropy、IBQ distance 与 DINO/SigLIP semantic boundary 四种分块；固定平均 compression ratio 后测 OCR、细粒度理解、T2I、patch-boundary artifact、真实延迟和训练稳定性。",
+    paper: "https://arxiv.org/abs/2512.21867",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "imagefolder",
+    index: "59",
+    title: "ImageFolder: Autoregressive Image Generation with Folded Tokens",
+    shortTitle: "ImageFolder",
+    date: "2024-10-02 · 关键基础补读",
+    category: "统一视觉 Token",
+    paradigm: "Dual-branch Product Quantization + Folded AR",
+    state: "同一空间位置的 semantic ID + detail ID",
+    objective: "2K logits reshape 为两组 K-way CE",
+    decoding: "位置之间 AR；同位置两路 ID 并行采样",
+    sharing: "语义/像素双 codebook 共享上层 AR hidden state",
+    open: "论文与官方代码公开",
+    priority: "精读",
+    summary:
+      "ImageFolder的 folding 不是把四个相邻空间 token 合成一个，而是以双分支 product quantization 把同一位置拆成 semantic code 与 detail code。AR 序列只按空间位置推进，head 输出两组独立 K-way 分布，再由 tokenizer 联合解码。",
+    why:
+      "它提示序列压缩不只有空间 merge：还可以把语义与重建细节折叠到同一位置，避免缩小空间网格伤害 OCR 与小目标。代价是同位置两路 code 的独立性假设可能限制联合建模。",
+    inspiration:
+      "对 IBQ 可探索 semantic codebook + residual/detail codebook：Qwen3 hidden 同时预测两路 ID，理解侧优先读取 semantic branch，生成 decoder 使用两路重建。这样更容易区分 tokenizer 语义提升和上层生成方式提升。",
+    experiment:
+      "固定总 bitrate 与 decoder，比较单 64K IBQ、两个较小 product codebook、空间2×2 fold；报告 codebook utilization、OCR、语义 linear probe、重建和 T2I，并测试联合 2D head 是否优于两个独立 softmax。",
+    paper: "https://arxiv.org/abs/2410.01756",
+    code: "https://github.com/lxa9867/ImageFolder",
+    featured: true,
+    idea: true,
+  },
 ];
 
 const shortcuts = ["今日精选", "精读清单", "借鉴优先"];
@@ -1580,6 +1715,7 @@ export default function Home() {
         </a>
         <nav className="topnav" aria-label="主导航">
           <a className="active" href="#papers">建模范式</a>
+          <a href="#folding-matrix">Token Folding</a>
           <a href="#world-matrix">世界模型</a>
           <a href="#papers">可解释性</a>
           <a href="#matrix">实验矩阵</a>
@@ -1598,7 +1734,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.07.27</strong>
+        <strong>DAILY BRIEF · 2026.07.28</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -1644,9 +1780,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 014]</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 015]</p>
               <h1>研究问题归方向，<br />Flow / AR / Diffusion 归建模方式</h1>
-              <p className="hero-copy">目录压缩为五个上层研究方向，同时保留每篇论文的精细建模标签。今日新增球面离散视觉 token、Encoder-free 原生预训练、OCR-aware Flow 与稳定长时动力学，让 tokenizer、生成机制和世界模型能够分轴比较。</p>
+              <p className="hero-copy">今日把 URSA 代码结论与离散 image-token merge 调研纳入同一条证据链：区分连续 DiT patchify、离散 URSA 原始网格，以及 fixed folding、局部 AR 还原、动态 patchification 与 product-code folding。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -1658,9 +1794,9 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>54</b><span>精选论文</span></div>
+                <div><b>59</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
-                <div><b>02</b><span>比较矩阵</span></div>
+                <div><b>03</b><span>比较矩阵</span></div>
               </div>
             </div>
             <div className="hero-index" aria-label="建模坐标索引">
@@ -1757,7 +1893,7 @@ export default function Home() {
                 <thead><tr><th>路线</th><th>状态空间</th><th>预测目标</th><th>生成顺序</th><th>最关键变量</th></tr></thead>
                 <tbody>
                   <tr><th>X-Omni</th><td>离散 token ID</td><td>Next-token CE</td><td>左到右</td><td>累计误差、KV Cache、RL</td></tr>
-                  <tr><th>URSA</th><td>离散 token ID</td><td>Clean-token CE</td><td>并行迭代</td><td>Metric path、schedule、solver</td></tr>
+                  <tr><th>URSA</th><td>原始 IBQ 网格的离散 token ID；无额外 merge</td><td>每位置 64K clean-token CE</td><td>全 H×W 网格并行迭代</td><td>Metric path、schedule、solver；勿与仓库中的连续 DiT 混淆</td></tr>
                   <tr><th>ELF</th><td>连续 embedding</td><td>Velocity / L2 + CE</td><td>ODE / SDE</td><td>空间几何、回投误差、CFG</td></tr>
                   <tr><th>Flow Map LM</th><td>Simplex / one-hot</td><td>Posterior CE + distill</td><td>联合运输 / 一步</td><td>token 相关性、少步蒸馏</td></tr>
                   <tr><th>UniAR</th><td>BSQ 离散视觉 token</td><td>Parallel bit prediction</td><td>AR context / bit 并行</td><td>真正共享 tokenizer 与上下文</td></tr>
@@ -1782,6 +1918,10 @@ export default function Home() {
                   <tr><th>dRAE</th><td>高维语义feature → HSQ离散ID</td><td>cosine codebook + commitment + 重建</td><td>tokenizer本身无固定生成顺序</td><td>球面语义方向、幅值重建信息与codebook利用率</td></tr>
                   <tr><th>Native-MM Scaling</th><td>连续patch embedding + 文本ID</td><td>文本next-token loss</td><td>decoder-only causal预训练</td><td>encoder-free输入、数据配比与compute-optimal预算</td></tr>
                   <tr><th>InnoText</th><td>VAE latent + glyph/mask/size map</td><td>尺寸/区域加权Flow velocity</td><td>连续latent ODE</td><td>小字信息密度、中文笔画与局部/全局监督分配</td></tr>
+                  <tr><th>Token-Shuffle</th><td>固定 s×s 离散 token folding</td><td>Unshuffle 后 s² 个共享 K-way CE</td><td>组间 AR / 组内并行</td><td>序列压缩率、组内独立假设与 OCR 损失</td></tr>
+                  <tr><th>SynerGen-VL</th><td>folded 离散 VQ token</td><td>局部 causal head 还原原始 IDs</td><td>全局 AR / 块内 AR</td><td>全局—局部计算分工与 encoder-free 统一</td></tr>
+                  <tr><th>DPAR</th><td>熵引导可变长 patch</td><td>local decoder 原始 ID CE</td><td>动态 patch AR / token AR</td><td>信息量自适应、边界稳定与真实加速</td></tr>
+                  <tr><th>ImageFolder</th><td>同位置 semantic + detail IDs</td><td>两组独立 K-way CE</td><td>位置间 AR / 双 code 并行</td><td>语义—细节分工与独立性假设</td></tr>
                 </tbody>
               </table>
             </div>
@@ -1791,6 +1931,38 @@ export default function Home() {
                 ["OCR", "DocVQA · TextVQA · OCRBench"],
                 ["生成", "GenEval · DPG · FID"],
                 ["效率", "Steps · Tok/s · Memory"],
+              ].map(([title, value]) => <div key={title}><b>{title}</b><span>{value}</span></div>)}
+            </div>
+          </section>
+
+          <section className="folding-section" id="folding-matrix">
+            <div className="section-heading">
+              <div><p className="eyebrow">DISCRETE TOKEN FOLDING</p><h2>离散 image-token 合并后，head 到底预测什么？</h2></div>
+              <p>区分“Transformer 序列压缩”与“tokenizer 空间下采样”</p>
+            </div>
+            <div className="audit-callout">
+              <strong>URSA 代码结论</strong>
+              <p><code>diffusion_transformer.py</code> 是连续 latent 的 DiT：<code>patch_size=2</code> 时 head 输出 <code>4 × image_dim</code> 个连续值，按左上→右上→左下→右下还原 2×2 patch；它不预测四个离散 ID。离散 URSA 主干是 <code>transformer_ursa.py</code> 的 Qwen3 + 64K visual head，对原始 IBQ 网格每个位置预测一个 ID 分布，当前实现没有额外 token merge。</p>
+            </div>
+            <p className="scroll-hint">移动端可横向滑动查看完整 head 与块内顺序 →</p>
+            <div className="matrix-wrap">
+              <table className="folding-table">
+                <thead><tr><th>路线</th><th>如何压缩</th><th>全局 Transformer 长度</th><th>输出 head</th><th>块内预测顺序</th><th>对 URSA 的意义</th></tr></thead>
+                <tbody>
+                  <tr><th>原始 URSA</th><td>仅 IBQ/VAE 空间下采样；无额外 merge</td><td>N = H<sub>z</sub>×W<sub>z</sub></td><td>每位置共享 K-way visual head</td><td>每个 diffusion step 全局并行 refinement</td><td>公平 no-merge 基线</td></tr>
+                  <tr><th>Token-Shuffle</th><td>固定相邻 s×s embedding 沿通道拼接</td><td>N/s²</td><td>unshuffle 成 s² 个槽位，再共享 K-way head</td><td>组间 AR；组内 s² 个 ID 并行</td><td>最小改动、最快；重点检查 OCR/小目标</td></tr>
+                  <tr><th>SynerGen-VL</th><td>固定局部 token folding</td><td>N/q</td><td>浅层 causal visual head 预测原始 K-way IDs</td><td>组间 AR；块内按原 raster 顺序 AR</td><td>保留局部依赖，最适合 Qwen3+IBQ 统一模型</td></tr>
+                  <tr><th>DPAR</th><td>按 next-token entropy 动态合并连续 token</td><td>M，逐图可变且 M&lt;N</td><td>patch state 复制到 token state，local causal decoder + K-way head</td><td>global patch AR；local token AR</td><td>高信息区域保细粒度，但不易直接套入动态 diffusion step</td></tr>
+                  <tr><th>ImageFolder</th><td>同一空间位置折叠 semantic/detail 两个 code</td><td>空间位置数 N</td><td>2K logits reshape 为两组 K-way softmax</td><td>位置间 AR；同位置两路并行</td><td>不牺牲空间分辨率，适合语义—重建双 codebook</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="matrix-metrics">
+              {[
+                ["准确性", "Original-ID CE · Block error"],
+                ["细粒度", "OCR · Small objects · Boundaries"],
+                ["效率", "Sequence length · FLOPs · Memory"],
+                ["公平性", "Same IBQ · Qwen3 · Data · Budget"],
               ].map(([title, value]) => <div key={title}><b>{title}</b><span>{value}</span></div>)}
             </div>
           </section>
