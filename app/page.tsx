@@ -1368,7 +1368,7 @@ const papers: Paper[] = [
       "固定 Qwen3、decoder、视觉 token数、数据与总FLOPs，对比 IBQ欧氏量化、L2-normalized VQ、HSQ和HSQ+语义蒸馏。逐层报告codebook utilization/perplexity、角度覆盖、重建/OCR、TextVQA/DocVQA、T2I以及URSA/ELF下的训练稳定性；再交叉替换 Euclidean、cosine 和 learned metric path，区分 tokenizer几何与生成建模收益。",
     paper: "https://arxiv.org/abs/2607.22148",
     code: "https://github.com/martian422/dRAE",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1394,7 +1394,7 @@ const papers: Paper[] = [
     experiment:
       "建立两阶段预算协议：先在小规模网格上分别为AR、URSA、ELF估计最优模型/数据配比，再在同一总FLOPs下比较。输入侧同时测Qwen3-VL encoder、encoder-free patch embedding和IBQ；评价纯文本遗忘、空间推理、OCRBench、DocVQA、T2I、梯度冲突和每模态单位算力收益。",
     paper: "https://arxiv.org/abs/2607.22043",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1420,7 +1420,7 @@ const papers: Paper[] = [
     experiment:
       "固定Qwen3+IBQ与同一文字数据，对AR、URSA、ELF分别比较全局均匀loss和OCR-region/size-aware weighting；按字符高度分桶报告CER、NED、OCRBench、TextVQA、重复字符错误、中文笔画完整度、非文字区域FID及推理开销，避免平均指标掩盖小字失败。",
     paper: "https://arxiv.org/abs/2607.22101",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1447,7 +1447,7 @@ const papers: Paper[] = [
       "构造same-text/different-image与same-image/different-question配对，比较普通SFT、feature distillation、VSSD和activation patching。报告答案准确率、视觉反事实敏感性、删帧/删字符影响、steering dose-response、跨数据集泛化及解释中引用证据与真实因果影响的一致性。",
     paper: "https://arxiv.org/abs/2607.22013",
     code: "https://github.com/BGWH123/VSSD",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1476,7 +1476,7 @@ const papers: Paper[] = [
     experiment:
       "固定Qwen3/IBQ、action输入和world-model参数量，对比MLP/RSSM、Koopman latent、URSA next-token与ELF future-velocity。统一做8/16/32/64步open-loop、谱半径扫描、action shuffle、目标持续性、轨迹误差、reward/value校准与闭环决策成功率；同时检查低latent MSE是否只是过度收缩而丢失可用信息。",
     paper: "https://arxiv.org/abs/2607.19719",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1504,7 +1504,7 @@ const papers: Paper[] = [
     paper: "https://github.com/baaivision/URSA/blob/main/diffnext/models/diffusion_transformer.py",
     code: "https://github.com/baaivision/URSA/blob/main/diffnext/models/transformers/transformer_ursa.py",
     codeLabel: "离散主干",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1532,7 +1532,7 @@ const papers: Paper[] = [
     paper: "https://arxiv.org/abs/2504.17789",
     code: "https://ma-xu.github.io/token-shuffle/",
     codeLabel: "项目页",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1558,7 +1558,7 @@ const papers: Paper[] = [
     experiment:
       "在相同 N/4 全局长度下，严格比较 parallel unshuffle head 与 local causal head；把总前向 FLOPs对齐，并单独报告文字区域、物体边界与平坦背景的组内条件互信息和恢复误差。",
     paper: "https://arxiv.org/abs/2412.09604",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1584,7 +1584,7 @@ const papers: Paper[] = [
     experiment:
       "比较 fixed 2×2、DPAR entropy、IBQ distance 与 DINO/SigLIP semantic boundary 四种分块；固定平均 compression ratio 后测 OCR、细粒度理解、T2I、patch-boundary artifact、真实延迟和训练稳定性。",
     paper: "https://arxiv.org/abs/2512.21867",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1611,7 +1611,7 @@ const papers: Paper[] = [
       "固定总 bitrate 与 decoder，比较单 64K IBQ、两个较小 product codebook、空间2×2 fold；报告 codebook utilization、OCR、语义 linear probe、重建和 T2I，并测试联合 2D head 是否优于两个独立 softmax。",
     paper: "https://arxiv.org/abs/2410.01756",
     code: "https://github.com/lxa9867/ImageFolder",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1637,7 +1637,7 @@ const papers: Paper[] = [
     experiment:
       "从同一 AR checkpoint 出发，固定 Qwen3、IBQ、数据、训练 token与FLOPs，比较 raster AR、MaskGIT、UNIFUSION uniform kernel和URSA metric path；共享 x₀ visual head并统一4/8/16/32/64次前向预算，报告OCRBench、DocVQA、TextVQA、T2I、token修订率、转移距离、吞吐、显存及训练稳定性。",
     paper: "https://arxiv.org/abs/2607.24507",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1663,7 +1663,7 @@ const papers: Paper[] = [
     experiment:
       "固定同一 block-diffusion checkpoint，仅切换全局置信度、随机、PARD左到右、二维蛇形和OCR-reading-order五种采样器；在相同前向次数与提交token数下测字符顺序错误、DocVQA/TextVQA、T2I布局、真实延迟和token revision，避免重新训练带来的混杂。",
     paper: "https://arxiv.org/abs/2607.24306",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1689,7 +1689,7 @@ const papers: Paper[] = [
     experiment:
       "固定Qwen3与总训练FLOPs，比较原分辨率SFT、低分辨率SFT、off-policy distill与RP-OPSD；student再分为原IBQ、2×2 folding和低分辨率IBQ。报告OCRBench/DocVQA/TextVQA、短时小目标召回、teacher-student KL、训练吞吐、显存和原分辨率迁移收益。",
     paper: "https://arxiv.org/abs/2607.24447",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1715,7 +1715,7 @@ const papers: Paper[] = [
     experiment:
       "固定Qwen3与回答数据，比较直接bbox、文本quote、quote+retrieval和quote+GRPO；统一测答案准确率、evidence recall、hallucination、严格归因准确率与坐标误差。再做删帧/遮挡证据的反事实测试，检查模型是否真正依赖所引用区域。",
     paper: "https://arxiv.org/abs/2607.24651",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1746,6 +1746,138 @@ const papers: Paper[] = [
     paper: "https://arxiv.org/abs/2607.22535",
     code: "https://github.com/bjkim95/rofacto",
     codeLabel: "代码（预告）",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "block-transformer",
+    index: "65",
+    title: "Block Transformer: Global-to-Local Language Modeling for Fast Inference",
+    shortTitle: "Block Transformer",
+    date: "2024-06-04 · NeurIPS 2024 基础补读",
+    category: "自回归建模",
+    paradigm: "Global Block AR + Local Token AR",
+    state: "固定长度 block 的连续 context embedding + 原始离散 token ID",
+    objective: "局部共享 vocabulary classifier / next-token CE",
+    decoding: "全局按 block 自回归；块内由轻量 causal Transformer 逐 token 解码",
+    sharing: "block decoder 压缩全局历史；token decoder 有独立 embedding、位置编码与共享分类器",
+    open: "论文、官方训练代码和模型配置已公开",
+    priority: "精读",
+    summary:
+      "Block Transformer把长序列分成固定 block：昂贵的全局 Transformer 每个 block 只运行一次，输出 context embedding；轻量 token decoder将该 context投影为 prefix，再在局部短序列中自回归预测原始 token。论文主设置的 block length恰好为4，与当前2×2视觉 folding完全对口。",
+    why:
+      "它给出了比“用一个global hidden初始化GRU”更系统的head设计：global context不仅作为初始状态，而是投影为一个或多个prefix token，让后续局部位置持续通过self-attention读取全局语义。论文还发现首位置loss主要由global decoder决定，后续位置loss更依赖local decoder，正好对应你需要分开记录TL与TR/BL/BR。",
+    inspiration:
+      "Stage3可将每个Qwen3 merged hidden投影成1–2个local prefix，后接2层1024维causal Transformer；训练输入为[context, GT-TL, GT-TR, GT-BL]，输出依次监督[TL,TR,BL,BR]。四个槽位共享16384-way classifier，并加入2D slot embedding。",
+    experiment:
+      "固定Stage2 checkpoint、X-Omni tokenizer和训练数据，对比1024-GRU、1-prefix local Transformer、2-prefix local Transformer和并行unshuffle head；报告四个slot CE、首token loss、block exact-match、完整free-running T2I、真实延迟及理解能力遗忘。",
+    paper: "https://arxiv.org/abs/2406.02657",
+    code: "https://github.com/itsnamgyu/block-transformer",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "megabyte",
+    index: "66",
+    title: "MEGABYTE: Predicting Million-byte Sequences with Multiscale Transformers",
+    shortTitle: "MEGABYTE",
+    date: "2023-05-12 · 基础架构补读",
+    category: "自回归建模",
+    paradigm: "Multiscale Global-to-Local Autoregression",
+    state: "固定 patch representation + patch内原始离散符号",
+    objective: "原始符号 next-token CE",
+    decoding: "global patch sequence AR；local model在patch内AR",
+    sharing: "全局与局部Transformer分层；局部模型承担高频细节",
+    open: "论文与完整架构细节公开；未见作者维护的独立官方实现",
+    priority: "精读",
+    summary:
+      "MEGABYTE是global-to-local序列建模的经典基础：把长序列切成patch，全局模型只建模patch之间的依赖，局部模型在patch内还原原始符号。它证明压缩全局序列并不要求把多个原始ID变成一个巨大联合类别。",
+    why:
+      "你的2×2 merge本质上正是视觉版MEGABYTE：Qwen3负责block级语义与全局布局，轻量head负责四个X-Omni ID的局部纹理和边界。它为“局部head应有足够容量，而不是单个Linear直接输出4K类别”提供基础依据。",
+    inspiration:
+      "可以把Qwen3看作global model、mm_head看作local model，并分别分配计算预算。merge ratio增大时，local decoder容量也应增加；否则全局序列虽然更短，但OCR与细粒度损失会被错误归因于token merge本身。",
+    experiment:
+      "比较1×1、2×2、2×4三种folding，并为每种ratio扫描GRU/Transformer层数；保持总FLOPs近似一致，报告首slot与后续slot NLL、OCR、小目标、DPG/GenEval、KV-cache、局部head耗时与全局Qwen耗时。",
+    paper: "https://arxiv.org/abs/2305.07185",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "blt",
+    index: "67",
+    title: "Byte Latent Transformer: Patches Scale Better Than Tokens",
+    shortTitle: "BLT",
+    date: "2024-12-13 · 重要补读",
+    category: "自回归建模",
+    paradigm: "Entropy-based Dynamic Patching + Local Decoder",
+    state: "动态长度patch latent + 原始byte token；无固定词级tokenizer",
+    objective: "local decoder原始byte CE",
+    decoding: "global patch AR；局部cross-attention + causal Transformer解码",
+    sharing: "轻量local encoder/decoder包裹大global latent Transformer",
+    open: "论文与Meta官方训练代码已公开",
+    priority: "精读",
+    summary:
+      "BLT根据下一byte entropy动态确定patch边界：可预测区域形成更长patch，高信息区域获得更密集的全局计算；局部decoder通过cross-attention读取patch representation，再逐原始byte预测。它是DPAR背后的重要通用架构依据。",
+    why:
+      "它提示视觉merge不必固定为2×2。天空、墙面和大面积纹理可以更激进地合并，文字、目标边缘与小目标则应保留更小block；但公平实验必须固定每批原始信息量，而不能只固定merge后的token数。",
+    inspiration:
+      "对X-Omni可用Stage3 teacher-forced entropy、OCR proposal或IBQ边界强度预计算动态patch；第一版不必改变Qwen attention，可先离线确定patch map，再用local decoder还原原始ID。动态分块应禁止跨图像行，避免破坏2D邻域。",
+    experiment:
+      "固定平均4:1压缩率，对比fixed 2×2、entropy patch、OCR-aware patch与随机patch；同时固定原始image-code数量、训练FLOPs和图像分辨率，报告padding浪费、patch长度分布、OCR/小目标、T2I及free-running误差。",
+    paper: "https://arxiv.org/abs/2412.09871",
+    code: "https://github.com/facebookresearch/blt",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "ssd-image-ar",
+    index: "68",
+    title: "SSD: Spatially Speculative Decoding Accelerates Autoregressive Image Generation",
+    shortTitle: "SSD",
+    date: "2026-06-18 · 近期补读",
+    category: "自回归建模",
+    paradigm: "2D Spatial Speculative Decoding",
+    state: "AR视觉模型的hidden state与离散视觉token",
+    objective: "轻量spatial draft head的hidden-state self-distillation",
+    decoding: "同时草拟右侧与下方邻居，再由原AR backbone并行验证",
+    sharing: "不替换原视觉tokenizer或主head；额外draft heads复用backbone hidden",
+    open: "论文与算法细节公开；截至核对时未找到完整官方代码",
+    priority: "精读",
+    summary:
+      "SSD不直接让小head在数万类codebook中精确猜ID，而是蒸馏未来位置的连续hidden state，沿水平和垂直方向同时草拟多个视觉token，再由原AR模型验证；在Janus-Pro、Lumina-mGPT与Emu3上实现最高约13.3×加速。",
+    why:
+      "它对当前Stage3有一个重要限定：若把并行4-ID head作为最终生成器，空间邻居的精确ID命中可能很难；但如果该head只负责draft、最终仍由Qwen3验证，就能在不牺牲原AR分布的前提下利用2D局部性。",
+    inspiration:
+      "当前2×2 local head可扩展成两种角色：一是SynerGen式最终decoder；二是SSD式draft head。后者可预测TR、BL等邻居的pre-RMSNorm hidden，再用主干一次验证整个2×2块，适合在生成质量稳定后单独优化推理速度。",
+    experiment:
+      "在同一Stage3模型上比较直接并行ID、局部AR最终head与hidden-state draft+Qwen验证；报告draft acceptance、horizontal/vertical命中率、回滚率、真实wall time、DPG/GenEval、OCR文字顺序及每张图Qwen参数加载次数。",
+    paper: "https://arxiv.org/abs/2606.20543",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "tree-structured-dlm",
+    index: "69",
+    title: "Rethinking Token Prediction: Tree-Structured Diffusion Language Model",
+    shortTitle: "Tree-DLM",
+    date: "2026-04-04 · 重要补读",
+    category: "离散 Diffusion",
+    paradigm: "Hierarchical Vocabulary Diffusion",
+    state: "由recursive K-means构造的token祖先节点与最终leaf ID",
+    objective: "逐层children prediction，替代完整V-way softmax",
+    decoding: "沿词表树从粗簇到细ID迭代恢复",
+    sharing: "主干不变；大词表head替换为小branching-factor classifier",
+    open: "论文与完整推导公开；截至核对时未见官方代码",
+    priority: "精读",
+    summary:
+      "Tree-DLM把一次完整词表分类分解成沿词表树的多次children prediction，使输出维度从V降到branching factor K。论文在语言扩散上报告峰值显存约减半，同时保持接近的困惑度。",
+    why:
+      "你的16384类X-Omni head尚可训练，但未来若换成64K/128K IBQ，四个槽位的logits activation与分类矩阵会迅速成为显存瓶颈。视觉codebook天然有embedding距离，可直接用IBQ/DINO语义做层次聚类，而不是随机树。",
+    inspiration:
+      "可先不改URSA前向过程，只把flat visual head替换为两级cluster→code预测：例如256个粗簇，每簇约64个code。对Stage3 local decoder，同一个slot先预测cluster，再在有效子集预测原始ID，避免Linear(4096,4K)式参数爆炸。",
+    experiment:
+      "固定Qwen3、IBQ和local decoder，对比flat 16K head、两级欧氏codebook tree、DINO语义tree与product quantization；报告参数、logits activation显存、吞吐、exact-ID/top-k、近邻视觉误差、重建、OCR与T2I。先确认层次head没有把相似但文字不同的code过度聚类。",
+    paper: "https://arxiv.org/abs/2604.03537",
     featured: true,
     idea: true,
   },
@@ -1869,7 +2001,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.07.28</strong>
+        <strong>DAILY BRIEF · 2026.07.29</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -1915,9 +2047,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 016]</p>
-              <h1>同一 x₀ 接口，<br />公平比较 AR、Mask、Uniform 与 URSA</h1>
-              <p className="hero-copy">今日重点补齐 AR checkpoint 到离散 Diffusion 的统一转换、Block Diffusion 的生成顺序，以及低分辨率蒸馏、可核验证据归因和动作接口分解。建模方式、采样器与 tokenizer 继续分开比较。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 017]</p>
+              <h1>Token merge 之后，<br />怎样预测每个原始 image ID？</h1>
+              <p className="hero-copy">今天没有为“当天新作”凑数，而是补齐五项最能指导 Stage 3 实现的材料：global-to-local AR、动态 patch、二维 speculative decoding 与层次化离散 head。重点回答 merged hidden、局部 causal decoder 和原始视觉 ID 监督之间的关系。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -1929,7 +2061,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>64</b><span>精选条目</span></div>
+                <div><b>69</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -2059,6 +2191,11 @@ export default function Home() {
                   <tr><th>ImageFolder</th><td>同位置 semantic + detail IDs</td><td>两组独立 K-way CE</td><td>位置间 AR / 双 code 并行</td><td>语义—细节分工与独立性假设</td></tr>
                   <tr><th>UNIFUSION</th><td>uniform kernel离散token ID；所有位置可编辑</td><td>统一reverse-rate KL，经x₀转换为score/posterior/jump rate</td><td>全序列16–256步迭代</td><td>从同一AR checkpoint公平切换mask、uniform与URSA metric kernel</td></tr>
                   <tr><th>PARD</th><td>block masked离散token</td><td>沿用原clean-token分布；training-free</td><td>左到右结构 + 每轮并行提交</td><td>把训练kernel与推理生成顺序拆成两个控制变量</td></tr>
+                  <tr><th>Block Transformer</th><td>block context embedding + 原始离散ID</td><td>local shared-vocabulary next-token CE</td><td>block间AR / block内AR</td><td>global hidden作为prefix；首slot与后续slot容量分工</td></tr>
+                  <tr><th>MEGABYTE</th><td>固定patch latent + 原始离散符号</td><td>local next-token CE</td><td>global patch AR / local token AR</td><td>merge ratio与local decoder容量共同扫描</td></tr>
+                  <tr><th>BLT</th><td>entropy动态patch + 原始byte</td><td>local decoder原始byte CE</td><td>global patch AR / local token AR</td><td>按信息密度分配全局计算；固定原始信息预算</td></tr>
+                  <tr><th>SSD</th><td>视觉AR hidden + 原始离散token</td><td>邻居hidden-state self-distillation</td><td>二维并行draft + 原主干验证</td><td>最终head与draft head角色必须区分</td></tr>
+                  <tr><th>Tree-DLM</th><td>层次词表祖先节点 → leaf ID</td><td>逐层children prediction</td><td>从粗簇到细ID迭代</td><td>大视觉词表head参数与logits显存</td></tr>
                 </tbody>
               </table>
             </div>
@@ -2081,6 +2218,10 @@ export default function Home() {
               <strong>URSA 代码结论</strong>
               <p><code>diffusion_transformer.py</code> 是连续 latent 的 DiT：<code>patch_size=2</code> 时 head 输出 <code>4 × image_dim</code> 个连续值，按左上→右上→左下→右下还原 2×2 patch；它不预测四个离散 ID。离散 URSA 主干是 <code>transformer_ursa.py</code> 的 Qwen3 + 64K visual head，对原始 IBQ 网格每个位置预测一个 ID 分布，当前实现没有额外 token merge。</p>
             </div>
+            <div className="audit-callout">
+              <strong>Stage 3 推荐</strong>
+              <p>2×2 merge只压缩Qwen3处理的全局位置，不产生新的“merged ID”。把原始目标整理为<code>[B, M, 4]</code>，使用<code>&lt;boi&gt;/前一block hidden</code>预测下一block；局部概率按<code>TL → TR → BL → BR</code>因果分解，四个槽位共享16384-way classifier。必须确保<code>hᵢ → blockᵢ₊₁</code>，否则当前block的GT merge embedding会泄漏到预测中。</p>
+            </div>
             <p className="scroll-hint">移动端可横向滑动查看完整 head 与块内顺序 →</p>
             <div className="matrix-wrap">
               <table className="folding-table">
@@ -2091,6 +2232,11 @@ export default function Home() {
                   <tr><th>SynerGen-VL</th><td>固定局部 token folding</td><td>N/q</td><td>浅层 causal visual head 预测原始 K-way IDs</td><td>组间 AR；块内按原 raster 顺序 AR</td><td>保留局部依赖，最适合 Qwen3+IBQ 统一模型</td></tr>
                   <tr><th>DPAR</th><td>按 next-token entropy 动态合并连续 token</td><td>M，逐图可变且 M&lt;N</td><td>patch state 复制到 token state，local causal decoder + K-way head</td><td>global patch AR；local token AR</td><td>高信息区域保细粒度，但不易直接套入动态 diffusion step</td></tr>
                   <tr><th>ImageFolder</th><td>同一空间位置折叠 semantic/detail 两个 code</td><td>空间位置数 N</td><td>2K logits reshape 为两组 K-way softmax</td><td>位置间 AR；同位置两路并行</td><td>不牺牲空间分辨率，适合语义—重建双 codebook</td></tr>
+                  <tr><th>Block Transformer</th><td>固定4-token block压缩成context embedding</td><td>N/4</td><td>context投影为prefix；local causal Transformer + 共享K-way head</td><td>block间AR；块内原始ID AR</td><td>最直接支持2×2 Stage3 local Transformer head</td></tr>
+                  <tr><th>MEGABYTE</th><td>固定长度patch，由global/local两级模型处理</td><td>N/q</td><td>local submodel预测原始符号</td><td>patch间AR；patch内AR</td><td>证明不需要构造K⁴联合merged ID</td></tr>
+                  <tr><th>BLT</th><td>按局部entropy形成动态长度patch</td><td>M，取决于信息密度</td><td>cross-attention local decoder + 原始ID head</td><td>patch间AR；patch内AR</td><td>为OCR-aware / boundary-aware动态merge提供基础</td></tr>
+                  <tr><th>SSD</th><td>不改变主序列；额外预测二维邻居hidden</td><td>保持N，但减少串行主干调用</td><td>轻量draft heads + 原AR head验证</td><td>水平/垂直并行draft与验证</td><td>适合把2×2 head改成加速器而非最终生成器</td></tr>
+                  <tr><th>Tree-DLM</th><td>不做空间merge；对视觉词表层次聚类</td><td>位置数不变</td><td>小K children classifier逐层定位leaf ID</td><td>词表内coarse-to-fine</td><td>解决64K/128K视觉head与logits显存瓶颈</td></tr>
                 </tbody>
               </table>
             </div>
