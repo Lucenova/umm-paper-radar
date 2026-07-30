@@ -1773,7 +1773,7 @@ const papers: Paper[] = [
       "固定Stage2 checkpoint、X-Omni tokenizer和训练数据，对比1024-GRU、1-prefix local Transformer、2-prefix local Transformer和并行unshuffle head；报告四个slot CE、首token loss、block exact-match、完整free-running T2I、真实延迟及理解能力遗忘。",
     paper: "https://arxiv.org/abs/2406.02657",
     code: "https://github.com/itsnamgyu/block-transformer",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1799,7 +1799,7 @@ const papers: Paper[] = [
     experiment:
       "比较1×1、2×2、2×4三种folding，并为每种ratio扫描GRU/Transformer层数；保持总FLOPs近似一致，报告首slot与后续slot NLL、OCR、小目标、DPG/GenEval、KV-cache、局部head耗时与全局Qwen耗时。",
     paper: "https://arxiv.org/abs/2305.07185",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1826,7 +1826,7 @@ const papers: Paper[] = [
       "固定平均4:1压缩率，对比fixed 2×2、entropy patch、OCR-aware patch与随机patch；同时固定原始image-code数量、训练FLOPs和图像分辨率，报告padding浪费、patch长度分布、OCR/小目标、T2I及free-running误差。",
     paper: "https://arxiv.org/abs/2412.09871",
     code: "https://github.com/facebookresearch/blt",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1852,7 +1852,7 @@ const papers: Paper[] = [
     experiment:
       "在同一Stage3模型上比较直接并行ID、局部AR最终head与hidden-state draft+Qwen验证；报告draft acceptance、horizontal/vertical命中率、回滚率、真实wall time、DPG/GenEval、OCR文字顺序及每张图Qwen参数加载次数。",
     paper: "https://arxiv.org/abs/2606.20543",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1878,6 +1878,142 @@ const papers: Paper[] = [
     experiment:
       "固定Qwen3、IBQ和local decoder，对比flat 16K head、两级欧氏codebook tree、DINO语义tree与product quantization；报告参数、logits activation显存、吞吐、exact-ID/top-k、近邻视觉误差、重建、OCR与T2I。先确认层次head没有把相似但文字不同的code过度聚类。",
     paper: "https://arxiv.org/abs/2604.03537",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "umm-one-space",
+    index: "70",
+    title: "Do Unified Multimodal Models Think in One Space? A Lens Through Cross-Branch Steering",
+    shortTitle: "UMM One Space?",
+    date: "2026-07-29 · 新提交",
+    category: "可解释性",
+    paradigm: "Cross-branch Causal Steering for UMM",
+    state: "理解分支文本 hidden 与生成分支视觉 latent 的语义方向",
+    objective: "无需修改生成目标；通过跨分支激活干预检验语义可迁移性",
+    decoding: "理解向量注入生成轨迹，或生成向量反向注入理解分支",
+    sharing: "共享架构不等于共享语义；理解→生成迁移明显强于生成→理解",
+    open: "论文与实验协议公开；截至核对时未见官方代码仓库",
+    priority: "精读",
+    summary:
+      "论文提出cross-branch semantic steering：从理解分支提取语义方向并注入生成分支，能够控制图像语义并提高faithfulness；反向把生成方向迁入理解分支则效果有限。作者认为理解表征更偏对象与概念，而生成表征仍以外观和低层细节为主。",
+    why:
+      "这直接检验URSA、X-Omni或未来ELF改造是否只是结构上共享Qwen3，还是理解与生成真的共享可因果迁移的语义。仅看同一Transformer、同一tokenizer或CKA相似度，无法证明两个任务使用了同一组有功能作用的方向。",
+    inspiration:
+      "可分别从DocVQA/TextVQA理解轨迹、T2I离散ID轨迹和ELF连续velocity轨迹提取“文字、数量、颜色、目标类别”等方向；测试理解方向能否改变生成，生成方向能否改变VQA答案，并比较原始IBQ、TokLIP语义化IBQ与ELF。",
+    experiment:
+      "固定Qwen3、IBQ、数据与checkpoint，在相同层和token位置做双向steering；报告生成概念命中、VQA变化率、OCR字符保持、干预强度曲线和随机方向对照。若理解→生成有效而生成→理解失效，应优先做生成latent语义对齐，而不是继续扩大共享head。",
+    paper: "https://arxiv.org/abs/2607.26411",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "medarc",
+    index: "71",
+    title: "MedARC: Training-Free Adaptive Redundancy Compression of Visual Tokens for 3D Medical Vision-Language Models",
+    shortTitle: "MedARC",
+    date: "2026-07-29 · 新提交",
+    category: "评测诊断",
+    paradigm: "Multi-cue Saliency-aware Token Merging",
+    state: "视觉encoder token、文本查询投影与视觉基础模型局部feature",
+    objective: "训练免费；融合attention、query relevance与结构离群度计算保留/合并权重",
+    decoding: "先保留高重要性token，再把冗余token合并到代表token；下游解码方式不变",
+    sharing: "不修改LLM与输出head；只改变进入主干的视觉token预算",
+    open: "论文与算法细节公开；截至核对时未见官方代码仓库",
+    priority: "精读",
+    summary:
+      "MedARC针对超长3D视觉序列，用三种互补信号决定token是否可合并：模型自身attention、视觉token与问题文本的相关性、以及局部基础模型feature相对全局中心的结构独特性。它不是简单丢弃低分token，而是将冗余信息合并到保留token中。",
+    why:
+      "它为当前2×2固定folding提供了更安全的对照：固定merge可能恰好把文字、小目标或关键帧与背景平均掉。MedARC说明压缩率相同并不代表信息损失相同，OCR和威胁目标需要由query与结构信号共同保护。",
+    inspiration:
+      "在Qwen3+IBQ中可将attention替换为Stage2视觉注意力，将query relevance定义为IBQ projector与问题token相似度，将结构离群度定义为DINO/SigLIP局部feature偏差；高分位置保持1×1，背景使用2×2 folding，并继续由Stage3 local head恢复原ID。",
+    experiment:
+      "固定平均4:1压缩率，对比固定2×2、随机merge、attention-only、query-only和三信号merge；报告OCRBench、DocVQA、TextVQA、小目标召回、短时关键帧召回、原ID重建率、真实吞吐和动态padding开销。",
+    paper: "https://arxiv.org/abs/2607.26554",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "see2think",
+    index: "72",
+    title: "See2Think: Do Multimodal Models Really Use Intermediate Visual States?",
+    shortTitle: "See2Think",
+    date: "2026-07-29 · 新提交",
+    category: "可解释性",
+    paradigm: "Visual Action-of-Thought Process Evaluation",
+    state: "文本思考、视觉操作、渲染后的中间图像与后续推理轨迹",
+    objective: "评测框架；通过受控反馈与corruption检验中间视觉状态的实际因果作用",
+    decoding: "在四种推理设置中生成/接收中间视觉状态，再继续推理",
+    sharing: "区分选择了正确视觉操作、正确渲染和真正利用反馈三个阶段",
+    open: "论文、1200题评测设计与VAoT协议公开；截至核对时未见官方代码入口",
+    priority: "精读",
+    summary:
+      "See2Think发现MLLM通常能选对视觉操作，但中间图像的忠实渲染仍是主要瓶颈；模型看似吸收视觉反馈，也不保证最终准确率提升。对任务相关的中间视觉状态进行受控破坏后，准确率下降超过10个百分点，说明部分模型确实依赖这些状态。",
+    why:
+      "你的多帧威胁链条包含目标识别、威胁分析和决策，前序JSON或可视化结果就是中间状态。只检查最终决策无法判断模型是否真正利用识别证据，还是在收到中间结果后继续依赖语言先验。",
+    inspiration:
+      "可把YOLO框、关键帧、目标轨迹图和Stage3重建图视为visual state，分别做正确、删除、错位和语义保持但像素扰动的反馈；观察威胁排序、坐标与决策是否发生符合因果预期的变化。",
+    experiment:
+      "建立四阶段日志：视觉操作选择、状态渲染质量、反馈读取率、最终答案；比较原图、正确中间图、损坏中间图与文本化中间状态。指标增加feedback intervention gap、证据引用准确率和错误从识别到决策的传播率。",
+    paper: "https://arxiv.org/abs/2607.26769",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "actswm",
+    index: "73",
+    title: "ActSWM: Action-Sensitive World Models for Long-Horizon Planning in Open-World Games",
+    shortTitle: "ActSWM",
+    date: "2026-07-29 · 新提交",
+    category: "世界模型",
+    paradigm: "Action-sensitive Autoregressive Latent World Model",
+    state: "游戏观测的连续latent rollout",
+    objective: "next latent预测 + transition separation / action recoverability约束",
+    decoding: "给定候选动作序列做长时latent AR rollout，并以receding horizon重规划",
+    sharing: "世界模型latent可接UMM hidden；重点约束不同动作未来不能塌缩成同一路径",
+    action: "真实或离线恢复的局部游戏action",
+    rollout: "支持长时开放环latent rollout、Minecraft闭环规划和跨游戏动作恢复",
+    evaluation: "step drift、alternative-action rollout gap、action recovery与闭环任务成功率",
+    open: "论文与完整方法公开；截至核对时未见官方代码仓库",
+    priority: "精读",
+    summary:
+      "ActSWM指出一种容易被平均预测指标掩盖的Context Collapse：世界模型预测的未来与真实未来相似，但面对不同动作仍生成几乎相同的latent轨迹。它用transition separation原则保持候选动作未来可区分，并要求局部transition可恢复其动作。",
+    why:
+      "这对URSA/ELF世界模型至关重要：高IBQ token accuracy、低embedding MSE或低velocity loss，不等于模型学到了动作因果性。若不同云台、平台或处置动作得到相似未来，模型无法用于规划，即使生成视频很好看。",
+    inspiration:
+      "在Qwen3+IBQ中可对同一历史配不同候选动作，约束未来IBQ posterior或ELF latent保持足够距离；同时训练action recovery head。对多帧威胁任务，可把视角变化、跟踪、遮挡和目标运动作为可控action/state delta。",
+    experiment:
+      "固定历史观测，做真实动作、shuffle动作、相反动作和零动作四组rollout；除next-token CE/MSE外，报告action-conditioned separation、动作恢复、horizon drift和闭环追踪/决策成功率。对比IBQ-AR、URSA metric dynamics与ELF velocity。",
+    paper: "https://arxiv.org/abs/2607.26712",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "cg-world",
+    index: "74",
+    title: "CG-World: A Large-Scale World-State Dataset and Protocol for World Models",
+    shortTitle: "CG-World",
+    date: "2026-07-29 · 新提交",
+    category: "世界模型",
+    paradigm: "Structured World-state and Counterfactual Data Protocol",
+    state: "语义、空间、骨骼、控制器、相机、光照、物理cache、接触事件与多通道渲染",
+    objective: "多任务监督：条件视频生成、action prediction、事件/关系预测与策略迁移",
+    decoding: "支持事实轨迹及观测、动作、机制干预后的成对分支预测",
+    sharing: "为UMM统一理解—生成—预测—行动提供显式state/event/action接口，而非只给RGB视频",
+    action: "控制器状态、动作干预与机制干预，包含明确不变量和替代结果",
+    rollout: "1–5秒对齐片段；支持counterfactual branch与闭环VLA迁移评测",
+    evaluation: "几何条件生成、action prediction、干预一致性、反事实与闭环策略迁移",
+    open: "论文声明CG-World v1约85万片段并计划持续扩展；当前论文页未见明确下载仓库",
+    priority: "精读",
+    summary:
+      "CG-World利用工业CG生产管线记录传统视频数据没有的完整中间状态，并为同一场景构造事实轨迹、观测干预、动作干预、机制干预和严格反事实分支。每个分支显式记录干预目标、应保持的不变量和替代结果。",
+    why:
+      "它给出了比“下一帧预测数据集”更适合世界模型的监督定义。你的模型如果只看多帧RGB，很难区分相机运动、目标运动、遮挡与真实状态变化；也无法判断错误来自视觉tokenizer还是动力学。",
+    inspiration:
+      "可为多帧威胁数据增加轻量world-state schema：目标ID、位置、可见性、相机/载体状态、事件和决策action；再构造删目标、换动作、保持背景不变等反事实分支，让URSA/ELF不仅预测未来图像，还预测哪些状态应变、哪些应保持。",
+    experiment:
+      "固定相同视频，建立RGB-only、RGB+state、RGB+state+event和counterfactual四种训练；比较未来IBQ/latent、目标持续性、action sensitivity、反事实不变量、horizon drift与闭环成功。单独报告tokenizer reconstruction、静态生成和动力学三类误差。",
+    paper: "https://arxiv.org/abs/2607.26452",
     featured: true,
     idea: true,
   },
@@ -2001,7 +2137,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.07.29</strong>
+        <strong>DAILY BRIEF · 2026.07.30</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -2047,9 +2183,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 017]</p>
-              <h1>Token merge 之后，<br />怎样预测每个原始 image ID？</h1>
-              <p className="hero-copy">今天没有为“当天新作”凑数，而是补齐五项最能指导 Stage 3 实现的材料：global-to-local AR、动态 patch、二维 speculative decoding 与层次化离散 head。重点回答 merged hidden、局部 causal decoder 和原始视觉 ID 监督之间的关系。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 018]</p>
+              <h1>共享架构之后，<br />语义、Token 与未来真的统一了吗？</h1>
+              <p className="hero-copy">今日五项新作围绕三个容易被平均指标掩盖的问题：理解与生成分支能否双向迁移语义、Token Merge是否误删文字与关键目标，以及世界模型面对不同动作是否仍生成几乎相同的未来。重点补充跨分支因果干预、查询感知merge和action-sensitive evaluation。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -2061,7 +2197,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>69</b><span>精选条目</span></div>
+                <div><b>74</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -2196,6 +2332,7 @@ export default function Home() {
                   <tr><th>BLT</th><td>entropy动态patch + 原始byte</td><td>local decoder原始byte CE</td><td>global patch AR / local token AR</td><td>按信息密度分配全局计算；固定原始信息预算</td></tr>
                   <tr><th>SSD</th><td>视觉AR hidden + 原始离散token</td><td>邻居hidden-state self-distillation</td><td>二维并行draft + 原主干验证</td><td>最终head与draft head角色必须区分</td></tr>
                   <tr><th>Tree-DLM</th><td>层次词表祖先节点 → leaf ID</td><td>逐层children prediction</td><td>从粗簇到细ID迭代</td><td>大视觉词表head参数与logits显存</td></tr>
+                  <tr><th>MedARC</th><td>encoder token + query / structure saliency</td><td>training-free merge；下游目标不变</td><td>高价值token保留、冗余token合并</td><td>固定压缩率下保护OCR、小目标与查询相关证据</td></tr>
                 </tbody>
               </table>
             </div>
@@ -2237,6 +2374,7 @@ export default function Home() {
                   <tr><th>BLT</th><td>按局部entropy形成动态长度patch</td><td>M，取决于信息密度</td><td>cross-attention local decoder + 原始ID head</td><td>patch间AR；patch内AR</td><td>为OCR-aware / boundary-aware动态merge提供基础</td></tr>
                   <tr><th>SSD</th><td>不改变主序列；额外预测二维邻居hidden</td><td>保持N，但减少串行主干调用</td><td>轻量draft heads + 原AR head验证</td><td>水平/垂直并行draft与验证</td><td>适合把2×2 head改成加速器而非最终生成器</td></tr>
                   <tr><th>Tree-DLM</th><td>不做空间merge；对视觉词表层次聚类</td><td>位置数不变</td><td>小K children classifier逐层定位leaf ID</td><td>词表内coarse-to-fine</td><td>解决64K/128K视觉head与logits显存瓶颈</td></tr>
+                  <tr><th>MedARC</th><td>attention、query relevance与结构独特性联合决定merge</td><td>预算可固定为N/4</td><td>不改原head；合并后的token送入既有主干</td><td>无新增生成顺序</td><td>为固定2×2 folding提供OCR-aware动态对照</td></tr>
                 </tbody>
               </table>
             </div>
@@ -2275,6 +2413,8 @@ export default function Home() {
                   <tr><th>DreamerV3</th><td>categorical latent + recurrent state</td><td>真实离散/连续action</td><td>next latent + reward + continuation</td><td>RSSM latent dynamics</td><td>长时latent imagination + actor-critic</td><td>以闭环成功而非视频画质检验UMM世界模型价值</td></tr>
                   <tr><th>Koopman Dreamer</th><td>谱结构确定性latent + stochastic state</td><td>连续action + 双线性state-action</td><td>一步/多步latent、observation与reward</td><td>有界谱半径Koopman dynamics + Dreamer</td><td>长时prior imagination + actor-critic闭环</td><td>为IBQ/ELF未来预测增加可控时间尺度与误差稳定性</td></tr>
                   <tr><th>RoFacto</th><td>静态RGB/深度 + 渲染机器人几何</td><td>raw command经控制器/运动学变成nominal trajectory并渲染</td><td>接触后的未来视频/场景响应</td><td>Robot-factored video diffusion</td><td>动作编辑与未来视频；闭环规划未报告</td><td>先统一动作视觉接口，再公平比较URSA/ELF世界动力学</td></tr>
+                  <tr><th>ActSWM</th><td>连续游戏latent</td><td>真实/离线恢复action</td><td>next latent + transition separation + action recovery</td><td>Action-sensitive latent AR</td><td>长时rollout、Minecraft闭环规划与跨游戏动作恢复</td><td>给IBQ/URSA/ELF增加“不同动作未来必须可分”的因果约束</td></tr>
+                  <tr><th>CG-World</th><td>RGB + 语义/几何/控制器/物理cache/事件</td><td>动作与机制干预分支</td><td>未来观测、state、event与替代结果</td><td>数据协议；支持AR/Diffusion/Flow/JEPA</td><td>事实、观测/动作/机制干预与严格反事实</td><td>把UMM扩展为显式理解—生成—预测—行动state schema</td></tr>
                 </tbody>
               </table>
             </div>
