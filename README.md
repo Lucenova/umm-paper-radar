@@ -8,6 +8,8 @@
 - Diffusion LLM 与 MLLM/LLM 可解释性
 - 视觉、机器人与具身世界模型
 
+当前收录 79 篇论文、5 个研究方向与 3 张比较矩阵（更新于 2026-07-31）。
+
 在线网站：<https://lucenova.github.io/umm-paper-radar/>
 
 ## 本地开发
