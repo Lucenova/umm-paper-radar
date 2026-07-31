@@ -1904,7 +1904,7 @@ const papers: Paper[] = [
     experiment:
       "固定Qwen3、IBQ、数据与checkpoint，在相同层和token位置做双向steering；报告生成概念命中、VQA变化率、OCR字符保持、干预强度曲线和随机方向对照。若理解→生成有效而生成→理解失效，应优先做生成latent语义对齐，而不是继续扩大共享head。",
     paper: "https://arxiv.org/abs/2607.26411",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1930,7 +1930,7 @@ const papers: Paper[] = [
     experiment:
       "固定平均4:1压缩率，对比固定2×2、随机merge、attention-only、query-only和三信号merge；报告OCRBench、DocVQA、TextVQA、小目标召回、短时关键帧召回、原ID重建率、真实吞吐和动态padding开销。",
     paper: "https://arxiv.org/abs/2607.26554",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1956,7 +1956,7 @@ const papers: Paper[] = [
     experiment:
       "建立四阶段日志：视觉操作选择、状态渲染质量、反馈读取率、最终答案；比较原图、正确中间图、损坏中间图与文本化中间状态。指标增加feedback intervention gap、证据引用准确率和错误从识别到决策的传播率。",
     paper: "https://arxiv.org/abs/2607.26769",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -1985,7 +1985,7 @@ const papers: Paper[] = [
     experiment:
       "固定历史观测，做真实动作、shuffle动作、相反动作和零动作四组rollout；除next-token CE/MSE外，报告action-conditioned separation、动作恢复、horizon drift和闭环追踪/决策成功率。对比IBQ-AR、URSA metric dynamics与ELF velocity。",
     paper: "https://arxiv.org/abs/2607.26712",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2014,6 +2014,145 @@ const papers: Paper[] = [
     experiment:
       "固定相同视频，建立RGB-only、RGB+state、RGB+state+event和counterfactual四种训练；比较未来IBQ/latent、目标持续性、action sensitivity、反事实不变量、horizon drift与闭环成功。单独报告tokenizer reconstruction、静态生成和动力学三类误差。",
     paper: "https://arxiv.org/abs/2607.26452",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "phizero",
+    index: "75",
+    title: "PhiZero: A World Model Built Around Physical Language",
+    shortTitle: "PhiZero",
+    date: "2026-07-30 · 新提交",
+    category: "世界模型",
+    paradigm: "Discrete Physical Language + AR Reason-then-Render",
+    state: "相邻视频latent transition经Q-Former与FSQ压缩成离散物理语言",
+    objective: "AR预测25K扩展词表中的transition symbols；diffusion decoder渲染未来视频",
+    decoding: "先顺序生成物理语言，再以首帧条件的扩散解码器并行渲染",
+    sharing: "Qwen3-VL-4B初始化reasoner；离散动力学接口与视频VAE/decoder分工",
+    action: "文本动作意图或由示范视频提取的物理语言",
+    rollout: "支持交互式rollout、动作条件模拟与零样本跨外观/具身迁移",
+    evaluation: "物理一致性、理解、动作可控性、token压缩率与迁移",
+    open: "论文与项目页公开；项目页标注代码即将发布",
+    priority: "精读",
+    summary:
+      "PhiZero不直接让大模型预测稠密未来像素，而是把相邻视频状态变化压缩成离散“物理语言”。Qwen3-VL-4B初始化的AR reasoner先预测transition symbols，再由Wan2.2 VAE与扩散decoder渲染未来；4秒33帧视频仅使用256个离散符号，对比稠密VAE的44800个连续token。",
+    why:
+      "这是目前与你Qwen3+IBQ路线最接近的世界模型范式：离散token不再描述静态图像外观，而是描述“状态如何变化”。它把静态UMM的理解—生成接口自然扩展为理解—预测—渲染，也避免要求Qwen逐个生成所有未来帧IBQ ID。",
+    inspiration:
+      "可在现有2×2 Stage3之外增加transition tokenizer：输入相邻帧IBQ或Qwen hidden，量化成少量state-delta IDs；Qwen3预测这些IDs，现有IBQ/ELF生成器负责恢复未来帧。这样可比较“直接预测未来IBQ”与“先预测离散动力学再渲染”。",
+    experiment:
+      "固定Qwen3、视频片段、IBQ decoder与训练FLOPs，对比未来IBQ-AR、URSA metric dynamics、ELF velocity和PhiZero式transition IDs；报告token数、下一状态准确率、动作shuffle敏感性、目标轨迹误差、horizon drift、OCR/小目标保真及闭环威胁判断。",
+    paper: "https://arxiv.org/abs/2607.28624",
+    project: "https://phi-zero.github.io/",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "vad-opd",
+    index: "76",
+    title: "VAD: Attributing Visual Evidence for Target Reconstruction in Multimodal On-Policy Distillation",
+    shortTitle: "VAD",
+    date: "2026-07-30 · 新提交",
+    category: "可解释性",
+    paradigm: "Counterfactual Visual Attribution Distillation",
+    state: "同一student prefix下的完整图、证据crop与证据退化crop",
+    objective: "将teacher correction投影到视觉干预引起的signed log-prob方向，重建student-anchored target",
+    decoding: "学生on-policy rollout；固定teacher在证据存在/移除条件下提供反事实分布",
+    sharing: "不改变模型生成范式；改变视觉后训练target的来源与归因",
+    open: "训练、数据构造、评测代码及Qwen3.5 4B/9B权重已公开",
+    priority: "精读",
+    summary:
+      "VAD认为teacher给出的next-token修正混合了视觉证据、语言先验和teacher自身偏好。它固定同一teacher与student prefix，只移除相关视觉证据，用centered log-prob变化估计视觉证据方向，再保留原修正中与该方向一致的部分。",
+    why:
+      "这直接对应你当前“模型是否真的看图”的诊断。普通SFT/GRPO或privileged crop teacher可能只是把更强语言答案蒸馏给学生，不能证明改进来自文字、小目标或坐标证据；VAD提供了token级的反事实分离方法。",
+    inspiration:
+      "可为DocVQA/OCRBench构造原图、清晰文字crop、模糊/遮挡crop三视图；为多帧威胁任务构造完整帧、目标证据帧和删除目标帧。只蒸馏随证据干预发生稳定变化的logit方向，避免错误类别先验覆盖视觉信号。",
+    experiment:
+      "固定Qwen3+IBQ checkpoint，对比普通SFT、完整teacher KL、visual-advantage weighting与VAD target reconstruction；报告ANLS/OCRBench、目标召回、证据删除前后logit gap、视觉归因比例、语言先验错误率和on-policy训练稳定性。",
+    paper: "https://arxiv.org/abs/2607.28590",
+    code: "https://github.com/DeepExperience/VAD_Multimodal_OPD",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "trend-aware-pruning",
+    index: "77",
+    title: "Capturing Token Tendencies for Training-Free Token Pruning in Multimodal Large Language Models",
+    shortTitle: "Trend-aware Pruning",
+    date: "2026-07-30 · 新提交",
+    category: "评测诊断",
+    paradigm: "Reversible Layer-wise Visual Token Pruning",
+    state: "视觉token跨Transformer层的attention-flow轨迹与趋势",
+    objective: "训练免费；根据重要性动量重新激活late-blooming token",
+    decoding: "逐层动态保留、暂时裁剪和重新激活视觉token",
+    sharing: "不改变视觉tokenizer和输出head；改变不同层实际参与计算的token集合",
+    open: "论文与方法公开；截至核对时未见官方代码仓库",
+    priority: "精读",
+    summary:
+      "该工作指出一次性、不可逆的早层token pruning会误删在深层推理中才变重要的视觉证据。方法跟踪attention flow的跨层趋势，并允许 initially low-score但重要性持续上升的late-blooming token重新进入计算。",
+    why:
+      "MedARC解决输入前怎么merge，这篇则提醒：视觉token的重要性随Qwen层数和任务阶段变化。OCR字符、小目标或某一关键帧可能在浅层不显著，却在回答生成或威胁比较阶段才被调用，固定2×2 folding无法恢复已丢失的信息。",
+    inspiration:
+      "当前Stage3可把空间merge与层间动态路由分开：输入仍固定2×2以兼容batch，保存四个原ID/局部摘要；当某个merged token的重要性斜率升高时，在深层追加local residual或恢复其1×1子token表示。",
+    experiment:
+      "固定平均视觉FLOPs，对比固定2×2、一次性attention pruning、MedARC输入merge和trend-aware可逆路由；按层记录token存活率、重新激活率、OCR字符区域覆盖、小目标覆盖、准确率、吞吐和KV/activation显存。",
+    paper: "https://arxiv.org/abs/2607.28341",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "geneva-evidence",
+    index: "78",
+    title: "Beyond Frame Selection: Generative Latent Evidence Aggregation for Long-Video Understanding",
+    shortTitle: "GenEvA",
+    date: "2026-07-30 · 新提交",
+    category: "多帧推理",
+    paradigm: "Query-conditioned Generative Latent Evidence",
+    state: "选中帧的frame-specific token与紧凑跨帧latent evidence",
+    objective: "学习query-conditioned evidence distribution并生成跨帧互补latent",
+    decoding: "先选帧，再按任务需要自适应插入跨帧latent complement",
+    sharing: "复用Video-MLLM backbone；仅增加0.11%–0.40%平均video-token开销",
+    open: "论文与完整实验公开；截至核对时未见官方代码入口",
+    priority: "精读",
+    summary:
+      "GenEvA指出选到相关帧不等于整合了跨帧互补证据。它在frame selection之后，用query-conditioned distribution将各帧特有信息聚合成少量latent evidence，并只在任务确实需要跨帧整合时调用。",
+    why:
+      "你的多帧威胁检测不仅需要找到目标出现的帧，还要整合持续时间、移动趋势、遮挡恢复和跨帧类别一致性。随机三帧或简单top-k即使覆盖目标，也可能无法形成可供最终威胁排序使用的统一状态。",
+    inspiration:
+      "可把每帧目标列表、IBQ/Qwen visual hidden和YOLO uncertainty聚合成一个query-specific evidence token，插在威胁分析智能体前；静态单帧问题则跳过，避免所有样本都增加视觉长度。",
+    experiment:
+      "固定总视觉token预算，对比随机/均匀/top-k帧、仅选帧、mean pooling与GenEvA latent；报告短时目标召回、跨帧ID一致性、轨迹/意图判断、证据引用、删帧反事实、token开销和延迟。",
+    paper: "https://arxiv.org/abs/2607.28516",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "shadowdancer",
+    index: "79",
+    title: "ShadowDancer: Teaching Video World Models Any Action by Learning Unified Dynamics Representations from a Video and Its Shadow",
+    shortTitle: "ShadowDancer",
+    date: "2026-07-30 · 新提交",
+    category: "世界模型",
+    paradigm: "Block-causal World Model + Appearance-invariant Latent Action",
+    state: "同一动力学、不同外观的shadow-pair视频表示",
+    objective: "cross-shadow prediction，丢弃变化外观并保留可迁移动力学",
+    decoding: "示范视频编码为统一动作表示，再驱动新场景block-causal rollout",
+    sharing: "动作latent可作为UMM/视频生成器的条件接口，不要求人工action label",
+    action: "由示范视频对自监督提取的frame-level latent action",
+    rollout: "支持长动作rollout、任意示范动作复用与跨环境迁移",
+    evaluation: "动作迁移、长时rollout、外观不变性与盲测偏好",
+    open: "论文与项目演示公开；截至核对时未见完整官方代码仓库",
+    priority: "精读",
+    summary:
+      "ShadowDancer构造执行同一动力学但外观独立重采样的shadow pairs，并让模型用一个shadow预测另一个。训练目标迫使表示舍弃外观差异、保留共同的动作动力学，再用该表示控制block-causal视频世界模型。",
+    why:
+      "它解决了多帧数据中“目标长什么样”和“目标怎么运动”纠缠的问题。若直接用IBQ或VAE latent学习未来，模型容易把车辆颜色、背景纹理当成动作；shadow-pair思想可为URSA/ELF提供更纯的动态条件。",
+    inspiration:
+      "可利用仿真或生成数据，把同一目标轨迹渲染到不同背景、类别外观和光照中，训练一个appearance-invariant dynamics code；再分别作为未来IBQ-AR、URSA metric path和ELF velocity的条件。",
+    experiment:
+      "固定动作轨迹构造同动力学异外观pair与同外观异动力学pair；比较raw frame condition、光流、latent action与shadow dynamics code，报告跨场景轨迹迁移、动作识别、背景泄漏probe、rollout horizon和闭环决策。",
+    paper: "https://arxiv.org/abs/2607.28362",
+    project: "https://shadowdancer-1.github.io/",
     featured: true,
     idea: true,
   },
@@ -2137,7 +2276,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.07.30</strong>
+        <strong>DAILY BRIEF · 2026.07.31</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -2183,9 +2322,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 018]</p>
-              <h1>共享架构之后，<br />语义、Token 与未来真的统一了吗？</h1>
-              <p className="hero-copy">今日五项新作围绕三个容易被平均指标掩盖的问题：理解与生成分支能否双向迁移语义、Token Merge是否误删文字与关键目标，以及世界模型面对不同动作是否仍生成几乎相同的未来。重点补充跨分支因果干预、查询感知merge和action-sensitive evaluation。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 019]</p>
+              <h1>从静态视觉 Token，<br />走向可解释的状态变化语言</h1>
+              <p className="hero-copy">今日五项新作把三个问题连成一条实验链：用离散物理语言压缩未来变化、用反事实归因确认监督真正来自视觉证据，并让Token压缩与跨帧聚合保留后期才显现的关键线索。重点连接Qwen3+IBQ Stage3、URSA/ELF世界动力学与多帧威胁分析。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -2197,7 +2336,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>74</b><span>精选条目</span></div>
+                <div><b>79</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -2333,6 +2472,8 @@ export default function Home() {
                   <tr><th>SSD</th><td>视觉AR hidden + 原始离散token</td><td>邻居hidden-state self-distillation</td><td>二维并行draft + 原主干验证</td><td>最终head与draft head角色必须区分</td></tr>
                   <tr><th>Tree-DLM</th><td>层次词表祖先节点 → leaf ID</td><td>逐层children prediction</td><td>从粗簇到细ID迭代</td><td>大视觉词表head参数与logits显存</td></tr>
                   <tr><th>MedARC</th><td>encoder token + query / structure saliency</td><td>training-free merge；下游目标不变</td><td>高价值token保留、冗余token合并</td><td>固定压缩率下保护OCR、小目标与查询相关证据</td></tr>
+                  <tr><th>PhiZero</th><td>FSQ离散transition symbols</td><td>Qwen3-VL AR预测25K物理语言 + diffusion渲染</td><td>reason-then-render；256 symbols/4秒视频</td><td>把静态image token与动态state-delta token分开公平比较</td></tr>
+                  <tr><th>Trend-aware</th><td>跨层attention-flow趋势 + 可恢复token</td><td>training-free动态裁剪/重新激活</td><td>逐层可逆路由</td><td>固定FLOPs下保护后期才重要的OCR与小目标证据</td></tr>
                 </tbody>
               </table>
             </div>
@@ -2375,6 +2516,7 @@ export default function Home() {
                   <tr><th>SSD</th><td>不改变主序列；额外预测二维邻居hidden</td><td>保持N，但减少串行主干调用</td><td>轻量draft heads + 原AR head验证</td><td>水平/垂直并行draft与验证</td><td>适合把2×2 head改成加速器而非最终生成器</td></tr>
                   <tr><th>Tree-DLM</th><td>不做空间merge；对视觉词表层次聚类</td><td>位置数不变</td><td>小K children classifier逐层定位leaf ID</td><td>词表内coarse-to-fine</td><td>解决64K/128K视觉head与logits显存瓶颈</td></tr>
                   <tr><th>MedARC</th><td>attention、query relevance与结构独特性联合决定merge</td><td>预算可固定为N/4</td><td>不改原head；合并后的token送入既有主干</td><td>无新增生成顺序</td><td>为固定2×2 folding提供OCR-aware动态对照</td></tr>
+                  <tr><th>Trend-aware Pruning</th><td>按跨层重要性趋势暂存或恢复token</td><td>逐层变化；固定平均FLOPs</td><td>不改原head；late-blooming token可重新激活</td><td>层间动态路由</td><td>补足输入前merge不可逆的缺陷</td></tr>
                 </tbody>
               </table>
             </div>
@@ -2415,6 +2557,8 @@ export default function Home() {
                   <tr><th>RoFacto</th><td>静态RGB/深度 + 渲染机器人几何</td><td>raw command经控制器/运动学变成nominal trajectory并渲染</td><td>接触后的未来视频/场景响应</td><td>Robot-factored video diffusion</td><td>动作编辑与未来视频；闭环规划未报告</td><td>先统一动作视觉接口，再公平比较URSA/ELF世界动力学</td></tr>
                   <tr><th>ActSWM</th><td>连续游戏latent</td><td>真实/离线恢复action</td><td>next latent + transition separation + action recovery</td><td>Action-sensitive latent AR</td><td>长时rollout、Minecraft闭环规划与跨游戏动作恢复</td><td>给IBQ/URSA/ELF增加“不同动作未来必须可分”的因果约束</td></tr>
                   <tr><th>CG-World</th><td>RGB + 语义/几何/控制器/物理cache/事件</td><td>动作与机制干预分支</td><td>未来观测、state、event与替代结果</td><td>数据协议；支持AR/Diffusion/Flow/JEPA</td><td>事实、观测/动作/机制干预与严格反事实</td><td>把UMM扩展为显式理解—生成—预测—行动state schema</td></tr>
+                  <tr><th>PhiZero</th><td>离散物理语言 + 首帧视频latent</td><td>文本action intent / 示范transition</td><td>未来transition symbols + 视频渲染</td><td>Qwen3-VL AR reasoner + diffusion decoder</td><td>交互rollout、动作模拟与零样本motion transfer</td><td>最接近Qwen3+IBQ的离散动力学接口</td></tr>
+                  <tr><th>ShadowDancer</th><td>同动力学异外观shadow-pair latent</td><td>示范视频提取的frame-level latent action</td><td>cross-shadow prediction</td><td>appearance-invariant action encoder + block-causal world model</td><td>长动作rollout与跨场景复用</td><td>为URSA/ELF分离外观token与动力学条件</td></tr>
                 </tbody>
               </table>
             </div>
