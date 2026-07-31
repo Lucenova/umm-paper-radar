@@ -2043,7 +2043,8 @@ const papers: Paper[] = [
     experiment:
       "固定Qwen3、视频片段、IBQ decoder与训练FLOPs，对比未来IBQ-AR、URSA metric dynamics、ELF velocity和PhiZero式transition IDs；报告token数、下一状态准确率、动作shuffle敏感性、目标轨迹误差、horizon drift、OCR/小目标保真及闭环威胁判断。",
     paper: "https://arxiv.org/abs/2607.28624",
-    project: "https://phi-zero.github.io/",
+    code: "https://phi-zero.github.io/",
+    codeLabel: "项目页",
     featured: true,
     idea: true,
   },
@@ -2152,7 +2153,8 @@ const papers: Paper[] = [
     experiment:
       "固定动作轨迹构造同动力学异外观pair与同外观异动力学pair；比较raw frame condition、光流、latent action与shadow dynamics code，报告跨场景轨迹迁移、动作识别、背景泄漏probe、rollout horizon和闭环决策。",
     paper: "https://arxiv.org/abs/2607.28362",
-    project: "https://shadowdancer-1.github.io/",
+    code: "https://shadowdancer-1.github.io/",
+    codeLabel: "项目页",
     featured: true,
     idea: true,
   },
