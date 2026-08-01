@@ -2045,7 +2045,7 @@ const papers: Paper[] = [
     paper: "https://arxiv.org/abs/2607.28624",
     code: "https://phi-zero.github.io/",
     codeLabel: "项目页",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2072,7 +2072,7 @@ const papers: Paper[] = [
       "固定Qwen3+IBQ checkpoint，对比普通SFT、完整teacher KL、visual-advantage weighting与VAD target reconstruction；报告ANLS/OCRBench、目标召回、证据删除前后logit gap、视觉归因比例、语言先验错误率和on-policy训练稳定性。",
     paper: "https://arxiv.org/abs/2607.28590",
     code: "https://github.com/DeepExperience/VAD_Multimodal_OPD",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2098,7 +2098,7 @@ const papers: Paper[] = [
     experiment:
       "固定平均视觉FLOPs，对比固定2×2、一次性attention pruning、MedARC输入merge和trend-aware可逆路由；按层记录token存活率、重新激活率、OCR字符区域覆盖、小目标覆盖、准确率、吞吐和KV/activation显存。",
     paper: "https://arxiv.org/abs/2607.28341",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2124,7 +2124,7 @@ const papers: Paper[] = [
     experiment:
       "固定总视觉token预算，对比随机/均匀/top-k帧、仅选帧、mean pooling与GenEvA latent；报告短时目标召回、跨帧ID一致性、轨迹/意图判断、证据引用、删帧反事实、token开销和延迟。",
     paper: "https://arxiv.org/abs/2607.28516",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2155,6 +2155,144 @@ const papers: Paper[] = [
     paper: "https://arxiv.org/abs/2607.28362",
     code: "https://shadowdancer-1.github.io/",
     codeLabel: "项目页",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "argus-unified",
+    index: "80",
+    title: "Argus-Unified: Towards A Compact and Economical Unified Model for Image Understanding and Generation",
+    shortTitle: "Argus-Unified",
+    date: "2026-07-28 · 周末重点补读",
+    category: "统一多模态",
+    paradigm: "VLM-initialized Hybrid-token Autoregressive UMM",
+    state: "同一冻结视觉encoder的连续理解token + 量化离散生成token",
+    objective: "理解文本NLL + 生成visual-token NLL；tokenizer使用重建/LPIPS/GAN/VQ loss",
+    decoding: "文本与离散视觉token统一AR；visual end后交给image decoder",
+    sharing: "共享视觉encoder与LLM；理解/生成使用不同projector、token形态与输出head",
+    open: "论文与完整实现细节公开；截至核对时未发现官方代码仓库",
+    priority: "精读",
+    summary:
+      "Argus-Unified不从头学习多模态对齐，而是从已具备理解能力的VLM出发，冻结其视觉encoder，在同一连续feature上额外训练quantizer和image decoder。理解继续使用语义连续token，生成则预测离散code ID；Stage 2只训练LLM和两类projector。",
+    why:
+      "这是Qwen3+IBQ路线一个很现实的反证基线：理解和生成可以共享视觉源与LLM，但不必强迫同一种token表示同时承担语义与像素职责。论文只用15.6M数据完成训练，适合资源受限的控制变量复现。",
+    inspiration:
+      "当前方案可保留已有Qwen3理解对齐，在其语义视觉feature后增加轻量quantizer/decoder；同时把IBQ-only统一与Argus式hybrid token并列，判断OCR瓶颈是否来自强迫重建code embedding直接服务理解。",
+    experiment:
+      "固定Qwen3、数据和训练FLOPs，比较IBQ同时用于理解/生成、连续语义token理解+IBQ生成、冻结语义encoder后学习新quantizer三组；报告OCRBench、DocVQA、TextVQA、GenEval、重建、额外参数、序列长度和理解遗忘。",
+    paper: "https://arxiv.org/abs/2607.25527",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "twins-focal",
+    index: "81",
+    title: "Twins: Learn to Predict Unified Representations with Focal Loss",
+    shortTitle: "Twins",
+    date: "2026-07-24 · ICML 2026补读",
+    category: "语义对齐",
+    paradigm: "ViT–VAE Concatenated Continuous Tokens + Flow Matching",
+    state: "同一token grid上按channel拼接ViT语义feature与VAE重建latent",
+    objective: "Flow Matching focal regression；提高大误差VAE维度的权重",
+    decoding: "连续latent ODE采样；双head恢复语义与像素分量",
+    sharing: "序列长度与attention成本不增加；语义/像素共享DiT但保留分量结构",
+    open: "MIT代码已公开；当前仓库提供ImageNet生成训练、采样与纯VAE对照",
+    priority: "精读",
+    summary:
+      "Twins把ViT和VAE特征在同一空间网格上按通道拼接，使一个连续token同时携带语义与重建信息。作者发现普通MSE会优先拟合ViT分量而长期欠拟合VAE分量，并将问题归因于频率、内在维度和条件不确定性差异。",
+    why:
+      "这直接解释URSA→ELF改造中为什么简单embedding MSE可能失败：不是连续统一空间不可行，而是语义分量和IBQ/VAE分量的误差尺度、频谱和学习难度不对称。",
+    inspiration:
+      "可以把对齐到同一2×2网格的DINO/SigLIP feature与IBQ embedding拼接，保持Qwen视觉位置数不变；ELF head分别预测两部分，并按分量误差或频段动态加权，而不是对整向量统一求MSE。",
+    experiment:
+      "固定ELF主干和数据，对比IBQ-only MSE、ViT+IBQ naive MSE、双head loss、Twins式focal velocity；分别记录semantic/IBQ loss、梯度cosine、OCR、linear probe、重建、T2I和回投token错误率。",
+    paper: "https://arxiv.org/abs/2607.22531",
+    code: "https://github.com/Tencent-Hunyuan/Twins",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "deltav-updates",
+    index: "82",
+    title: "DeltaV: Thinking with Visual State Updates in Unified Large Multimodal Models",
+    shortTitle: "DeltaV",
+    date: "2026-07-09 · 重要补读",
+    category: "统一多模态",
+    paradigm: "Variable-length Discrete Visual-update Autoregression",
+    state: "初始视觉状态code + 可变长离散visual-update IDs",
+    objective: "文本与视觉update均使用next-token CE；tokenizer含重建、感知、语义蒸馏与VQ目标",
+    decoding: "按变化量AR生成update IDs，以<|vision_end|>学习动态停止",
+    sharing: "统一AR序列与LLM；TSIM-Tok负责变化感知tokenization",
+    action: "历史视觉状态与文字推理条件；无显式机器人action",
+    rollout: "以base state累积visual updates，适合多步视觉推理与状态更新",
+    evaluation: "更新token预算、重建、跨步一致性及多模态推理",
+    open: "模型、TSIM-Tok与推理代码已公开；完整训练脚本和StructCoT仍在计划中",
+    priority: "精读",
+    summary:
+      "DeltaV不在每一步重新生成整幅图像，而是量化并AR生成相对历史状态的视觉变化。TSIM Router根据时间相似度和边际重建收益预分配训练预算，模型通过视觉结束token学习何时停止；平均新视觉token减少55.6%。",
+    why:
+      "它同时回答你近期的两个问题：动态长度AR图像token可以用显式vision-end停止；时序任务也不必重复预测未变化的IBQ网格。对多帧威胁分析而言，真正重要的是目标出现、移动、遮挡和威胁等级变化。",
+    inspiration:
+      "可将第一帧保留为完整IBQ IDs，后续帧只预测变化区域的离散update IDs与位置/slot信息；静态背景直接复用历史状态。Stage3 local head仍恢复原始ID，但只对被路由为变化的2×2 block执行。",
+    experiment:
+      "固定视频、Qwen3与IBQ，比较完整下一帧AR、固定64个update token、变化区域block token和DeltaV式动态结束；报告视觉token数、目标轨迹/OCR保持、状态重建、停止长度校准、horizon drift与威胁趋势准确率。",
+    paper: "https://arxiv.org/abs/2607.08434",
+    code: "https://github.com/Pengjie-W/DeltaV",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "umm-transferability",
+    index: "83",
+    title: "Transferability Between Understanding and Generation in Unified Multimodal Models",
+    shortTitle: "UMM Transferability",
+    date: "2026-07-05 · v2 2026-07-07 · ECCV 2026",
+    category: "评测诊断",
+    paradigm: "Controlled Cross-task Transfer in UMMs",
+    state: "共享或分离的理解feature、生成latent与视觉encoder",
+    objective: "分别微调计数、空间关系和文字理解/生成能力",
+    decoding: "沿用各UMM原始生成方式；研究训练任务而非新sampler",
+    sharing: "完全共享Transformer和统一视觉encoder时迁移最强；松耦合架构迁移弱",
+    open: "论文与项目页公开；截至核对时未见完整官方训练代码",
+    priority: "精读",
+    summary:
+      "该工作用受控实验测试：只训练理解侧的一种能力，生成侧是否会同步改善。结果显示跨任务迁移依赖真正的架构共享；直接微调生成虽能提升目标能力，却可能因分布偏移损害整体画质，而理解侧训练可用更小代价迁移到生成。",
+    why:
+      "它给Qwen3+IBQ的“统一”提供了可证伪指标：共享主干并不够，必须检查OCR、计数和空间能力能否从理解侧转移到生成侧，以及反向是否成立。",
+    inspiration:
+      "可以先只用OCRBench/DocVQA训练理解，冻结image generator，再测试生成文字；随后只做T2I文字渲染训练并测试OCR理解。若单向迁移明显，说明共享表征存在但不对称，可据此安排Stage1–3课程。",
+    experiment:
+      "固定checkpoint做理解-only、生成-only、联合与参数量匹配adapter四组；在原图识字、生成文字、计数和空间关系上构造2×2迁移矩阵，并记录CKA、cross-branch steering、画质漂移和语言能力遗忘。",
+    paper: "https://arxiv.org/abs/2607.04423",
+    code: "https://cvlab-kaist.github.io/UMM_Transferability/",
+    codeLabel: "项目页",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "lkf-discrete-flow",
+    index: "84",
+    title: "Latent-Kernel Discrete Flow Maps for Few-Step Generation",
+    shortTitle: "LKF",
+    date: "2026-07-29 · 周末重点补读",
+    category: "离散 Diffusion",
+    paradigm: "Correlated Latent-kernel Discrete Flow Map",
+    state: "离散token simplex；多个factorized kernel由共享离散latent耦合",
+    objective: "from-scratch flow-map likelihood；无需慢teacher蒸馏",
+    decoding: "每条序列采样一个共享latent，以少步并行更新所有位置",
+    sharing: "M=1退化为普通factorized MDLM；增加mixture分量表达跨位置相关性",
+    open: "论文与官方训练代码已公开",
+    priority: "精读",
+    summary:
+      "普通离散diffusion在每一步独立预测各位置，少步生成时很难保证强相关token共同变化。LKF把转移核写成由一个共享latent选择的多个factorized component混合，使并行位置在条件独立的同时通过latent获得序列级相关性。",
+    why:
+      "这与2×2 token merge后的四ID预测高度相关：Linear(d,4K)把TL/TR/BL/BR视为独立分类，而local AR head虽能表达相关性，却需要四次串行局部解码。LKF提供了并行但相关的第三种head。",
+    inspiration:
+      "可让Qwen block hidden预测M个mixture权重及每个component下四个slot的K-way logits；先采样component，再并行采样TL/TR/BL/BR。这里是从LKF序列相关核迁移到视觉block的推论，需要单独实验验证。",
+    experiment:
+      "固定Stage3输入与参数预算，比较独立4K Linear、LKF-style M=2/4/8 mixture、GRU与两层local Transformer；报告slot CE、block exact match、邻接共现误差、teacher-forcing/free-running gap、步数、吞吐和显存。",
+    paper: "https://arxiv.org/abs/2607.27529",
+    code: "https://github.com/mansoor181/lkf",
     featured: true,
     idea: true,
   },
@@ -2278,7 +2416,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.07.31</strong>
+        <strong>DAILY BRIEF · 2026.08.01</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -2324,9 +2462,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 019]</p>
-              <h1>从静态视觉 Token，<br />走向可解释的状态变化语言</h1>
-              <p className="hero-copy">今日五项新作把三个问题连成一条实验链：用离散物理语言压缩未来变化、用反事实归因确认监督真正来自视觉证据，并让Token压缩与跨帧聚合保留后期才显现的关键线索。重点连接Qwen3+IBQ Stage3、URSA/ELF世界动力学与多帧威胁分析。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 020]</p>
+              <h1>让统一视觉表示，<br />兼顾语义、像素与状态变化</h1>
+              <p className="hero-copy">周末没有新的 arXiv 发布批次，今日补齐五项关键对照：Argus 从已对齐 VLM 构造 hybrid token，Twins 揭示 ViT/VAE 联合 Flow 的优化失衡，DeltaV 用可变长离散 update 与 vision-end 学习动态停止，LKF 则为 2×2 block 提供并行但相关的离散 head。重点服务 Qwen3+IBQ Stage 3、URSA→ELF 与多帧状态建模。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -2338,7 +2476,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>79</b><span>精选条目</span></div>
+                <div><b>84</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -2476,6 +2614,10 @@ export default function Home() {
                   <tr><th>MedARC</th><td>encoder token + query / structure saliency</td><td>training-free merge；下游目标不变</td><td>高价值token保留、冗余token合并</td><td>固定压缩率下保护OCR、小目标与查询相关证据</td></tr>
                   <tr><th>PhiZero</th><td>FSQ离散transition symbols</td><td>Qwen3-VL AR预测25K物理语言 + diffusion渲染</td><td>reason-then-render；256 symbols/4秒视频</td><td>把静态image token与动态state-delta token分开公平比较</td></tr>
                   <tr><th>Trend-aware</th><td>跨层attention-flow趋势 + 可恢复token</td><td>training-free动态裁剪/重新激活</td><td>逐层可逆路由</td><td>固定FLOPs下保护后期才重要的OCR与小目标证据</td></tr>
+                  <tr><th>Argus-Unified</th><td>连续理解token + 离散生成ID</td><td>文本/视觉next-token NLL</td><td>统一AR；视觉结束后离线解码</td><td>共享encoder与LLM，但允许理解/生成使用不同token形态</td></tr>
+                  <tr><th>Twins</th><td>同网格ViT语义feature + VAE latent</td><td>Focal Flow velocity</td><td>连续latent ODE</td><td>不增加序列长度，控制语义/像素分量的梯度失衡</td></tr>
+                  <tr><th>DeltaV</th><td>基础视觉状态 + 可变长离散update IDs</td><td>视觉update next-token CE + vision-end</td><td>动态长度AR；显式结束token停止</td><td>比较完整图像、固定预算update与变化量建模</td></tr>
+                  <tr><th>LKF</th><td>离散simplex + 共享latent mixture</td><td>From-scratch flow-map likelihood</td><td>少步并行、跨位置相关更新</td><td>用mixture数M控制并行位置相关性；M=1退化为factorized MDLM</td></tr>
                 </tbody>
               </table>
             </div>
@@ -2519,6 +2661,7 @@ export default function Home() {
                   <tr><th>Tree-DLM</th><td>不做空间merge；对视觉词表层次聚类</td><td>位置数不变</td><td>小K children classifier逐层定位leaf ID</td><td>词表内coarse-to-fine</td><td>解决64K/128K视觉head与logits显存瓶颈</td></tr>
                   <tr><th>MedARC</th><td>attention、query relevance与结构独特性联合决定merge</td><td>预算可固定为N/4</td><td>不改原head；合并后的token送入既有主干</td><td>无新增生成顺序</td><td>为固定2×2 folding提供OCR-aware动态对照</td></tr>
                   <tr><th>Trend-aware Pruning</th><td>按跨层重要性趋势暂存或恢复token</td><td>逐层变化；固定平均FLOPs</td><td>不改原head；late-blooming token可重新激活</td><td>层间动态路由</td><td>补足输入前merge不可逆的缺陷</td></tr>
+                  <tr><th>LKF-style Block Head</th><td>2×2 merge保持不变；用共享latent耦合四个slot</td><td>N/4</td><td>M组4×K logits + M-way mixture权重</td><td>先选component，再并行预测TL/TR/BL/BR</td><td>介于独立Linear与local AR之间的“并行但相关”对照</td></tr>
                 </tbody>
               </table>
             </div>
@@ -2561,6 +2704,7 @@ export default function Home() {
                   <tr><th>CG-World</th><td>RGB + 语义/几何/控制器/物理cache/事件</td><td>动作与机制干预分支</td><td>未来观测、state、event与替代结果</td><td>数据协议；支持AR/Diffusion/Flow/JEPA</td><td>事实、观测/动作/机制干预与严格反事实</td><td>把UMM扩展为显式理解—生成—预测—行动state schema</td></tr>
                   <tr><th>PhiZero</th><td>离散物理语言 + 首帧视频latent</td><td>文本action intent / 示范transition</td><td>未来transition symbols + 视频渲染</td><td>Qwen3-VL AR reasoner + diffusion decoder</td><td>交互rollout、动作模拟与零样本motion transfer</td><td>最接近Qwen3+IBQ的离散动力学接口</td></tr>
                   <tr><th>ShadowDancer</th><td>同动力学异外观shadow-pair latent</td><td>示范视频提取的frame-level latent action</td><td>cross-shadow prediction</td><td>appearance-invariant action encoder + block-causal world model</td><td>长动作rollout与跨场景复用</td><td>为URSA/ELF分离外观token与动力学条件</td></tr>
+                  <tr><th>DeltaV</th><td>初始离散视觉状态 + 可变长update IDs</td><td>历史视觉状态与文字推理；无显式机器人action</td><td>视觉state delta + 动态结束</td><td>统一AR离散update</td><td>多步状态累积；非机器人闭环规划</td><td>把UMM从反复生成整帧扩展为只生成变化，可复用IBQ与Qwen</td></tr>
                 </tbody>
               </table>
             </div>
