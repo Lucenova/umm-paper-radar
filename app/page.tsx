@@ -2181,7 +2181,7 @@ const papers: Paper[] = [
     experiment:
       "固定Qwen3、数据和训练FLOPs，比较IBQ同时用于理解/生成、连续语义token理解+IBQ生成、冻结语义encoder后学习新quantizer三组；报告OCRBench、DocVQA、TextVQA、GenEval、重建、额外参数、序列长度和理解遗忘。",
     paper: "https://arxiv.org/abs/2607.25527",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2208,7 +2208,7 @@ const papers: Paper[] = [
       "固定ELF主干和数据，对比IBQ-only MSE、ViT+IBQ naive MSE、双head loss、Twins式focal velocity；分别记录semantic/IBQ loss、梯度cosine、OCR、linear probe、重建、T2I和回投token错误率。",
     paper: "https://arxiv.org/abs/2607.22531",
     code: "https://github.com/Tencent-Hunyuan/Twins",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2238,7 +2238,7 @@ const papers: Paper[] = [
       "固定视频、Qwen3与IBQ，比较完整下一帧AR、固定64个update token、变化区域block token和DeltaV式动态结束；报告视觉token数、目标轨迹/OCR保持、状态重建、停止长度校准、horizon drift与威胁趋势准确率。",
     paper: "https://arxiv.org/abs/2607.08434",
     code: "https://github.com/Pengjie-W/DeltaV",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2266,7 +2266,7 @@ const papers: Paper[] = [
     paper: "https://arxiv.org/abs/2607.04423",
     code: "https://cvlab-kaist.github.io/UMM_Transferability/",
     codeLabel: "项目页",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2293,6 +2293,147 @@ const papers: Paper[] = [
       "固定Stage3输入与参数预算，比较独立4K Linear、LKF-style M=2/4/8 mixture、GRU与两层local Transformer；报告slot CE、block exact match、邻接共现误差、teacher-forcing/free-running gap、步数、吞吐和显存。",
     paper: "https://arxiv.org/abs/2607.27529",
     code: "https://github.com/mansoor181/lkf",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "infinity-bitwise-ar",
+    index: "85",
+    title: "Infinity∞: Scaling Bitwise AutoRegressive Modeling for High-Resolution Image Synthesis",
+    shortTitle: "Infinity∞",
+    date: "2024-12-05 · CVPR 2025 Oral · 重点补读",
+    category: "自回归建模",
+    paradigm: "Bitwise Next-scale Autoregressive Modeling",
+    state: "多尺度残差图上的64-bit二值视觉code，而非单一K-way token ID",
+    objective: "逐bit二分类 + bitwise self-correction + tokenizer重建目标",
+    decoding: "尺度间AR；同一尺度内所有位置与bit并行预测",
+    sharing: "文本条件与视觉生成主干共享上下文；bit classifier替代超大视觉词表head",
+    open: "论文、项目页、训练代码、模型与推理脚本已公开",
+    priority: "精读",
+    summary:
+      "Infinity把视觉code从一个巨大的整数ID改写成固定长度二进制串。Infinite-Vocabulary Classifier只需线性增长的bit logits，理论上可表达2^64种code；训练时随机翻转部分bit并重新量化残差，让模型学会修复近邻错误。生成仍是AR，但因果单位是从粗到细的scale，而不是逐像素raster token。",
+    why:
+      "它直接击中Qwen3+IBQ Stage3的两个瓶颈：K-way head与logits显存随codebook增大，以及相近视觉向量被量化成完全不同整数标签后，普通ID CE不再表达几何接近。它也为URSA提供了Hamming空间路径这一新对照。",
+    inspiration:
+      "2×2 merge后可让每个Qwen hidden预测4×d个bit，而不是4×K个类别；块内四个位置仍可并行或接local decoder。需要注意，这不是只替换head：Infinity依赖bitwise tokenizer，必须把tokenizer几何变化与生成建模收益分开。",
+    experiment:
+      "固定Qwen3、训练数据、视觉网格与decoder容量，比较IBQ K-way CE、IBQ+2层local AR head、BSQ/Infinity-style d-bit BCE，以及bit head+随机bit-flip self-correction；报告bit error、原始ID/2×2 block exact match、OCRBench、DocVQA、TextVQA、重建/T2I、head参数、logits显存和吞吐。",
+    paper: "https://arxiv.org/abs/2412.04431",
+    code: "https://github.com/FoundationVision/Infinity",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "janus-pro",
+    index: "86",
+    title: "Janus-Pro: Unified Multimodal Understanding and Generation with Data and Model Scaling",
+    shortTitle: "Janus-Pro",
+    date: "2025-01-29 · 重点补读",
+    category: "统一多模态",
+    paradigm: "Decoupled-encoder Unified Autoregressive Model",
+    state: "理解侧SigLIP连续feature；生成侧VQ离散image token ID",
+    objective: "文本与图像统一next-token CE；独立image prediction head",
+    decoding: "文本与视觉序列均按AR顺序生成；VQ decoder离线还原图像",
+    sharing: "理解/生成使用不同视觉encoder与adapter，共享LLM主干；文本head与图像head分离",
+    open: "官方代码、1B/7B模型与推理示例已公开",
+    priority: "精读",
+    summary:
+      "Janus-Pro没有强迫一个视觉表示同时承担识别与重建：理解使用SigLIP语义特征，生成使用VQ离散ID，两路adapter接入同一AR Transformer，并通过adapter/image-head预训练、统一多模态预训练和SFT三个阶段扩大数据与模型规模。",
+    why:
+      "它是当前全共享IBQ路线必须保留的反例。若Janus式解耦理解入口能在同一生成器下显著改善OCR/DocVQA，问题更可能是IBQ code embedding缺少可用语义，而不是AR、URSA或Stage3 head本身。",
+    inspiration:
+      "可以保留IBQ及生成head不变，只为理解增加SigLIP/TokLIP通道；与全共享IBQ比较后，再决定是否值得为形式上的统一牺牲OCR与细粒度理解。它也提示统一Transformer不等于必须统一tokenizer和输出head。",
+    experiment:
+      "固定Qwen3、IBQ生成路径、数据和参数预算，比较raw IBQ理解、TokLIP-style语义化IBQ、Janus-style SigLIP理解+IBQ生成，以及完全分离模型；共同报告OCRBench、DocVQA、TextVQA、VQA、T2I及理解→生成迁移。",
+    paper: "https://arxiv.org/abs/2501.17811",
+    code: "https://github.com/deepseek-ai/Janus",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "emu3",
+    index: "87",
+    title: "Emu3: Next-Token Prediction is All You Need",
+    shortTitle: "Emu3",
+    date: "2024-09-27 · 重点补读",
+    category: "自回归建模",
+    paradigm: "All-discrete Multimodal Autoregressive Modeling",
+    state: "文本、图像与视频均序列化为离散token",
+    objective: "统一next-token cross-entropy",
+    decoding: "单一Transformer按因果顺序生成多模态序列",
+    sharing: "共享Transformer与训练目标；视觉仍由专用tokenizer离散化",
+    open: "官方代码、模型、tokenizer与推理示例已公开",
+    priority: "精读",
+    summary:
+      "Emu3把图像、视频和文本统一成离散序列，从头训练一个Transformer，仅使用next-token prediction完成感知、图像生成、视频生成和交错生成，不依赖diffusion或额外组合式模块。",
+    why:
+      "它是比Janus-Pro更接近‘全离散统一’的AR端点，也是URSA与ELF必须面对的强基线：如果同一IBQ和Qwen3在纯AR下已经表现充分，复杂迭代生成的收益必须用质量—延迟曲线证明。",
+    inspiration:
+      "可把共享分成三个层次分别验证：共享Transformer、共享训练目标、共享视觉语义空间。Emu3主要证明前两项可行，并不能自动证明生成ID适合OCR理解，因此仍要做生成token直接回灌VQA的闭环测试。",
+    experiment:
+      "从同一Qwen3+IBQ checkpoint构建全AR、text-AR/image-URSA与text-AR/image-ELF三组；统一视觉token数、训练FLOPs和SFT/RL数据，报告理解、OCR、T2I、真实延迟、KV Cache、峰值显存与生成token回灌理解的一致性。",
+    paper: "https://arxiv.org/abs/2409.18869",
+    code: "https://github.com/baaivision/Emu3",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "videoflextok",
+    index: "88",
+    title: "VideoFlexTok: Flexible-Length Coarse-to-Fine Video Tokenization",
+    shortTitle: "VideoFlexTok",
+    date: "2026-04-14 · ICML 2026 · 重点补读",
+    category: "统一视觉 Token",
+    paradigm: "Variable-length Coarse-to-fine Video Tokens + Flow Decoder",
+    state: "可变长离散视频token；前缀表达语义/运动/几何，后缀补充细节与颜色",
+    objective: "离散token AR + 生成式Flow reconstruction decoder",
+    decoding: "token序列AR；任意前缀长度均可由Flow decoder重建视频",
+    sharing: "tokenizer提供统一可伸缩视频接口；未与通用LLM词表完全共享",
+    open: "Apple官方项目、推理代码、checkpoint与评测资源已公开",
+    priority: "精读",
+    summary:
+      "VideoFlexTok不把视频固定成稠密3D网格，而是学习从粗到细、可在任意长度截断的离散序列。官方报告10秒81帧只需672个token，并观察到更适合生成的token结构不一定拥有最好的重建指标。",
+    why:
+      "它为固定2×2 folding提供了更有研究价值的替代：压缩不只减少位置数，还决定信息出现顺序。对多帧威胁检测，运动和全局几何应先出现，而OCR、小目标纹理可以按任务预算继续追加。",
+    inspiration:
+      "Stage3可从‘每个merged block必须恢复四个ID’扩展为可变预算：先预测语义/运动token，再在文字、坐标或小目标区域请求细节token。这样能把token预算、推理延迟与证据粒度做成显式控制变量。",
+    experiment:
+      "固定视频数据和平均token预算，比较完整IBQ 3D网格、逐帧固定2×2 folding、DeltaV变化token与VideoFlexTok式粗到细序列；报告短时目标召回、轨迹误差、OCR保持、horizon drift、不同token预算下的质量—延迟曲线。",
+    paper: "https://arxiv.org/abs/2604.12887",
+    code: "https://github.com/apple/ml-videoflextok",
+    action: "文本/类别条件；论文重点不是显式机器人action",
+    rollout: "长视频生成与可变预算重建；未报告闭环MPC",
+    evaluation: "除重建/生成质量外，比较token长度、生成模型规模与下游视频理解",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "dino-wm",
+    index: "89",
+    title: "DINO-WM: World Models on Pre-trained Visual Features Enable Zero-shot Planning",
+    shortTitle: "DINO-WM",
+    date: "2024-11-08 · v2 2025-02-01 · 重点补读",
+    category: "世界模型",
+    paradigm: "Semantic Feature-space Autoregressive World Model",
+    state: "冻结DINOv2的连续patch embedding；像素decoder仅作可选解释",
+    objective: "action-conditioned next-frame patch feature MSE",
+    decoding: "帧级因果AR；每一步联合预测下一帧全部patch feature",
+    sharing: "复用预训练视觉语义空间，不共享IBQ tokenizer或视觉词表",
+    open: "官方代码、数据处理、checkpoint与规划评测均已公开（MIT）",
+    priority: "精读",
+    summary:
+      "DINO-WM直接在冻结DINOv2 patch特征上学习动作条件转移，不要求预测未来像素。测试时在latent rollout中用CEM优化动作序列，使预测状态接近目标图像的DINO特征，并在六类环境上展示零样本规划。",
+    why:
+      "它是未来IBQ-ID预测与V-JEPA式预测表征之间最干净的世界模型基线：语义patch状态可能不适合高清重建，却更适合规划。它能防止把未来视频更清晰误判为动力学或决策更好。",
+    inspiration:
+      "多帧威胁检测不一定要生成下一帧像素。可让Qwen3上下文分别预测未来IBQ ID、未来DINO patch和ELF velocity，再检查哪一种目标更能保持目标身份、位置趋势与动作敏感性。",
+    experiment:
+      "固定历史帧、动作/时间条件和训练FLOPs，比较未来IBQ CE、未来DINO patch MSE、ELF velocity与无预测基线；报告action-shuffling敏感性、轨迹/状态误差随horizon增长、威胁趋势准确率、规划成功率、延迟与显存，而非只看FVD。",
+    paper: "https://arxiv.org/abs/2411.04983",
+    code: "https://github.com/gaoyuezhou/dino_wm",
+    action: "真实离散/连续action与proprioception拼入每个patch状态",
+    rollout: "多步latent rollout + CEM/MPC零样本规划",
+    evaluation: "六类环境的goal-conditioned planning、成功率与latent预测质量",
     featured: true,
     idea: true,
   },
@@ -2416,7 +2557,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.01</strong>
+        <strong>DAILY BRIEF · 2026.08.02</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -2462,9 +2603,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 020]</p>
-              <h1>让统一视觉表示，<br />兼顾语义、像素与状态变化</h1>
-              <p className="hero-copy">周末没有新的 arXiv 发布批次，今日补齐五项关键对照：Argus 从已对齐 VLM 构造 hybrid token，Twins 揭示 ViT/VAE 联合 Flow 的优化失衡，DeltaV 用可变长离散 update 与 vision-end 学习动态停止，LKF 则为 2×2 block 提供并行但相关的离散 head。重点服务 Qwen3+IBQ Stage 3、URSA→ELF 与多帧状态建模。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 021]</p>
+              <h1>把视觉 Token 的选择，<br />变成可控的建模变量</h1>
+              <p className="hero-copy">周末没有新的 arXiv 发布批次，今日补齐五个不应缺席的基础端点：Infinity 把单一视觉 ID 改为稳定的 bitwise 预测，Janus-Pro 与 Emu3 分别代表解耦视觉编码和全离散 AR 统一，VideoFlexTok 把视频组织成可变长的语义→运动→细节序列，DINO-WM 则证明世界模型可以在语义 patch 空间直接规划。重点服务 Qwen3+IBQ Stage 3、OCR 稳定性和世界模型控制变量。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -2476,7 +2617,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>84</b><span>精选条目</span></div>
+                <div><b>89</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -2618,6 +2759,10 @@ export default function Home() {
                   <tr><th>Twins</th><td>同网格ViT语义feature + VAE latent</td><td>Focal Flow velocity</td><td>连续latent ODE</td><td>不增加序列长度，控制语义/像素分量的梯度失衡</td></tr>
                   <tr><th>DeltaV</th><td>基础视觉状态 + 可变长离散update IDs</td><td>视觉update next-token CE + vision-end</td><td>动态长度AR；显式结束token停止</td><td>比较完整图像、固定预算update与变化量建模</td></tr>
                   <tr><th>LKF</th><td>离散simplex + 共享latent mixture</td><td>From-scratch flow-map likelihood</td><td>少步并行、跨位置相关更新</td><td>用mixture数M控制并行位置相关性；M=1退化为factorized MDLM</td></tr>
+                  <tr><th>Infinity∞</th><td>多尺度64-bit视觉code</td><td>逐bit分类 + bitwise self-correction</td><td>尺度间AR / 尺度内位置与bit并行</td><td>把K-way ID稳定性、head/logits成本与空间生成顺序分开</td></tr>
+                  <tr><th>Janus-Pro</th><td>理解SigLIP feature + 生成VQ ID</td><td>统一next-token CE；独立image head</td><td>文本/图像均AR</td><td>解耦视觉encoder与共享LLM的收益，避免强迫IBQ直接承担理解</td></tr>
+                  <tr><th>Emu3</th><td>文本/图像/视频离散token</td><td>统一next-token CE</td><td>单一因果Transformer AR</td><td>全离散统一基线；与URSA/ELF比较质量—延迟而非只比指标</td></tr>
+                  <tr><th>VideoFlexTok</th><td>可变长粗到细离散视频token</td><td>token AR + Flow重建decoder</td><td>语义/运动前缀→细节后缀</td><td>固定网格、token预算与信息出现顺序的影响</td></tr>
                 </tbody>
               </table>
             </div>
@@ -2662,6 +2807,8 @@ export default function Home() {
                   <tr><th>MedARC</th><td>attention、query relevance与结构独特性联合决定merge</td><td>预算可固定为N/4</td><td>不改原head；合并后的token送入既有主干</td><td>无新增生成顺序</td><td>为固定2×2 folding提供OCR-aware动态对照</td></tr>
                   <tr><th>Trend-aware Pruning</th><td>按跨层重要性趋势暂存或恢复token</td><td>逐层变化；固定平均FLOPs</td><td>不改原head；late-blooming token可重新激活</td><td>层间动态路由</td><td>补足输入前merge不可逆的缺陷</td></tr>
                   <tr><th>LKF-style Block Head</th><td>2×2 merge保持不变；用共享latent耦合四个slot</td><td>N/4</td><td>M组4×K logits + M-way mixture权重</td><td>先选component，再并行预测TL/TR/BL/BR</td><td>介于独立Linear与local AR之间的“并行但相关”对照</td></tr>
+                  <tr><th>Infinity bit head</th><td>不负责空间merge；把每个整数ID换成d-bit code</td><td>由scale schedule决定，与N/4独立</td><td>每位置d个binary logits；2×2时为4d logits</td><td>尺度间AR；尺度内bit与位置并行</td><td>分离词表/head压缩与空间token merge，降低K-way logits成本</td></tr>
+                  <tr><th>VideoFlexTok</th><td>把稠密视频网格重采样为可变长粗到细序列</td><td>M，远小于时空网格且可按预算截断</td><td>离散AR token head + Flow decoder</td><td>语义/运动/几何优先，纹理与颜色随后补充</td><td>固定2×2 folding之外的任务自适应token预算对照</td></tr>
                 </tbody>
               </table>
             </div>
@@ -2705,6 +2852,8 @@ export default function Home() {
                   <tr><th>PhiZero</th><td>离散物理语言 + 首帧视频latent</td><td>文本action intent / 示范transition</td><td>未来transition symbols + 视频渲染</td><td>Qwen3-VL AR reasoner + diffusion decoder</td><td>交互rollout、动作模拟与零样本motion transfer</td><td>最接近Qwen3+IBQ的离散动力学接口</td></tr>
                   <tr><th>ShadowDancer</th><td>同动力学异外观shadow-pair latent</td><td>示范视频提取的frame-level latent action</td><td>cross-shadow prediction</td><td>appearance-invariant action encoder + block-causal world model</td><td>长动作rollout与跨场景复用</td><td>为URSA/ELF分离外观token与动力学条件</td></tr>
                   <tr><th>DeltaV</th><td>初始离散视觉状态 + 可变长update IDs</td><td>历史视觉状态与文字推理；无显式机器人action</td><td>视觉state delta + 动态结束</td><td>统一AR离散update</td><td>多步状态累积；非机器人闭环规划</td><td>把UMM从反复生成整帧扩展为只生成变化，可复用IBQ与Qwen</td></tr>
+                  <tr><th>VideoFlexTok</th><td>可变长粗到细离散视频token</td><td>文本/类别条件；无显式机器人action</td><td>未来token序列 + Flow重建视频</td><td>Token AR + 生成式Flow decoder</td><td>81帧长视频与可变预算；未报告闭环MPC</td><td>为Qwen3/IBQ提供动态时空token预算，但需要更换tokenizer</td></tr>
+                  <tr><th>DINO-WM</th><td>冻结DINOv2连续patch embedding</td><td>真实action + proprioception</td><td>下一帧全部patch feature MSE</td><td>帧级因果ViT AR；帧内联合预测</td><td>多步latent rollout + CEM/MPC零样本规划</td><td>语义世界模型基线；不共享IBQ tokenizer，但可对齐Qwen语义空间</td></tr>
                 </tbody>
               </table>
             </div>
