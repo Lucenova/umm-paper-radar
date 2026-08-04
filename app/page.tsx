@@ -2461,7 +2461,7 @@ const papers: Paper[] = [
       "固定图像、Qwen3、IBQ、参数量与训练FLOPs，交叉比较raw caption、长度匹配自然语言、semantic+geometry schema与learned prompter四种条件，以及AR/URSA/ELF三种生成机制；报告GPG/ED、收敛loss、GenEval、DPG、文字渲染OCR、空间关系、采样成本与提示长度。",
     paper: "https://arxiv.org/abs/2607.29679",
     code: "https://github.com/heheyas/context-scaling",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2487,7 +2487,7 @@ const papers: Paper[] = [
     experiment:
       "固定总视觉token预算，比较随机三帧、frame/page-only路由、region-only路由与frame→region层级路由；所有方案使用同一Qwen3+IBQ与Stage3 head，报告DocVQA ANLS、TextVQA/OCRBench、证据召回、短时目标召回、冗余率、吞吐和GRPO稳定性。",
     paper: "https://arxiv.org/abs/2607.29638",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2513,7 +2513,7 @@ const papers: Paper[] = [
     experiment:
       "构造文字替换、数字扰动、目标删除、关键帧打乱和语言诱导五类反事实集；比较输出置信度、视觉归因、Role-Break detector及其组合，报告AUROC、校准、拒答后的风险覆盖曲线，并对top heads做抑制/恢复验证因果性。",
     paper: "https://arxiv.org/abs/2607.29412",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2542,7 +2542,7 @@ const papers: Paper[] = [
     action: "沿用VLA连续/离散action；critic不重新定义动作token",
     rollout: "critic学习未来latent但不显式渲染；用于on/off-policy闭环RL",
     evaluation: "149项四benchmark及7项真实机器人任务，重点观察OOD与闭环成功率",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2571,6 +2571,128 @@ const papers: Paper[] = [
     action: "真实机器人动作由既有VLA路径处理，世界分支提供语义—细节future监督",
     rollout: "训练支持future prediction；推理不显式生成未来视频，直接闭环动作",
     evaluation: "LIBERO、RoboTwin 2.0、LIBERO-Plus与真实视觉shift下的任务成功率",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "aurora-lm",
+    index: "95",
+    title: "AURORA-LM: Autoencoding Unified Representation for Continuous-Latent Diffusion Language Modeling",
+    shortTitle: "AURORA-LM",
+    date: "2026-08-03 · 今日新提交",
+    category: "连续 Flow",
+    paradigm: "Block-causal Continuous-latent Flow Matching",
+    state: "高容量、可解码、prefix-aligned 连续 latent",
+    objective: "Flow Matching + full clean-latent target + self-trajectory consistency",
+    decoding: "block间左到右；block内多位置并行去噪；固定decoder恢复离散token logits",
+    sharing: "Query Encoder-Decoder先学习离散↔连续接口，冻结后由block-causal DiT建模latent分布",
+    open: "官方项目页与仓库已公开；训练/推理代码及checkpoint仍标注coming soon",
+    priority: "精读",
+    summary: "AURORA-LM不直接在既有token embedding上做连续扩散，而是先学习高容量、可准确解码的prefix latent，再以block-causal Diffusion Transformer和Flow Matching建模其分布。它只压缩noisy-input pathway，clean target仍保持完整宽度，并用self-trajectory consistency缩小训练与迭代采样轨迹差。",
+    why: "它揭示ELF式连续生成最关键的变量可能不是velocity公式，而是连续状态是否本来就为离散恢复而设计。若直接对IBQ embedding做Flow，回投16384-way ID的边界可能很差；它把表示构造、分布建模和离散解码明确拆开，是URSA→ELF最值得补入的连续端点。",
+    inspiration: "2×2 Stage3可令一个Qwen block hidden对应四个prefix-aligned clean latents：全局模型按block因果推进，块内四位置并行Flow，固定local decoder再恢复TL/TR/BL/BR四个原始IBQ ID。Token Merge减少全局序列，但无需构造K⁴ merged vocabulary。",
+    experiment: "固定Stage1/2、Qwen3、IBQ、2×2 merge、数据与FLOPs，比较local AR K-way head、URSA metric-path CE、直接IBQ-embedding ELF，以及AURORA式可解码latent+block-causal Flow；报告四slot accuracy、block exact match、latent→ID回投率、OCR/DocVQA/TextVQA、T2I、步数、吞吐与显存。",
+    paper: "https://arxiv.org/abs/2608.02602",
+    code: "https://github.com/fyv587/AURORA-LM",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "worldexam",
+    index: "96",
+    title: "WorldExam: Benchmarking World Models from Apparent Appearance to Inherent Reactivity",
+    shortTitle: "WorldExam",
+    date: "2026-08-03 · 今日新提交",
+    category: "世界模型",
+    paradigm: "Hierarchical World-model Diagnostic Benchmark",
+    state: "生成视频、场景状态与控制轨迹；不限定内部pixel/token/latent表示",
+    objective: "四级诊断：画质、控制遵循、空间一致性、世界反应性",
+    decoding: "统一适配camera、action与language三类控制接口；benchmark本身不训练生成器",
+    sharing: "与架构解耦，可同时审计AR、Diffusion、Flow与JEPA世界模型",
+    open: "论文、项目页与官方仓库已公开；完整评测资产仍待后续更新",
+    priority: "精读",
+    summary: "WorldExam包含1474个案例、8项任务与4级诊断，重点新增‘世界反应性’：模型能否从场景推断输入未明确写出的合理后果与目标行为。对20个模型的评测显示，摄像机、动作和语言驱动路线各有能力断层，画质高或显式指令完成并不等于世界真的会反应。",
+    why: "它补足现有矩阵的评价缺口。多帧威胁检测若只比较FVD、LPIPS或下一帧重建，会奖励背景纹理；真正重要的是目标、环境和其他主体是否对动作或事件产生正确的隐式因果反应。",
+    inspiration: "可迁移为四级威胁预测协议：视觉稳定→动作/文字条件遵循→目标跨帧空间一致→未明示的碰撞、规避、追逐或升级反应，从而判断Qwen3+IBQ、URSA和ELF哪条路线真的学到动力学。",
+    experiment: "固定历史帧和控制条件，构造原动作、action-shuffle、无效动作与反事实动作；比较未来IBQ-ID AR、URSA、ELF和语义feature预测，分别报告画质、控制遵循、重访一致性、物理/社会反应、goal completion、horizon drift与闭环成功率。",
+    paper: "https://arxiv.org/abs/2608.02603",
+    code: "https://github.com/YuxueYang1204/worldexam",
+    action: "camera SE(3)、离散action序列或自然语言控制",
+    rollout: "评测多步视频、场景重访与动态交互，覆盖显式控制和隐式后果",
+    evaluation: "1474 cases、8 tasks、20 models；四级诊断直至World Reactivity",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "capeval",
+    index: "97",
+    title: "CAPEval: A Decoupled Caption Evaluation across Understanding and Generation",
+    shortTitle: "CAPEval",
+    date: "2026-08-03 · 今日新提交",
+    category: "评测诊断",
+    paradigm: "Caption Coverage–Precision Decomposition",
+    state: "高分辨率图像、人工caption与原子事实checklist",
+    objective: "Coverage衡量事实覆盖；Precision衡量已陈述事实的正确率",
+    decoding: "不改变模型解码；caption source作为唯一控制变量训练VLM/T2I",
+    sharing: "统一数据层评价，但理解与生成可使用不同caption权重",
+    open: "论文、评测代码、Apache-2.0仓库、数据集与leaderboard均已公开",
+    priority: "精读",
+    summary: "CAPEval把caption质量从单一分数拆成Coverage与Precision，并用300张最高8K图像、14965个经人工验证的原子事实评测10个captioner。受控实验发现，更完整的Coverage更能预测多模态理解，而事实Precision对T2I生成更关键。",
+    why: "统一理解生成的数据配方不应只追求更长caption。OCR/DocVQA需要覆盖文字、布局和细节证据；T2I若混入不可靠的丰富描述，反而把错误条件写进图像。若不控制C/P，AR、URSA与ELF仍会被caption质量混杂。",
+    inspiration: "把文字、属性、关系、bbox和UI元素保存为原子事实并分别计算C/P。理解batch提高Coverage权重，生成batch提高Precision权重；共享Qwen3主干但不强迫两种任务使用完全相同的caption采样策略。",
+    experiment: "固定Qwen3、IBQ、图像与FLOPs，构造高C低P、低C高P、高C高P及长度匹配caption，在AR/URSA/ELF上交叉训练；报告OCRBench、DocVQA、TextVQA、生成文字OCR、GenEval、DPG，并回归C/P与任务增益。",
+    paper: "https://arxiv.org/abs/2608.02589",
+    code: "https://github.com/liuzhipenggg/CAPEval",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "df3",
+    index: "98",
+    title: "DF³: World Modeling via Decoder-Free Feature Forecasting in Autonomous Navigation",
+    shortTitle: "DF³",
+    date: "2026-08-03 · 今日新提交",
+    category: "世界模型",
+    paradigm: "Decoder-free Semantic Feature Forecasting",
+    state: "冻结视觉基础模型的连续patch feature + learnable spatial queries",
+    objective: "下一帧feature forecasting；task queries直接读取预测状态",
+    decoding: "无需像素/视觉token decoder；coarse flow warp与latent cross-correlation对齐历史",
+    sharing: "复用冻结视觉语义空间；任务head共享forecast feature，不共享IBQ词表",
+    open: "论文已公开；截至核对时未发现官方代码或项目页",
+    priority: "精读",
+    summary: "DF³把世界演化完全放在latent空间：向冻结视觉基础模型末层注入spatial queries，以Motion-Aware Context Fusion结合粗粒度光流warping和细粒度latent相关性预测下一帧feature，再让task queries直接完成下游感知与控制，彻底移除重建decoder。",
+    why: "它为‘预测完整未来IBQ ID是否必要’提供直接反例。对威胁检测而言，若最终目标是轨迹、身份、风险或动作，解码高清未来画面可能是昂贵旁路；语义feature预测可作为URSA/ELF的任务效率端点。",
+    inspiration: "Qwen3的merged block hidden可同时服务两类head：Stage3 local decoder恢复当前帧四个原始IBQ ID，另一个query head预测未来DINO/TokLIP feature并输出轨迹或风险，由此拆开重建与时序决策。",
+    experiment: "固定历史帧、视觉主干、时序长度和FLOPs，比较未来IBQ-ID CE、未来DINO feature MSE、ELF velocity与DF³式query forecast；报告轨迹、身份/文字保持、威胁趋势、shuffle敏感性、模拟器成功率、decoder成本与延迟。",
+    paper: "https://arxiv.org/abs/2608.02428",
+    action: "历史运动与导航控制上下文；task queries输出感知/控制结果",
+    rollout: "latent next-state预测与模拟器零样本部署；重点不是像素长rollout",
+    evaluation: "公共导航benchmark、下游任务、zero-shot机器人模拟器与效率",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "atvla",
+    index: "99",
+    title: "Look Where It Matters: Adaptive Visual Refinement for Vision-Language-Action Models",
+    shortTitle: "AtVLA",
+    date: "2026-08-03 · 今日新提交",
+    category: "统一视觉 Token",
+    paradigm: "Uncertainty-gated Local High-resolution Refinement",
+    state: "低分辨率全局视觉token + register token + 按需高分辨率crop",
+    objective: "原始action objective端到端训练；action-chunk分歧作为不确定性门控",
+    decoding: "先用缓存低分辨率prefix；不确定时定位区域、重编码crop并追加prefix后重规划",
+    sharing: "全局与局部视觉路径共享action expert；register承载具身空间信息",
+    open: "论文与补充材料公开；截至核对时未见官方代码仓库",
+    priority: "精读",
+    summary: "AtVLA发现具身post-training学到的位置、深度顺序与局部几何会因global-token容量不足而泄漏到低信息patch。它先用register token整顿注意力，再由action expert采样多个action chunk估计不确定性，仅在高不确定步骤裁剪并重编码相关高分辨率区域。",
+    why: "它给固定2×2 Token Merge提供清晰的恢复机制：全局压缩保留效率，但不能假设所有区域都能被同等恢复。OCR、小目标、接触点和威胁关键帧应由不确定性触发1×1或高分辨率旁路。",
+    inspiration: "Stage3先由local head生成四个IBQ ID分布，以slot entropy、block置信度或多次sample分歧触发refinement；触发时回看原图crop/1×1 token，并把证据追加到Qwen缓存prefix后重新预测，而不是整图取消merge。",
+    experiment: "固定平均token/FLOPs，比较全图1×1、固定2×2、attention-only crop、Stage3 entropy gate与answer/action disagreement gate；报告触发率、四slot accuracy、OCRBench、TextVQA、DocVQA、小目标召回、延迟与缓存成本。",
+    paper: "https://arxiv.org/abs/2608.02197",
+    action: "连续action chunks；多样本分歧估计决策不确定性",
+    rollout: "闭环replanning；约30%步骤触发高分辨率crop重编码",
+    evaluation: "LIBERO、SimplerEnv、真实单目操作；成功率与1.4–1.6×总计算",
     featured: true,
     idea: true,
   },
@@ -2694,7 +2816,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.03</strong>
+        <strong>DAILY BRIEF · 2026.08.04</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -2740,9 +2862,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 022]</p>
-              <h1>先固定条件与证据，<br />再比较生成范式</h1>
-              <p className="hero-copy">今日新增五项：Context Scaling把caption中的图像落地信息提升为T2I第四条缩放轴；HierDoc用page→region两级GRPO路由保护稀疏OCR证据；Role-Break从attention head角色偏移定位幻觉；WCM把未来预测并入critic；ST-WAM则用DINO语义与VAE细节双空间抵抗视觉分布变化。重点服务AR／URSA／ELF公平对照、2×2 merge证据保护和统一理解—生成—预测—行动。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 023]</p>
+              <h1>连续生成的关键，<br />是可解码表示与因果结构</h1>
+              <p className="hero-copy">今日新增五项：AURORA-LM以可解码连续latent和block-causal Flow连接并行去噪与离散token恢复；CAPEval把理解需要的Coverage与生成需要的Precision拆开；WorldExam把世界反应性纳入评价；DF³直接预测未来语义feature；AtVLA则用不确定性按需恢复高分辨率证据。重点服务URSA→ELF、2×2 Stage3 head、OCR保护与世界模型因果评测。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -2754,7 +2876,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>94</b><span>精选条目</span></div>
+                <div><b>99</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -2901,6 +3023,8 @@ export default function Home() {
                   <tr><th>Emu3</th><td>文本/图像/视频离散token</td><td>统一next-token CE</td><td>单一因果Transformer AR</td><td>全离散统一基线；与URSA/ELF比较质量—延迟而非只比指标</td></tr>
                   <tr><th>VideoFlexTok</th><td>可变长粗到细离散视频token</td><td>token AR + Flow重建decoder</td><td>语义/运动前缀→细节后缀</td><td>固定网格、token预算与信息出现顺序的影响</td></tr>
                   <tr><th>Context Scaling</th><td>结构化文本条件 + 固定视觉latent</td><td>底层生成loss；GPG/ED衡量条件信息</td><td>沿用AR/URSA/ELF各自顺序</td><td>把caption信息量与生成建模方式拆开，避免条件质量混杂</td></tr>
+                  <tr><th>AURORA-LM</th><td>可解码prefix-aligned连续latent</td><td>Flow Matching + full clean-latent target</td><td>block间因果 / block内并行去噪</td><td>表示容量、noisy-path bottleneck、离散回投率与train/inference轨迹差</td></tr>
+                  <tr><th>CAPEval</th><td>caption原子事实checklist</td><td>Coverage / Precision双指标</td><td>不改变解码；只改变条件数据</td><td>理解偏Coverage、生成偏Precision；隔离caption混杂</td></tr>
                 </tbody>
               </table>
             </div>
@@ -2948,6 +3072,7 @@ export default function Home() {
                   <tr><th>Infinity bit head</th><td>不负责空间merge；把每个整数ID换成d-bit code</td><td>由scale schedule决定，与N/4独立</td><td>每位置d个binary logits；2×2时为4d logits</td><td>尺度间AR；尺度内bit与位置并行</td><td>分离词表/head压缩与空间token merge，降低K-way logits成本</td></tr>
                   <tr><th>VideoFlexTok</th><td>把稠密视频网格重采样为可变长粗到细序列</td><td>M，远小于时空网格且可按预算截断</td><td>离散AR token head + Flow decoder</td><td>语义/运动/几何优先，纹理与颜色随后补充</td><td>固定2×2 folding之外的任务自适应token预算对照</td></tr>
                   <tr><th>HierDoc routing</th><td>先选page/frame，再保留region crop与OCR/table文本</td><td>总预算固定，但全页与局部证据动态分配</td><td>不改Stage3离散head；证据区域可保持1×1原始ID监督</td><td>page→region两级集合决策</td><td>把证据路由与token merge分离，检验固定2×2是否压掉稀疏OCR/小目标</td></tr>
+                  <tr><th>AtVLA refinement</th><td>低分辨率全局token + 不确定性触发高分辨率crop</td><td>平均预算固定；仅高风险block回到1×1/原图证据</td><td>Stage3 entropy或多样本分歧门控；原K-way head重预测</td><td>先缓存全局prefix，必要时追加局部crop并replan</td><td>让2×2 merge可逆，保护OCR、小目标和接触/威胁区域</td></tr>
                 </tbody>
               </table>
             </div>
@@ -2995,6 +3120,8 @@ export default function Home() {
                   <tr><th>DINO-WM</th><td>冻结DINOv2连续patch embedding</td><td>真实action + proprioception</td><td>下一帧全部patch feature MSE</td><td>帧级因果ViT AR；帧内联合预测</td><td>多步latent rollout + CEM/MPC零样本规划</td><td>语义世界模型基线；不共享IBQ tokenizer，但可对齐Qwen语义空间</td></tr>
                   <tr><th>WCM</th><td>多帧历史语义latent</td><td>沿用Pi0/Pi0.5/OpenVLA-OFT动作接口</td><td>future latent + scalar value</td><td>轻量LeJEPA predictive critic</td><td>不渲染像素；用于on/off-policy闭环RL</td><td>可给Qwen3+IBQ的GRPO critic增加时序世界监督</td></tr>
                   <tr><th>ST-WAM</th><td>DINOv3语义feature + Wan-VAE细节latent</td><td>既有VLA真实动作</td><td>双空间future + current-anchored历史检索</td><td>Semantic-temporal dual-space WAM</td><td>训练预测未来；推理不显式生成视频</td><td>为IBQ/ELF分离稳健语义状态与像素动力学</td></tr>
+                  <tr><th>DF³</th><td>冻结视觉基础模型patch feature + spatial queries</td><td>历史运动/导航上下文 + task queries</td><td>下一帧语义feature与下游任务输出</td><td>光流warp + latent相关性；decoder-free forecasting</td><td>latent预测与zero-shot模拟器部署</td><td>无需重建未来像素，作为IBQ-ID/ELF的任务效率端点</td></tr>
+                  <tr><th>WorldExam</th><td>架构无关的生成视频与场景状态</td><td>camera / action / language三种控制</td><td>评价：画质→控制→空间一致→世界反应</td><td>适配AR、Diffusion、Flow与JEPA</td><td>重访、动态交互、隐式后果与goal completion</td><td>防止把高画质或显式遵循误判为真实世界建模</td></tr>
                 </tbody>
               </table>
             </div>
