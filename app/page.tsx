@@ -2594,7 +2594,7 @@ const papers: Paper[] = [
     experiment: "固定Stage1/2、Qwen3、IBQ、2×2 merge、数据与FLOPs，比较local AR K-way head、URSA metric-path CE、直接IBQ-embedding ELF，以及AURORA式可解码latent+block-causal Flow；报告四slot accuracy、block exact match、latent→ID回投率、OCR/DocVQA/TextVQA、T2I、步数、吞吐与显存。",
     paper: "https://arxiv.org/abs/2608.02602",
     code: "https://github.com/fyv587/AURORA-LM",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2620,7 +2620,7 @@ const papers: Paper[] = [
     action: "camera SE(3)、离散action序列或自然语言控制",
     rollout: "评测多步视频、场景重访与动态交互，覆盖显式控制和隐式后果",
     evaluation: "1474 cases、8 tasks、20 models；四级诊断直至World Reactivity",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2643,7 +2643,7 @@ const papers: Paper[] = [
     experiment: "固定Qwen3、IBQ、图像与FLOPs，构造高C低P、低C高P、高C高P及长度匹配caption，在AR/URSA/ELF上交叉训练；报告OCRBench、DocVQA、TextVQA、生成文字OCR、GenEval、DPG，并回归C/P与任务增益。",
     paper: "https://arxiv.org/abs/2608.02589",
     code: "https://github.com/liuzhipenggg/CAPEval",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2668,7 +2668,7 @@ const papers: Paper[] = [
     action: "历史运动与导航控制上下文；task queries输出感知/控制结果",
     rollout: "latent next-state预测与模拟器零样本部署；重点不是像素长rollout",
     evaluation: "公共导航benchmark、下游任务、zero-shot机器人模拟器与效率",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2693,6 +2693,126 @@ const papers: Paper[] = [
     action: "连续action chunks；多样本分歧估计决策不确定性",
     rollout: "闭环replanning；约30%步骤触发高分辨率crop重编码",
     evaluation: "LIBERO、SimplerEnv、真实单目操作；成功率与1.4–1.6×总计算",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "omnipack",
+    index: "100",
+    title: "OmniPack: Unified Token Compression for Efficient Omni-modal Large Language Models",
+    shortTitle: "OmniPack",
+    date: "2026-08-04 · 今日新提交",
+    category: "统一视觉 Token",
+    paradigm: "Pre-LLM Structural Merge + Inner-LLM Semantic Compression",
+    state: "连续视觉/音频token；压缩后仍为连续hidden，不产生新离散ID",
+    objective: "训练免费；结构重要性、全局覆盖、相似度merge与文本引导协同选择",
+    decoding: "不改变原LLM解码；先压缩输入，充分跨模态交互后再做query-aware consolidation",
+    sharing: "复用原Omni-LLM、attention与输出head；压缩器不改词表或tokenizer",
+    open: "论文与官方代码仓库已公开",
+    priority: "精读",
+    summary: "OmniPack把token压缩拆为两个时点：进入LLM前按模态重要性、全局覆盖和相似度消除结构冗余；进入LLM并完成充分交互后，再利用文本引导与音视频协作压缩任务相关表示。Qwen2.5-Omni-7B上，论文报告保留98.0%原性能时FLOPs降至16.7%。",
+    why: "它说明固定2×2 merge只有局部相似性，没有全局覆盖、query relevance与跨模态证据保护。对OCR、小目标和多帧威胁检测，真正危险的不是压缩率本身，而是压缩发生得太早且不可恢复。",
+    inspiration: "可把Stage3前的IBQ folding改为两级：输入端只合并低风险背景block；Qwen3中层根据问题、OCR和多帧证据重新聚合。离散生成监督仍保留四个原始ID，OmniPack仅决定哪些context位置进入全局主干。",
+    experiment: "固定Qwen3、IBQ、平均4:1 token预算和训练数据，比较固定2×2、仅pre-LLM动态merge、仅inner-LLM pruning与OmniPack两级压缩；统一报告四slot CE、block exact match、OCRBench、DocVQA、TextVQA、小目标/关键帧召回、真实FLOPs、延迟和显存。",
+    paper: "https://arxiv.org/abs/2608.03812",
+    code: "https://github.com/RowanSu/OmniPack",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "ecoframe",
+    index: "101",
+    title: "When and Where to Look: Adaptive Visual Evidence Scheduling for Efficient Long Video Understanding",
+    shortTitle: "EcoFrame",
+    date: "2026-08-04 · 今日新提交",
+    category: "多帧推理",
+    paradigm: "Entropy-gated Frame Budget + Attention-guided Temporal Search",
+    state: "稀疏候选帧与VLM输出不确定性；不修改视觉tokenizer",
+    objective: "训练免费；用回答熵决定是否扩预算，用frame attention决定向哪里继续搜索",
+    decoding: "从小帧预算开始，证据充分则提前停止；否则在高注意时间段密集检索并保留全局覆盖",
+    sharing: "完全复用原VLM；调度器作用于帧级证据，不改变Qwen视觉head",
+    open: "论文与官方仓库已建立；代码标注将发布",
+    priority: "精读",
+    summary: "EcoFrame不再为每个问题固定帧数。它先用少量帧推理，以输出熵判断证据是否足够；不确定时再把frame-level attention变成时间先验，向可能包含证据的片段扩展搜索。论文在Qwen2.5-VL上报告64.4平均准确率，并相对多轮agent调度最高加速13.5倍。",
+    why: "多帧威胁检测中的事件持续时间、关键帧位置和证据数量差异很大。固定三帧或固定token预算会同时浪费简单样本并漏掉短暂威胁；EcoFrame提供了可验证的‘何时继续看、去哪里看’机制。",
+    inspiration: "把回答熵替换或联合Stage3 block entropy、威胁类别margin和跨帧一致性：先处理稀疏帧，若风险判断不稳定，再在高注意时间窗追加1×1 IBQ区域或原图crop。这样帧路由、空间merge与离散head形成两级自适应预算。",
+    experiment: "固定总平均帧/token FLOPs，比较均匀3/8/16帧、固定Top-K、仅entropy扩帧、仅attention定位与EcoFrame联合调度；报告事件召回、关键帧命中、威胁分类、OCR/小目标保持、触发率、端到端延迟及最坏样本预算。",
+    paper: "https://arxiv.org/abs/2608.03918",
+    code: "https://github.com/AK-DREAM/EcoFrame",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "visual-token-break-even",
+    index: "102",
+    title: "When Do Fewer Visual Tokens Accelerate Multimodal Inference? A Break-Even Study Across Decision Locations and Hardware",
+    shortTitle: "Visual Token Break-even",
+    date: "2026-08-04 · 今日新提交",
+    category: "评测诊断",
+    paradigm: "Stage-level Latency Decomposition for Visual Token Routing",
+    state: "Qwen2.5-VL视觉token与路由决策；不改变生成状态",
+    objective: "测量decision overhead、shared work与真正可跳过的算子，而非只报告token/FLOPs",
+    decoding: "比较pre-vision分辨率路由、post-vision静态剪枝与AR探针；原LLM照常AR回答",
+    sharing: "复用同一Qwen2.5-VL checkpoint；只改变决策位置与可避免计算",
+    open: "论文公开；作者称profiling与routing代码将在终稿发布，当前未见完整仓库",
+    priority: "精读",
+    summary: "该研究给出一个关键负结果：更少视觉token不保证端到端更快。两种AR探针即使复用状态仍比完整模型慢；pre-vision策略虽然token减少更少，却能跳过预处理与视觉编码，在A100上反而可能优于post-vision的大幅剪枝。",
+    why: "当前2×2 folding若发生在IBQ编码和projector之后，已经支付了tokenizer、视觉编码与merge决策成本，只节省Qwen后半段计算。若只报告序列长度或理论FLOPs，很容易高估Stage3方案的真实收益。",
+    inspiration: "给Qwen3+IBQ建立stage timer：图像预处理、IBQ编码、fold/project、Qwen prefill、local head、自由生成与decoder分别同步计时，并在3090/A100类不同硬件上计算break-even。OCR区域还需单独检查分辨率下调的不可逆损失。",
+    experiment: "固定准确率下比较pre-tokenizer分辨率路由、tokenizer后2×2 fold、Qwen中层prune和完整输入；报告wall-clock、p50/p95、吞吐、显存、各stage占比、决策开销，以及TextVQA/ChartQA/OCRBench分组质量，不把token数当作延迟代理。",
+    paper: "https://arxiv.org/abs/2608.03649",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "lila-wam",
+    index: "103",
+    title: "LiLa-WAM: Lightweight Latent Reasoning World-Action Model for Robotic Manipulation",
+    shortTitle: "LiLa-WAM",
+    date: "2026-08-04 · 今日新提交",
+    category: "世界模型",
+    paradigm: "Compact Latent Foresight + Action Flow Matching",
+    state: "冻结DINOv3多层patch feature→64个query latent；future latent与action共享DiT",
+    objective: "action constant-velocity Flow Matching + 未来DINO feature cosine foresight loss",
+    decoding: "10步Euler生成连续action chunk；未来latent只作训练监督，推理时decoder丢弃",
+    sharing: "同一12层DiT同时读写action与foresight token；不共享IBQ词表或像素decoder",
+    open: "论文与官方代码仓库已公开",
+    priority: "精读",
+    summary: "LiLa-WAM用冻结DINOv3与64-query adapter形成紧凑状态，在同一0.5B DiT里同时预测action velocity和未来latent。未来feature decoder只在训练期提供cosine监督，部署时移除；模型可在单张24GB GPU训练，论文在RoboTwin 50任务上报告90.48%成功率。",
+    why: "它提供了世界模型的低成本反例：未来预测不必恢复像素或每个IBQ ID，也不必对未来状态做多步diffusion；一个与动作共享的语义foresight辅助头就可能改善控制。",
+    inspiration: "Qwen3 merged hidden可同时接Stage3 local K-way head与future-semantic query head：前者恢复当前帧TL/TR/BL/BR原始ID，后者预测下一关键帧DINO/TokLIP feature；推理时可丢弃future decoder，只保留风险/动作head。",
+    experiment: "固定视觉输入、action chunk与参数预算，比较无future、未来IBQ-ID CE、未来DINO cosine、未来IBQ+DINO双head和ELF velocity；报告action-shuffle敏感性、horizon feature误差、OCR/身份保持、闭环成功率、10步action采样延迟与额外训练显存。",
+    paper: "https://arxiv.org/abs/2608.03701",
+    code: "https://github.com/teee000/LiLa-WAM",
+    action: "连续32步action chunk；高斯噪声到动作的constant-velocity Flow Matching",
+    rollout: "显式预测单个未来语义状态；闭环执行action chunk，不渲染像素长rollout",
+    evaluation: "RoboTwin 2.0、LIBERO与真实机器人；任务成功率、模型/训练/推理成本",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "joyai-video-edit",
+    index: "104",
+    title: "JoyAI-Video-Edit: Real-Time Open-Ended Video Editing with Autoregressive Diffusion",
+    shortTitle: "JoyAI-Video-Edit",
+    date: "2026-08-04 · 今日新提交",
+    category: "连续 Flow",
+    paradigm: "Chunk-wise AR + Intra-chunk Flow Matching + Few-step DMD",
+    state: "因果video-VAE latent；每个latent frame对应8帧，块内双向、块间因果",
+    objective: "velocity Flow Matching、on-policy resampling forcing、Source-Anchored DMD与长时AR蒸馏",
+    decoding: "按8帧chunk顺序生成；每块2步去噪，滑窗KV与首块global sink固定内存",
+    sharing: "MLLM只提供条件token；causal VAE与MM-DiT负责视频latent，不共享离散视觉词表/head",
+    open: "论文与官方代码仓库已公开",
+    priority: "精读",
+    summary: "JoyAI-Video-Edit把连续视频生成拆成块间AR、块内Flow：当前8帧chunk只看当前源视频、有限历史和首块sink；训练先teacher forcing，再用模型生成历史做resampling forcing，并以source-anchored DMD蒸馏到两步采样。系统在单张B200上报告720p约30 FPS。",
+    why: "它正面处理了AR世界模型最难的两件事：训练时clean history与推理时自生成history不一致，以及误差随horizon累积。对多帧威胁预测，这比只比较单步FVD更有借鉴价值。",
+    inspiration: "可把IBQ视频序列按帧或2×2 block组织为chunk：chunk间沿时间因果并缓存Qwen状态，chunk内用URSA/ELF并行恢复；先clean-history训练，再混入detached自生成历史，并固定首帧/关键证据帧作为sink抑制身份与OCR漂移。",
+    experiment: "固定Qwen3、IBQ、历史窗口和总FLOPs，比较逐token AR、帧间AR+帧内URSA、帧间AR+帧内ELF，以及是否加入resampling forcing/首帧sink；报告1/8/32步horizon误差、OCR与目标身份漂移、动作/条件遵循、采样步数、KV显存和真实吞吐。",
+    paper: "https://arxiv.org/abs/2608.03974",
+    code: "https://github.com/jd-opensource/JoyAI-Video-Edit",
+    action: "文本编辑指令与当前source chunk；无机器人action token",
+    rollout: "开放时长chunk rollout；滑窗历史+首块sink，显式优化长时误差累积",
+    evaluation: "短/长视频编辑质量、source fidelity、时间一致性、720p实时延迟与显存",
     featured: true,
     idea: true,
   },
@@ -2816,7 +2936,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.04</strong>
+        <strong>DAILY BRIEF · 2026.08.05</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -2862,9 +2982,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 023]</p>
-              <h1>连续生成的关键，<br />是可解码表示与因果结构</h1>
-              <p className="hero-copy">今日新增五项：AURORA-LM以可解码连续latent和block-causal Flow连接并行去噪与离散token恢复；CAPEval把理解需要的Coverage与生成需要的Precision拆开；WorldExam把世界反应性纳入评价；DF³直接预测未来语义feature；AtVLA则用不确定性按需恢复高分辨率证据。重点服务URSA→ELF、2×2 Stage3 head、OCR保护与世界模型因果评测。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 024]</p>
+              <h1>Token 少不等于更快，<br />压缩必须跨层、可测且可恢复</h1>
+              <p className="hero-copy">今日新增五项：OmniPack把结构merge与LLM内语义压缩协同起来；EcoFrame按不确定性扩展多帧证据；Break-even Study证明token减少并不自动带来端到端加速；LiLa-WAM以轻量语义foresight联合action Flow；JoyAI-Video-Edit则用块间AR、块内Flow和on-policy history控制长时漂移。重点服务2×2 Stage3 head、OCR保护与统一理解—生成—预测—行动。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -2876,7 +2996,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>99</b><span>精选条目</span></div>
+                <div><b>104</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -3025,6 +3145,8 @@ export default function Home() {
                   <tr><th>Context Scaling</th><td>结构化文本条件 + 固定视觉latent</td><td>底层生成loss；GPG/ED衡量条件信息</td><td>沿用AR/URSA/ELF各自顺序</td><td>把caption信息量与生成建模方式拆开，避免条件质量混杂</td></tr>
                   <tr><th>AURORA-LM</th><td>可解码prefix-aligned连续latent</td><td>Flow Matching + full clean-latent target</td><td>block间因果 / block内并行去噪</td><td>表示容量、noisy-path bottleneck、离散回投率与train/inference轨迹差</td></tr>
                   <tr><th>CAPEval</th><td>caption原子事实checklist</td><td>Coverage / Precision双指标</td><td>不改变解码；只改变条件数据</td><td>理解偏Coverage、生成偏Precision；隔离caption混杂</td></tr>
+                  <tr><th>OmniPack</th><td>连续音视频token；两阶段压缩hidden</td><td>training-free结构merge + query-aware consolidation</td><td>保持原LLM解码</td><td>压缩时点、全局覆盖与跨模态证据保护</td></tr>
+                  <tr><th>JoyAI-Video-Edit</th><td>causal video-VAE latent</td><td>velocity FM + on-policy forcing + source-anchored DMD</td><td>chunk间AR / chunk内2步Flow</td><td>clean/generated history差、首块sink与长时漂移</td></tr>
                 </tbody>
               </table>
             </div>
@@ -3073,6 +3195,9 @@ export default function Home() {
                   <tr><th>VideoFlexTok</th><td>把稠密视频网格重采样为可变长粗到细序列</td><td>M，远小于时空网格且可按预算截断</td><td>离散AR token head + Flow decoder</td><td>语义/运动/几何优先，纹理与颜色随后补充</td><td>固定2×2 folding之外的任务自适应token预算对照</td></tr>
                   <tr><th>HierDoc routing</th><td>先选page/frame，再保留region crop与OCR/table文本</td><td>总预算固定，但全页与局部证据动态分配</td><td>不改Stage3离散head；证据区域可保持1×1原始ID监督</td><td>page→region两级集合决策</td><td>把证据路由与token merge分离，检验固定2×2是否压掉稀疏OCR/小目标</td></tr>
                   <tr><th>AtVLA refinement</th><td>低分辨率全局token + 不确定性触发高分辨率crop</td><td>平均预算固定；仅高风险block回到1×1/原图证据</td><td>Stage3 entropy或多样本分歧门控；原K-way head重预测</td><td>先缓存全局prefix，必要时追加局部crop并replan</td><td>让2×2 merge可逆，保护OCR、小目标和接触/威胁区域</td></tr>
+                  <tr><th>OmniPack</th><td>pre-LLM结构merge + inner-LLM语义压缩</td><td>两阶段可变；固定平均预算对照</td><td>不改离散生成head；仅压缩context hidden</td><td>结构压缩后再按query重聚合</td><td>提示Stage3 merge应跨层协同，而非输入端一次性完成</td></tr>
+                  <tr><th>EcoFrame</th><td>先选少量帧；回答不确定时扩展时间证据</td><td>帧预算动态，空间token预算可另行固定</td><td>不改Stage3 head；可触发高风险帧1×1恢复</td><td>entropy决定何时扩展，attention决定向哪里搜索</td><td>把多帧路由与2×2空间merge组成两级预算</td></tr>
+                  <tr><th>Break-even audit</th><td>比较pre-vision、post-vision和inner-LLM决策位置</td><td>token数相同也可能wall-clock不同</td><td>不改head；逐stage同步计时</td><td>以真实可跳过算子和decision overhead为准</td><td>防止把N/4序列或理论FLOPs误报为端到端加速</td></tr>
                 </tbody>
               </table>
             </div>
@@ -3122,6 +3247,8 @@ export default function Home() {
                   <tr><th>ST-WAM</th><td>DINOv3语义feature + Wan-VAE细节latent</td><td>既有VLA真实动作</td><td>双空间future + current-anchored历史检索</td><td>Semantic-temporal dual-space WAM</td><td>训练预测未来；推理不显式生成视频</td><td>为IBQ/ELF分离稳健语义状态与像素动力学</td></tr>
                   <tr><th>DF³</th><td>冻结视觉基础模型patch feature + spatial queries</td><td>历史运动/导航上下文 + task queries</td><td>下一帧语义feature与下游任务输出</td><td>光流warp + latent相关性；decoder-free forecasting</td><td>latent预测与zero-shot模拟器部署</td><td>无需重建未来像素，作为IBQ-ID/ELF的任务效率端点</td></tr>
                   <tr><th>WorldExam</th><td>架构无关的生成视频与场景状态</td><td>camera / action / language三种控制</td><td>评价：画质→控制→空间一致→世界反应</td><td>适配AR、Diffusion、Flow与JEPA</td><td>重访、动态交互、隐式后果与goal completion</td><td>防止把高画质或显式遵循误判为真实世界建模</td></tr>
+                  <tr><th>LiLa-WAM</th><td>DINOv3 patch feature→64 query latent</td><td>连续action chunk + visual transition token</td><td>action velocity + future DINO feature</td><td>单流DiT：10步action Flow + cosine foresight</td><td>单步语义foresight；闭环action执行，推理丢弃future decoder</td><td>可给Qwen3 merged hidden增加低成本future-semantic辅助头</td></tr>
+                  <tr><th>JoyAI-Video-Edit</th><td>causal video-VAE latent + 有限历史KV</td><td>文本编辑指令 + 当前source chunk</td><td>每chunk velocity与source-anchored clean target</td><td>块间AR + 块内Flow + 2-step DMD</td><td>开放时长rollout；滑窗与首块sink控制漂移</td><td>为IBQ/URSA/ELF视频模型提供train/inference history对齐模板</td></tr>
                 </tbody>
               </table>
             </div>
