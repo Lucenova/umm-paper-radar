@@ -2716,7 +2716,7 @@ const papers: Paper[] = [
     experiment: "固定Qwen3、IBQ、平均4:1 token预算和训练数据，比较固定2×2、仅pre-LLM动态merge、仅inner-LLM pruning与OmniPack两级压缩；统一报告四slot CE、block exact match、OCRBench、DocVQA、TextVQA、小目标/关键帧召回、真实FLOPs、延迟和显存。",
     paper: "https://arxiv.org/abs/2608.03812",
     code: "https://github.com/RowanSu/OmniPack",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2739,7 +2739,7 @@ const papers: Paper[] = [
     experiment: "固定总平均帧/token FLOPs，比较均匀3/8/16帧、固定Top-K、仅entropy扩帧、仅attention定位与EcoFrame联合调度；报告事件召回、关键帧命中、威胁分类、OCR/小目标保持、触发率、端到端延迟及最坏样本预算。",
     paper: "https://arxiv.org/abs/2608.03918",
     code: "https://github.com/AK-DREAM/EcoFrame",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2761,7 +2761,7 @@ const papers: Paper[] = [
     inspiration: "给Qwen3+IBQ建立stage timer：图像预处理、IBQ编码、fold/project、Qwen prefill、local head、自由生成与decoder分别同步计时，并在3090/A100类不同硬件上计算break-even。OCR区域还需单独检查分辨率下调的不可逆损失。",
     experiment: "固定准确率下比较pre-tokenizer分辨率路由、tokenizer后2×2 fold、Qwen中层prune和完整输入；报告wall-clock、p50/p95、吞吐、显存、各stage占比、决策开销，以及TextVQA/ChartQA/OCRBench分组质量，不把token数当作延迟代理。",
     paper: "https://arxiv.org/abs/2608.03649",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2787,7 +2787,7 @@ const papers: Paper[] = [
     action: "连续32步action chunk；高斯噪声到动作的constant-velocity Flow Matching",
     rollout: "显式预测单个未来语义状态；闭环执行action chunk，不渲染像素长rollout",
     evaluation: "RoboTwin 2.0、LIBERO与真实机器人；任务成功率、模型/训练/推理成本",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2813,6 +2813,123 @@ const papers: Paper[] = [
     action: "文本编辑指令与当前source chunk；无机器人action token",
     rollout: "开放时长chunk rollout；滑窗历史+首块sink，显式优化长时误差累积",
     evaluation: "短/长视频编辑质量、source fidelity、时间一致性、720p实时延迟与显存",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "physics-mm-pretrain",
+    index: "105",
+    title: "Towards Physics of Multimodal Pretraining: Knowledge Flow, Modality Synergy, Early Unification, and Recipes",
+    shortTitle: "Physics of MM Pretraining",
+    date: "2026-08-05 · 今日新提交",
+    category: "统一多模态",
+    paradigm: "Early Unified Pretraining + Shared Attention/Norm + Modality-specific FFN",
+    state: "语言token + RAE/Raw-pixel/CLIP-VAE/AR离散视觉表示；多种tokenizer均验证",
+    objective: "语言、视觉理解与视觉生成联合预训练；用held-out concept与loss差测知识流和竞争",
+    decoding: "兼容连续生成与离散AR；重点是共享边界和训练时序，而非新采样器",
+    sharing: "共享attention与normalization形成桥梁；模态专属FFN缓解容量竞争",
+    open: "论文与官方交互项目页已公开；截至核对时未见训练代码或权重",
+    priority: "精读",
+    summary: "用合成控制实验和多个13.5B MoE、2T-token规模验证四条规律：知识迁移不对称；复杂任务会从协同转为容量竞争；共享attention/norm但拆分FFN最稳；早期联合训练优于晚期对齐，并可用约5%算力获得强生成能力。",
+    why: "直接挑战Stage1→Stage2→Stage3顺序训练。理解先训、生成后接可能产生vision laziness，完全共享FFN又会让OCR、文本和T2I争夺容量。",
+    inspiration: "保持Qwen3 attention、RoPE和norm共享，让理解、AR/URSA/ELF生成使用小型模态FFN或MoE expert；Stage1早期混入少量生成/重建目标。颜色/形状与关系/计数应分组测试迁移。",
+    experiment: "固定Qwen3、IBQ、数据token与FLOPs，比较理解→生成串行、生成→理解串行、从头联合、联合+visual FFN expert；报告文本PPL、OCRBench/DocVQA/TextVQA、GenEval、生成OCR、梯度cosine、视觉反事实敏感性与遗忘。",
+    paper: "https://arxiv.org/abs/2608.05000",
+    code: "https://junlinhan.github.io/projects/physics_of_mm_pretrain/",
+    codeLabel: "项目页",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "step-opd",
+    index: "106",
+    title: "STEP-OPD: Rethinking Output Targets and Internal Dynamics in On-Policy Distillation for Diffusion Models",
+    shortTitle: "STEP-OPD",
+    date: "2026-08-05 · 今日新提交",
+    category: "连续 Flow",
+    paradigm: "On-policy Velocity Distillation + Blockwise Representation-change Alignment",
+    state: "SD3.5-M连续VAE latent、student on-policy轨迹与teacher/base中间hidden",
+    objective: "外推velocity目标 v_teacher + α(v_teacher−v_base)；对齐相邻DiT block的hidden变化",
+    decoding: "沿用原Flow/Diffusion student采样；不新增推理模块或步数",
+    sharing: "多任务teacher蒸馏到同一student；base/teacher冻结，student共享生成主干",
+    open: "论文与完整目标公式已公开；截至核对时未见官方代码仓库",
+    priority: "精读",
+    summary: "只拟合teacher velocity既把teacher设成上限，也未约束能力在层间如何形成。STEP-OPD沿base→task teacher方向外推velocity，并蒸馏block表示变化；DiffusionOPD GenEval 0.927→0.961，同时改善OCR与偏好。",
+    why: "URSA→ELF若只在最终head对齐velocity/IBQ embedding，student可能输出接近却未学到文字、布局和细节的逐层形成过程，OCR最容易在少步蒸馏中丢失。",
+    inspiration: "让32步ELF或高质量URSA作teacher，4/8步student同时拟合末端velocity/logits和Qwen3若干层Δh；按文字、空间关系、美学建立teacher再合并。",
+    experiment: "固定teacher/student、IBQ/VAE和采样步，比较output-only OPD、Δh-only、联合与velocity extrapolation；报告文字/非文字velocity误差、层间CKA/Δh cosine、生成OCR、GenEval、4/8步质量、显存和teacher成本。",
+    paper: "https://arxiv.org/abs/2608.04887",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "ruta",
+    index: "107",
+    title: "RUTA: Principled Visual Token Allocation via Rate-Utility Optimization",
+    shortTitle: "RUTA",
+    date: "2026-08-04 · 今日新收录",
+    category: "统一视觉 Token",
+    paradigm: "Query-conditioned Bernoulli Retention + Semantic/Spatial Anchor Merge",
+    state: "pre-LLM连续视觉token；anchor吸收被删token信息，不产生新离散ID",
+    objective: "task loss + λ_rate·期望token数；ST Bernoulli gate联合学习位置与样本预算",
+    decoding: "训练Bernoulli采样；推理按预测期望率adaptive Top-K，原LLM解码不变",
+    sharing: "复用VLM接口；两层query-conditioned MLP与anchor聚合器负责压缩",
+    open: "论文与官方代码仓库已公开",
+    priority: "精读",
+    summary: "把视觉压缩写成rate–utility优化：每个图像—问题对自行决定保留多少token，未保留token按语义和空间关系聚合到anchor。Qwen3-VL-8B平均保留4.2% token时维持94.4%基线表现。",
+    why: "固定2×2 folding未回答不同样本究竟需要多少预算。OCR、小目标、复杂威胁场景不应和简单背景用同一4:1比例；但需结合break-even审计，不能把token率当成真实速度。",
+    inspiration: "把rate penalty迁移到IBQ block：每个2×2 block决定保留1/2/4个ID预算，被压缩信息聚到anchor；Stage3 local head仍监督TL/TR/BL/BR。OCR proposal、slot entropy、query relevance共同输入rate predictor。",
+    experiment: "固定平均N/4预算，比较固定2×2、RUTA连续merge、IBQ动态1/2/4-slot、OCR强制1×1；报告token率分布、四slot accuracy、block exact match、OCRBench/DocVQA/TextVQA、route overhead、p50/p95和显存。",
+    paper: "https://arxiv.org/abs/2608.04132",
+    code: "https://github.com/Multimedia-Analytics-Laboratory/RUTA",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "toolartist",
+    index: "108",
+    title: "ToolArtist: Tool-Using Unified Multimodal Models for Agentic Image Generation",
+    shortTitle: "ToolArtist",
+    date: "2026-08-05 · 今日新提交",
+    category: "统一多模态",
+    paradigm: "Emu3.5 Discrete AR UMM + Reason-Act-Draw GRPO",
+    state: "文本与视觉离散词表组成交错序列；搜索结果和生成图留在context",
+    objective: "统一next-token CE SFT + Intent/Quality Reward驱动RAD-GRPO",
+    decoding: "变量轮次ReAct：reason→Text/Image Search或native draw；视觉token AR并可反思重画",
+    sharing: "推理、工具调用和绘图共享Emu3.5策略、Transformer与多模态历史；词表仍区分",
+    open: "论文、7132条轨迹、SFT/RL基础设施与官方代码已公开",
+    priority: "精读",
+    summary: "把开放世界T2I从固定流水线变成同一UMM策略的动作空间：模型判断知识缺口、搜索、整合证据、原生生成视觉token并可自检重画。用7132条轨迹SFT，再以RAD-GRPO优化意图和图像质量。",
+    why: "把统一理解生成推进到理解—检索—生成—自检，且基座是离散AR Emu3.5；为AR/URSA/ELF共用后训练轨迹提供模板。",
+    inspiration: "把多帧威胁任务中的检测器、OCR、关键帧检索当作tool；图像生成替换为URSA/ELF native draw。分别奖励工具必要性、结论、证据忠实度与生成质量。",
+    experiment: "同一Qwen3+IBQ比较固定pipeline、text-only agent、全策略；生成分支切换AR/URSA/ELF。报告调用准确率/无必要调用率、证据忠实度、生成OCR、事实约束、token/前向成本和GRPO稳定性。",
+    paper: "https://arxiv.org/abs/2608.04436",
+    code: "https://github.com/bubble65/EMU-Agentic-PostTrain",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "coco-action-wm",
+    index: "109",
+    title: "Overcoming Statistical Bias in Action-Controllable World Models",
+    shortTitle: "CoCo Action-WM",
+    date: "2026-08-05 · 今日新提交",
+    category: "世界模型",
+    paradigm: "AR Discrete Video World Model + Counterfactual Consistency",
+    state: "离散视频ID用于AR；镜像约束施加在连续future hidden而非无几何ID上",
+    objective: "future-token CE + inverse/zero-action多步一致性 + 镜像scene/action hidden SmoothL1",
+    decoding: "动作条件逐步AR rollout；生成reference、inverse、zero反事实分支",
+    sharing: "反事实分支参数共享；动作与视觉token进入同一Transformer",
+    open: "论文、Mini-SSMB协议与指标定义公开；截至核对时未见官方代码",
+    priority: "精读",
+    summary: "action-conditioned模型可能依靠视觉惯性取得好FVD，却让不同动作产生近似未来或零动作持续漂移。CoCo加入逆/零动作多步一致性、镜像等变约束，并提出ARC、Drift Energy与Mini-SSMB。",
+    why: "不能只问未来是否清晰，还要问是否真的由动作造成。威胁预测也可能被历史运动支配，产生合理但不可干预的rollout。",
+    inspiration: "Qwen3+IBQ继续CE预测未来ID，但在连续hidden上施加镜像/旋转等变约束；加入zero/inverse/action-shuffle分支检测惯性与动作塌缩。",
+    experiment: "固定IBQ/Qwen3与AR/URSA/ELF预算，在每种范式加同样CoCo约束；报告FVD/LPIPS、ARC、Drift Energy、同状态多动作可分性、8/16/32步漂移、轨迹、威胁趋势与规划成功率。",
+    paper: "https://arxiv.org/abs/2608.04653",
+    action: "真实离散/连续动作；reference、inverse、zero和镜像动作",
+    rollout: "多步反事实rollout与VP2规划；强调零动作稳定和动作因果响应",
+    evaluation: "Mini-SSMB、ARC、Drift Energy、BAIR/RoboNet与VP2规划",
     featured: true,
     idea: true,
   },
@@ -2936,7 +3053,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.05</strong>
+        <strong>DAILY BRIEF · 2026.08.06</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -2982,9 +3099,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 024]</p>
-              <h1>Token 少不等于更快，<br />压缩必须跨层、可测且可恢复</h1>
-              <p className="hero-copy">今日新增五项：OmniPack把结构merge与LLM内语义压缩协同起来；EcoFrame按不确定性扩展多帧证据；Break-even Study证明token减少并不自动带来端到端加速；LiLa-WAM以轻量语义foresight联合action Flow；JoyAI-Video-Edit则用块间AR、块内Flow和on-policy history控制长时漂移。重点服务2×2 Stage3 head、OCR保护与统一理解—生成—预测—行动。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 025]</p>
+              <h1>统一不等于全共享，<br />压缩不等于固定预算</h1>
+              <p className="hero-copy">今日新增五项：Physics of MM Pretraining定位早期统一与模态专属FFN的共享边界；STEP-OPD同时蒸馏velocity和层间表示演化；RUTA用rate–utility学习逐样本视觉预算；ToolArtist把检索、原生绘图与反思纳入统一策略；CoCo则用反事实一致性检验世界模型是否真正响应动作。重点服务Qwen3+IBQ训练时序、2×2 Stage3动态预算、生成OCR与统一理解—生成—预测—行动。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -2996,7 +3113,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>104</b><span>精选条目</span></div>
+                <div><b>109</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -3147,6 +3264,9 @@ export default function Home() {
                   <tr><th>CAPEval</th><td>caption原子事实checklist</td><td>Coverage / Precision双指标</td><td>不改变解码；只改变条件数据</td><td>理解偏Coverage、生成偏Precision；隔离caption混杂</td></tr>
                   <tr><th>OmniPack</th><td>连续音视频token；两阶段压缩hidden</td><td>training-free结构merge + query-aware consolidation</td><td>保持原LLM解码</td><td>压缩时点、全局覆盖与跨模态证据保护</td></tr>
                   <tr><th>JoyAI-Video-Edit</th><td>causal video-VAE latent</td><td>velocity FM + on-policy forcing + source-anchored DMD</td><td>chunk间AR / chunk内2步Flow</td><td>clean/generated history差、首块sink与长时漂移</td></tr>
+                  <tr><th>Physics MM Pretrain</th><td>文本 + 多种视觉表示</td><td>理解/生成联合目标</td><td>兼容AR与Flow</td><td>早期统一、attention/norm共享、FFN专属</td></tr>
+                  <tr><th>STEP-OPD</th><td>连续VAE latent + block hidden</td><td>外推velocity + Δh alignment</td><td>沿student on-policy轨迹</td><td>输出目标与内部表征演化同时蒸馏</td></tr>
+                  <tr><th>ToolArtist</th><td>文本 + 离散视觉ID交错序列</td><td>next-token CE + RAD-GRPO</td><td>Reason→Search/Draw→反思重画</td><td>工具调用与native生成是否属于同一策略</td></tr>
                 </tbody>
               </table>
             </div>
@@ -3198,6 +3318,7 @@ export default function Home() {
                   <tr><th>OmniPack</th><td>pre-LLM结构merge + inner-LLM语义压缩</td><td>两阶段可变；固定平均预算对照</td><td>不改离散生成head；仅压缩context hidden</td><td>结构压缩后再按query重聚合</td><td>提示Stage3 merge应跨层协同，而非输入端一次性完成</td></tr>
                   <tr><th>EcoFrame</th><td>先选少量帧；回答不确定时扩展时间证据</td><td>帧预算动态，空间token预算可另行固定</td><td>不改Stage3 head；可触发高风险帧1×1恢复</td><td>entropy决定何时扩展，attention决定向哪里搜索</td><td>把多帧路由与2×2空间merge组成两级预算</td></tr>
                   <tr><th>Break-even audit</th><td>比较pre-vision、post-vision和inner-LLM决策位置</td><td>token数相同也可能wall-clock不同</td><td>不改head；逐stage同步计时</td><td>以真实可跳过算子和decision overhead为准</td><td>防止把N/4序列或理论FLOPs误报为端到端加速</td></tr>
+                  <tr><th>RUTA</th><td>query-conditioned Bernoulli保留；非anchor聚合</td><td>逐样本K(x,q)，平均预算受rate penalty控制</td><td>不改原head；可扩展为1/2/4-slot local恢复</td><td>训练采样、推理adaptive Top-K</td><td>固定2×2之外的可学习rate–utility对照</td></tr>
                 </tbody>
               </table>
             </div>
@@ -3249,6 +3370,7 @@ export default function Home() {
                   <tr><th>WorldExam</th><td>架构无关的生成视频与场景状态</td><td>camera / action / language三种控制</td><td>评价：画质→控制→空间一致→世界反应</td><td>适配AR、Diffusion、Flow与JEPA</td><td>重访、动态交互、隐式后果与goal completion</td><td>防止把高画质或显式遵循误判为真实世界建模</td></tr>
                   <tr><th>LiLa-WAM</th><td>DINOv3 patch feature→64 query latent</td><td>连续action chunk + visual transition token</td><td>action velocity + future DINO feature</td><td>单流DiT：10步action Flow + cosine foresight</td><td>单步语义foresight；闭环action执行，推理丢弃future decoder</td><td>可给Qwen3 merged hidden增加低成本future-semantic辅助头</td></tr>
                   <tr><th>JoyAI-Video-Edit</th><td>causal video-VAE latent + 有限历史KV</td><td>文本编辑指令 + 当前source chunk</td><td>每chunk velocity与source-anchored clean target</td><td>块间AR + 块内Flow + 2-step DMD</td><td>开放时长rollout；滑窗与首块sink控制漂移</td><td>为IBQ/URSA/ELF视频模型提供train/inference history对齐模板</td></tr>
+                  <tr><th>CoCo Action-WM</th><td>离散视频ID + 连续future hidden</td><td>reference / inverse / zero / mirror action</td><td>future-ID CE + 反事实一致性</td><td>AR world model + hidden equivariance</td><td>多步反事实rollout、VP2规划、零动作稳定</td><td>IBQ ID保留CE，几何约束只施加在Qwen hidden</td></tr>
                 </tbody>
               </table>
             </div>
