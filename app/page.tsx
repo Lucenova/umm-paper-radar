@@ -2837,7 +2837,7 @@ const papers: Paper[] = [
     paper: "https://arxiv.org/abs/2608.05000",
     code: "https://junlinhan.github.io/projects/physics_of_mm_pretrain/",
     codeLabel: "项目页",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2859,7 +2859,7 @@ const papers: Paper[] = [
     inspiration: "让32步ELF或高质量URSA作teacher，4/8步student同时拟合末端velocity/logits和Qwen3若干层Δh；按文字、空间关系、美学建立teacher再合并。",
     experiment: "固定teacher/student、IBQ/VAE和采样步，比较output-only OPD、Δh-only、联合与velocity extrapolation；报告文字/非文字velocity误差、层间CKA/Δh cosine、生成OCR、GenEval、4/8步质量、显存和teacher成本。",
     paper: "https://arxiv.org/abs/2608.04887",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2882,7 +2882,7 @@ const papers: Paper[] = [
     experiment: "固定平均N/4预算，比较固定2×2、RUTA连续merge、IBQ动态1/2/4-slot、OCR强制1×1；报告token率分布、四slot accuracy、block exact match、OCRBench/DocVQA/TextVQA、route overhead、p50/p95和显存。",
     paper: "https://arxiv.org/abs/2608.04132",
     code: "https://github.com/Multimedia-Analytics-Laboratory/RUTA",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2905,7 +2905,7 @@ const papers: Paper[] = [
     experiment: "同一Qwen3+IBQ比较固定pipeline、text-only agent、全策略；生成分支切换AR/URSA/ELF。报告调用准确率/无必要调用率、证据忠实度、生成OCR、事实约束、token/前向成本和GRPO稳定性。",
     paper: "https://arxiv.org/abs/2608.04436",
     code: "https://github.com/bubble65/EMU-Agentic-PostTrain",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2930,6 +2930,133 @@ const papers: Paper[] = [
     action: "真实离散/连续动作；reference、inverse、zero和镜像动作",
     rollout: "多步反事实rollout与VP2规划；强调零动作稳定和动作因果响应",
     evaluation: "Mini-SSMB、ARC、Drift Energy、BAIR/RoboNet与VP2规划",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "kvae",
+    index: "110",
+    title: "KVAE: Family of Tokenizers for Multimodal Generative Models",
+    shortTitle: "KVAE",
+    date: "2026-08-06 · 今日新提交",
+    category: "语义对齐",
+    paradigm: "Continuous Multimodal VAE + Diffusability-guided Selection",
+    state: "图像8×8/32ch Gaussian latent；视频因果4×8×8/16ch与4×16×16/64ch；音频48 kHz/50 Hz/64ch",
+    objective: "分阶段重建、感知、KL与对抗目标；tokenizer选择同时考虑CDS diffusability与下游生成",
+    decoding: "tokenizer不规定生成顺序；下游2B CrossDiT以Flow Matching并行预测连续latent",
+    sharing: "音频、图像、视频各自encoder-decoder；下游共享生成框架与Qwen2.5-VL文本条件，不共享IBQ词表",
+    open: "论文、图像/视频与音频训练代码及模型仓库已公开",
+    priority: "精读",
+    summary: "发布覆盖音频、图像和视频的连续tokenizer家族，并在统一2B Flow生成器下检验重建与生成。关键结论不是PSNR越高越好，而是重建指标不能代表可生成性；CDS在14种tokenizer配置上与主观生成质量呈0.906相关。KVAE-2D在OmniDoc-TokenBench取得NED 0.976。",
+    why: "X-Omni/IBQ的轻扰动不稳定与OCR下降，不能只凭tokenizer-only PSNR、LPIPS或ID稳定性归因。KVAE提供了“重建—latent几何—固定生成器”三级诊断，并专门报告文档重建NED。",
+    inspiration: "为IBQ计算邻近token spatial correlogram/CDS、语义probe、OCR区域NED与扰动后latent/CDS漂移；再用同一Qwen3和数据比较下游AR、URSA、ELF收敛。若重建相近但CDS或生成OCR不同，瓶颈更可能在latent几何。",
+    experiment: "固定Qwen3、数据、视觉token数和训练FLOPs，分三层报告：tokenizer-only重建/NED/ID稳定；CDS、邻域互信息与codebook利用率；AR/URSA/ELF的生成OCR、GenEval、DocVQA/TextVQA/OCRBench、收敛速度和显存。连续KVAE与离散IBQ须明确分组。",
+    paper: "https://arxiv.org/abs/2608.05798",
+    code: "https://github.com/kandinskylab/kvae",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "robust-wam",
+    index: "111",
+    title: "Robust-WAM: Bridging Generative Pretraining and Semantic Foresight in World-Action Models",
+    shortTitle: "Robust-WAM",
+    date: "2026-08-06 · 今日新提交",
+    category: "世界模型",
+    paradigm: "VAE-latent Video/Action Flow + Future DINO Alignment",
+    state: "预训练video-VAE future latent + 连续action token + DINOv3 future CLS query",
+    objective: "video/action velocity Flow Matching + future-query cosine alignment",
+    decoding: "视频与action从Gaussian噪声积分；semantic teacher与对齐head仅训练期使用",
+    sharing: "Video DiT与action expert保留原WAM；query复用对应action时间位置编码并与action同序列交互",
+    open: "论文与官方项目页已公开；截至核对时未见代码或权重",
+    priority: "精读",
+    summary: "保留视频生成模型在VAE空间的生成与动力学先验，只把未来DINOv3语义通过query token蒸馏进action stream。它避免在可渲染VAE状态与稳健语义状态之间二选一，且不增加推理teacher成本。",
+    why: "这与Qwen3+IBQ/ELF的矛盾同构：IBQ/VAE利于重建和生成，却可能对光照、纹理和背景过敏；纯DINO状态又不能复用生成器。Robust-WAM说明语义监督可落在决策/动作流，而非粗暴替换生成tokenizer。",
+    inspiration: "保留Stage3 IBQ ID或ELF velocity分支，在威胁/action token前加入按未来步对齐的semantic query；训练时匹配未来DINO/TokLIP CLS，推理时只保留query，不运行teacher。",
+    experiment: "固定WAM、Qwen3、IBQ和action Flow，比较无foresight、当前帧DINO、未来DINO、未来IBQ与双空间对齐；报告InD/OOD威胁识别、action-shuffle、关键帧/OCR保持、闭环成功率、额外训练显存与推理延迟。",
+    paper: "https://arxiv.org/abs/2608.05903",
+    code: "https://haodong-yan.github.io/robust-wam-project-page/",
+    codeLabel: "项目页",
+    action: "连续action chunk，以Flow Matching从Gaussian噪声生成",
+    rollout: "预测未来video-VAE latent并闭环执行action；重点评测视觉OOD",
+    evaluation: "RoboTwin clean→random、LIBERO-Plus、真实机器人；InD/OOD成功率",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "phylatent",
+    index: "112",
+    title: "PhyLatent: Learning Dynamics-Relevant Representations for JEPA World Models",
+    shortTitle: "PhyLatent",
+    date: "2026-08-06 · 今日新提交",
+    category: "世界模型",
+    paradigm: "Action-conditioned JEPA + Physical/Counterfactual Latent Regularization",
+    state: "连续JEPA observation latent、action embedding与预测future latent；不重建像素",
+    objective: "future-latent MSE + SIGReg + invariance/state grounding/future alignment/counterfactual separation/latent denoising",
+    decoding: "单步latent predictor递推；MPC在latent中评估候选action，无像素decoder",
+    sharing: "encoder、projector、action encoder与predictor共享；物理head与denoiser仅训练期使用",
+    open: "论文与完整诊断、目标公式已公开；截至核对时未见官方代码",
+    priority: "精读",
+    summary: "证明全局non-collapse不等于物理状态可靠：JEPA仍会出现外观扰动大于真实状态变化、物理远状态局部碰撞、不同动作未来被压扁三类collapse。训练期加入五类结构约束，且不改变部署架构或MPC。",
+    why: "用embedding相似度判断视觉稳定性仍不充分：全局相似或分散可能同时掩盖局部物理折叠。多帧威胁模型必须区分外观扰动、真实目标状态变化和不同干预未来。",
+    inspiration: "在Qwen3/IBQ hidden上定义三种诊断：同状态扰动位移/真实时序位移比；物理远状态的latent近邻冲突；action-shuffle前后未来分支分离率。约束施加在连续hidden，不强行给离散ID加欧氏几何。",
+    experiment: "固定encoder、predictor与MPC，对比baseline、仅SIGReg、+invariance、+state grounding、+counterfactual separation、完整PhyLatent；报告三类collapse率、1/8/32步误差、威胁趋势、规划成功率和训练开销。",
+    paper: "https://arxiv.org/abs/2608.05720",
+    action: "真实连续action；batch permutation与noise构造counterfactual action",
+    rollout: "latent多步rollout + MPC；辅助head推理移除",
+    evaluation: "OGBench-Cube、TwoRooms、Reacher、PushT；collapse率与MPC成功率",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "lawm-3d",
+    index: "113",
+    title: "LAWM-3D: Learning 3D-Aware Latent Actions from Human Videos for Generalizable Robot World Models",
+    shortTitle: "LAWM-3D",
+    date: "2026-08-06 · 今日新提交",
+    category: "世界模型",
+    paradigm: "Multi-view β-VAE Latent Action + 3D Alignment + Video Diffusion WM",
+    state: "相邻多视角RGB token→Gaussian latent action；RGB-D future target；Cosmos-Predict2.5 VAE latent",
+    objective: "β-VAE联合RGB-D重建 + VGGT angular/scale feature alignment；下游视频world model生成loss",
+    decoding: "latent action经MLP注入Cosmos DiT AdaLN，生成未来视频；人类视频预训后机器人动作对齐",
+    sharing: "latent-action encoder跨单/多视图共享；世界模型不共享IBQ词表，但action可作为Qwen条件token",
+    open: "论文与详细方法、评测已公开；截至核对时未见官方代码或权重",
+    priority: "精读",
+    summary: "指出把多视图直接喂给LAM不会自动得到3D action：未来RGB泄漏、视角外观差异和几何不一致会让action退化成像素压缩。用view masking、decoder-only RGB-D目标和VGGT中间特征对齐学习跨视角3D动作。",
+    why: "对多帧威胁检测，若从frame_t与frame_t+1提取变化token，模型也可能直接压缩未来画面，而非学习目标移动、遮挡或交互。LAWM-3D提供了系统的反泄漏方案。",
+    inspiration: "latent action encoder只能读取过去与当前证据；深度、轨迹或检测状态只给decoder/target；跨摄像头或增强视图使用同一action token并对齐VGGT/DINO geometry，从而分离外观与真实动态。",
+    experiment: "固定视频world model与数据，比较单视图RGB、直接多视图、+view masking、+decoder-only depth、+3D feature alignment；报告action recovery、跨视角一致性、目标轨迹、遮挡、horizon drift和闭环成功率。",
+    paper: "https://arxiv.org/abs/2608.05706",
+    action: "从无标注人类视频自监督得到Gaussian latent action；机器人阶段再做真实action对齐",
+    rollout: "latent action条件的Cosmos-Predict2.5未来视频rollout；人类预训→机器人微调",
+    evaluation: "Ego-Exo4D、Assembly101、机器人视频与跨场景/长时rollout",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "gauge-physics",
+    index: "114",
+    title: "GAUGE: A Measurement-Grounded Benchmark for Physical Fidelity in Simulation Engines and Video World Models",
+    shortTitle: "GAUGE",
+    date: "2026-08-06 · 今日新提交",
+    category: "评测诊断",
+    paradigm: "Measurement-grounded Physical Fidelity Benchmark",
+    state: "真实RGB/轨迹 + 标定物理参数与不确定性；生成视频后提取对象状态",
+    objective: "无训练目标；比较轨迹误差、定律形式、加速度/动量/周期/形变参数及时间稳定性",
+    decoding: "兼容simulation、I2V与video world model任意生成范式",
+    sharing: "架构无关；不要求共享tokenizer、Transformer或head",
+    open: "论文与官方项目页已公开；截至核对时未见完整评测代码仓库",
+    priority: "精读",
+    summary: "用22类受控真实实验同时审计数值模拟器和视频世界模型，覆盖碰撞、摩擦、动量传递、振荡、自接触、线缆、织物与体积形变。结果表明视频可呈现正确公式形态，却预测错误加速度、动量与振荡时序。",
+    why: "它正好补足世界模型评测：FVD、LPIPS或看起来合理的轨迹都不能证明物理正确。多帧威胁预测也需测速度、加速度、碰撞时刻和不确定性随horizon的漂移。",
+    inspiration: "把measurement-grounded方法迁移到威胁视频：用检测框中心与尺度恢复轨迹，拟合速度、加速度、接近时间TTC与转向；分别比较像素、IBQ ID、ELF latent和JEPA future。",
+    experiment: "固定Qwen3、IBQ、视频与采样预算，对AR/URSA/ELF/JEPA统一报告FVD/LPIPS之外的轨迹、加速度、TTC、碰撞时刻、参数时间稳定性、8/16/32步误差和闭环决策成功率。",
+    paper: "https://arxiv.org/abs/2608.05948",
+    code: "https://internrobotics.github.io/GAUGE/",
+    codeLabel: "项目页",
+    action: "架构无关；任务包含外力、碰撞和可控初始条件",
+    rollout: "真实、模拟与生成轨迹对齐；评估参数随时间和horizon稳定性",
+    evaluation: "22类真实任务；3个物理引擎、6个I2V模型与任务特定物理可观测量",
     featured: true,
     idea: true,
   },
@@ -3053,7 +3180,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.06</strong>
+        <strong>DAILY BRIEF · 2026.08.07</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -3113,7 +3240,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>109</b><span>精选条目</span></div>
+                <div><b>114</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -3267,6 +3394,9 @@ export default function Home() {
                   <tr><th>Physics MM Pretrain</th><td>文本 + 多种视觉表示</td><td>理解/生成联合目标</td><td>兼容AR与Flow</td><td>早期统一、attention/norm共享、FFN专属</td></tr>
                   <tr><th>STEP-OPD</th><td>连续VAE latent + block hidden</td><td>外推velocity + Δh alignment</td><td>沿student on-policy轨迹</td><td>输出目标与内部表征演化同时蒸馏</td></tr>
                   <tr><th>ToolArtist</th><td>文本 + 离散视觉ID交错序列</td><td>next-token CE + RAD-GRPO</td><td>Reason→Search/Draw→反思重画</td><td>工具调用与native生成是否属于同一策略</td></tr>
+                  <tr><th>KVAE</th><td>图像/视频Gaussian连续latent</td><td>VAE重建 + CDS diffusability筛选；下游velocity FM</td><td>tokenizer无顺序 / 下游并行Flow</td><td>必须把重建、latent几何和固定生成器质量分层比较</td></tr>
+                  <tr><th>Robust-WAM</th><td>video-VAE latent + future DINO query</td><td>video/action velocity + future semantic cosine</td><td>连续Flow积分；teacher仅训练期</td><td>可渲染状态与稳健语义状态双空间协同</td></tr>
+                  <tr><th>PhyLatent</th><td>JEPA连续future embedding</td><td>future MSE + 物理/反事实结构约束</td><td>latent AR rollout + MPC</td><td>全局non-collapse不等于局部物理与动作可辨识</td></tr>
                 </tbody>
               </table>
             </div>
@@ -3319,6 +3449,7 @@ export default function Home() {
                   <tr><th>EcoFrame</th><td>先选少量帧；回答不确定时扩展时间证据</td><td>帧预算动态，空间token预算可另行固定</td><td>不改Stage3 head；可触发高风险帧1×1恢复</td><td>entropy决定何时扩展，attention决定向哪里搜索</td><td>把多帧路由与2×2空间merge组成两级预算</td></tr>
                   <tr><th>Break-even audit</th><td>比较pre-vision、post-vision和inner-LLM决策位置</td><td>token数相同也可能wall-clock不同</td><td>不改head；逐stage同步计时</td><td>以真实可跳过算子和decision overhead为准</td><td>防止把N/4序列或理论FLOPs误报为端到端加速</td></tr>
                   <tr><th>RUTA</th><td>query-conditioned Bernoulli保留；非anchor聚合</td><td>逐样本K(x,q)，平均预算受rate penalty控制</td><td>不改原head；可扩展为1/2/4-slot local恢复</td><td>训练采样、推理adaptive Top-K</td><td>固定2×2之外的可学习rate–utility对照</td></tr>
+                  <tr><th>KVAE tokenizer audit</th><td>不做Qwen序列merge；更换为8×8连续latent tokenizer</td><td>由8×8空间压缩决定，与N/4 folding分开</td><td>下游Flow velocity；无K-way ID head</td><td>全图连续并行去噪</td><td>隔离tokenizer可生成性/CDS与Stage3离散head收益</td></tr>
                 </tbody>
               </table>
             </div>
@@ -3371,6 +3502,10 @@ export default function Home() {
                   <tr><th>LiLa-WAM</th><td>DINOv3 patch feature→64 query latent</td><td>连续action chunk + visual transition token</td><td>action velocity + future DINO feature</td><td>单流DiT：10步action Flow + cosine foresight</td><td>单步语义foresight；闭环action执行，推理丢弃future decoder</td><td>可给Qwen3 merged hidden增加低成本future-semantic辅助头</td></tr>
                   <tr><th>JoyAI-Video-Edit</th><td>causal video-VAE latent + 有限历史KV</td><td>文本编辑指令 + 当前source chunk</td><td>每chunk velocity与source-anchored clean target</td><td>块间AR + 块内Flow + 2-step DMD</td><td>开放时长rollout；滑窗与首块sink控制漂移</td><td>为IBQ/URSA/ELF视频模型提供train/inference history对齐模板</td></tr>
                   <tr><th>CoCo Action-WM</th><td>离散视频ID + 连续future hidden</td><td>reference / inverse / zero / mirror action</td><td>future-ID CE + 反事实一致性</td><td>AR world model + hidden equivariance</td><td>多步反事实rollout、VP2规划、零动作稳定</td><td>IBQ ID保留CE，几何约束只施加在Qwen hidden</td></tr>
+                  <tr><th>Robust-WAM</th><td>video-VAE latent + DINOv3 future CLS</td><td>连续action chunk</td><td>video/action velocity + future semantic alignment</td><td>双流Flow + training-only foresight query</td><td>闭环action；重点测试视觉OOD</td><td>保留IBQ/ELF生成流，在action流注入稳健未来语义</td></tr>
+                  <tr><th>PhyLatent</th><td>JEPA连续observation/future latent</td><td>真实action + counterfactual permutation</td><td>next latent + 物理状态/动作可分约束</td><td>JEPA predictor + training-only regularizers</td><td>多步latent rollout + MPC</td><td>给Qwen hidden增加物理collapse诊断，不要求像素生成</td></tr>
+                  <tr><th>LAWM-3D</th><td>多视角RGB、decoder-only depth与VGGT feature</td><td>人类视频自监督Gaussian latent action</td><td>未来RGB-D重建 + 3D feature alignment</td><td>β-VAE action tokenizer + Cosmos video diffusion</td><td>人类视频预训后机器人长时rollout</td><td>latent action可接Qwen条件，但不共享IBQ词表</td></tr>
+                  <tr><th>GAUGE</th><td>真实/模拟/生成RGB与标定物理观测量</td><td>外力、碰撞与可控初始条件</td><td>无训练目标；参数、轨迹和时间稳定性审计</td><td>兼容AR、Diffusion、Flow与模拟器</td><td>评估horizon漂移；不提供规划器</td><td>为所有UMM世界模型补充FVD之外的物理测量层</td></tr>
                 </tbody>
               </table>
             </div>
