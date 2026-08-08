@@ -2953,7 +2953,7 @@ const papers: Paper[] = [
     experiment: "固定Qwen3、数据、视觉token数和训练FLOPs，分三层报告：tokenizer-only重建/NED/ID稳定；CDS、邻域互信息与codebook利用率；AR/URSA/ELF的生成OCR、GenEval、DocVQA/TextVQA/OCRBench、收敛速度和显存。连续KVAE与离散IBQ须明确分组。",
     paper: "https://arxiv.org/abs/2608.05798",
     code: "https://github.com/kandinskylab/kvae",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -2980,7 +2980,7 @@ const papers: Paper[] = [
     action: "连续action chunk，以Flow Matching从Gaussian噪声生成",
     rollout: "预测未来video-VAE latent并闭环执行action；重点评测视觉OOD",
     evaluation: "RoboTwin clean→random、LIBERO-Plus、真实机器人；InD/OOD成功率",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3005,7 +3005,7 @@ const papers: Paper[] = [
     action: "真实连续action；batch permutation与noise构造counterfactual action",
     rollout: "latent多步rollout + MPC；辅助head推理移除",
     evaluation: "OGBench-Cube、TwoRooms、Reacher、PushT；collapse率与MPC成功率",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3030,7 +3030,7 @@ const papers: Paper[] = [
     action: "从无标注人类视频自监督得到Gaussian latent action；机器人阶段再做真实action对齐",
     rollout: "latent action条件的Cosmos-Predict2.5未来视频rollout；人类预训→机器人微调",
     evaluation: "Ego-Exo4D、Assembly101、机器人视频与跨场景/长时rollout",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3057,6 +3057,124 @@ const papers: Paper[] = [
     action: "架构无关；任务包含外力、碰撞和可控初始条件",
     rollout: "真实、模拟与生成轨迹对齐；评估参数随时间和horizon稳定性",
     evaluation: "22类真实任务；3个物理引擎、6个I2V模型与任务特定物理可观测量",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "mass-authoritative-state",
+    index: "115",
+    title: "MASS: Multiplayer World Models with Authoritative Shared State",
+    shortTitle: "MASS",
+    date: "2026-08-06 · 今日新提交",
+    category: "世界模型",
+    paradigm: "Typed State AR Dynamics + Camera-conditioned Rendering",
+    state: "schema-defined typed entity records作为唯一递归状态；RGB仅在需要时按相机渲染",
+    objective: "下一状态field/token CE；独立renderer学习从typed state恢复各视角RGB",
+    decoding: "实体record可并行、record内AR；先更新一次权威状态，再按相机并行渲染",
+    sharing: "所有玩家/视角共享同一canonical state；Logic Engine与Rendering Engine解耦，不共享IBQ词表",
+    open: "论文与官方项目页已公开；截至核对时未见完整训练代码与权重",
+    priority: "精读",
+    summary: "把多人世界模型拆成权威typed shared state、Logic Engine和camera-conditioned Rendering Engine。所有视角共同推进一次可解析状态，再按需渲染，避免每个玩家维护互相漂移的像素历史；实体record内AR而record间并行。",
+    why: "多帧/多摄像头威胁检测若直接递归像素或IBQ网格，容易让不同视角对同一目标身份、位置和事件产生冲突。MASS把“世界发生了什么”与“相机看见什么”分开，是统一理解—生成—预测—行动所缺少的显式共享状态层。",
+    inspiration: "在Qwen3+IBQ之上增加typed state tokens：entity ID、位置、速度、可见性、威胁等级、动作与事件。Qwen/动力学只递归canonical state；IBQ/ELF分支负责按摄像头渲染或补细节；OCR文本与小目标证据附着到实体record并保留source-view指针。",
+    experiment: "固定多摄像头视频、Qwen3/IBQ、参数量和总FLOPs，比较每视角独立IBQ rollout、共享连续latent、共享typed state+IBQ renderer。报告跨视角实体ID/位置冲突、动作反事实可分性、8/32/128步state合法率、TTC/威胁趋势、闭环成功率、画质与总延迟。",
+    paper: "https://arxiv.org/abs/2608.06257",
+    code: "https://alaya-lab.github.io/MASS/",
+    codeLabel: "项目页",
+    action: "所有玩家联合真实动作与外生事件；动作先改变权威状态，再影响各视角",
+    rollout: "canonical state多步递归；项目报告1024玩家、10000 ticks压力测试，并按需渲染",
+    evaluation: "state recovery/exact match、count/position/event F1、cross-view disagreement、invalid state与画质",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "sure-latent-reward",
+    index: "116",
+    title: "Sample-Adaptive Latent Rewards for Uncertainty-Guided Diffusion Post-Training",
+    shortTitle: "SURE",
+    date: "2026-08-06 · 今日新提交",
+    category: "连续 Flow",
+    paradigm: "Uncertainty-aware Latent Reward Model + Local-transition REFL",
+    state: "图像/视频生成器的noisy continuous latent、timestep与条件；reward输出Gaussian均值/方差",
+    objective: "latent utility均值与不确定性学习；按可靠度加权局部transition reward gradient",
+    decoding: "不改变原采样器；只在选定相邻去噪step查询reward，并停止跨完整轨迹反传",
+    sharing: "冻结SURE-LRM监督任意diffusion/Flow生成器；reward环不解码像素、不共享Qwen输出head",
+    open: "论文已公开；截至核对时未见官方代码或权重",
+    priority: "精读",
+    summary: "让latent reward model不仅预测样本效用，还输出不确定性；后训练时在相同transition内按可靠度加权，并只通过局部一步反传，绕开像素解码和完整去噪计算图。",
+    why: "URSA→ELF少步后训练若把最终OCR、美学或偏好reward均匀施加到所有timestep，会放大早期不可靠梯度并诱发reward hacking。SURE把“该步能否判断质量”纳入目标，而不是只追求更密的奖励。",
+    inspiration: "为IBQ/ELF训练OCR/结构latent critic，同时预测均值与方差；用多teacher、轻扰动或同prompt多采样分歧校准方差。对文字、小目标和威胁区域分别产生可靠度，避免背景美学reward压过稀疏证据。",
+    experiment: "固定Qwen3、IBQ、ELF/URSA checkpoint、采样步数和reward预算，比较终点reward、均匀step reward、均值latent reward、SURE均值+方差加权。报告生成OCR、GenEval/DPG、reward—人工相关性、各timestep梯度方差、显存、多样性与overoptimization。",
+    paper: "https://arxiv.org/abs/2608.06125",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "energy-guided-fm",
+    index: "117",
+    title: "Energy-Guided Flow Matching",
+    shortTitle: "EG-FM",
+    date: "2026-08-06 · 今日新提交",
+    category: "连续 Flow",
+    paradigm: "Pixel-space Flow Matching with Moving Coarse-to-fine Endpoint",
+    state: "连续pixel state；clean endpoint随t由heat-kernel低通图像逐步变为完整图像",
+    objective: "对moving endpoint重新推导velocity；image-specific energy schedule控制高频释放",
+    decoding: "标准Flow ODE从粗结构到高频细节；不增加backbone、tokenizer或额外decoder",
+    sharing: "可保持同一DiT、数据与输出head，只改变概率路径和velocity target；原论文不含LLM共享",
+    open: "论文与官方训练代码已公开",
+    priority: "精读",
+    summary: "把标准Flow Matching的固定clean endpoint改为随时间移动的低通→完整图像目标，并由每张图像的频率能量决定细节释放速度；不改backbone和数据，几乎不增加训练/推理成本。",
+    why: "它是URSA→ELF最干净的新控制变量：保持模型容量、连续状态和求解器，只改变forward path/velocity target。若OCR和细节改善，可归因于轨迹课程，而不是tokenizer、Qwen或head变化。",
+    inspiration: "不要在无几何意义的IBQ整数ID上直接滤波；应在IBQ embedding网格、decoder feature或Laplacian重建分量上定义coarse-to-fine endpoint。文字笔画和小目标用OCR mask提高高频能量权重，避免到最后一步才恢复。",
+    experiment: "固定Qwen3、IBQ、ELF backbone、数据、time sampler、步数与FLOPs，比较straight fixed endpoint、全局heat-kernel moving endpoint、OCR-aware Laplacian endpoint和URSA metric path。逐t报告频率能量、字符可读率、embedding→ID回投率、GenEval/DPG、block exact match、吞吐与显存。",
+    paper: "https://arxiv.org/abs/2608.05811",
+    code: "https://github.com/ysng123/EG-FM",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "titok",
+    index: "118",
+    title: "An Image is Worth 32 Tokens for Reconstruction and Generation",
+    shortTitle: "TiTok",
+    date: "2024-06-11 · 基础补读",
+    category: "统一视觉 Token",
+    paradigm: "Transformer 1D Discrete Tokenizer + Masked Token Generation",
+    state: "32/64/128个learned 1D discrete image tokens；不保持固定2D raster位置对应",
+    objective: "tokenizer重建/感知/对抗与VQ目标；下游masked clean-token CE",
+    decoding: "1D latent slots迭代并行unmask，再由Transformer decoder恢复图像",
+    sharing: "tokenizer独立于LLM；可接AR或masked generator，但不与Qwen文本词表/输出head天然共享",
+    open: "论文、项目页、官方代码、配置与模型均已公开",
+    priority: "精读",
+    summary: "用Transformer与learned latent queries把二维图像压成极短的一维离散序列，最低仅32 tokens。它证明压缩视觉序列不必等同于固定2×2局部folding，但代价是失去TL/TR/BL/BR的直接空间slot语义。",
+    why: "当前2×2 folding只压缩Qwen位置并保留四个原始IBQ监督；TiTok从tokenizer层改变信息瓶颈。把两者分列能避免把“更短序列”误认为相同实验，并检验OCR/小目标需要局部网格还是全局latent query。",
+    inspiration: "在相同32/64/128 token预算下，对比局部IBQ folding与全局query tokenizer；为TiTok额外测字符位置、阅读顺序、细线和小目标恢复。若全局token理解强而OCR重建弱，可给少量OCR-aware局部anchor保留显式坐标。",
+    experiment: "固定Qwen3、图像数据、token预算、decoder容量和训练FLOPs，比较原IBQ网格、2×2 folding、TiTok-32/64/128与TiTok+OCR anchors。分别报告tokenizer-only NED/PSNR/LPIPS、OCRBench/DocVQA/TextVQA、生成文字OCR、T2I、延迟和显存。",
+    paper: "https://arxiv.org/abs/2406.07550",
+    code: "https://github.com/bytedance/1d-tokenizer",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "cosmos-tokenizer",
+    index: "119",
+    title: "Cosmos Tokenizer: A Suite of Image and Video Neural Tokenizers",
+    shortTitle: "Cosmos Tokenizer",
+    date: "2025-01-07 · 基础补读",
+    category: "语义对齐",
+    paradigm: "Matched Continuous/Discrete Causal Image-Video Tokenizer Family",
+    state: "连续或离散图像/视频latent；空间8×/16×、视频时间4×/8×压缩的matched family",
+    objective: "重建、感知、对抗及离散量化目标；下游可另接CE、diffusion或Flow",
+    decoding: "tokenizer本身不规定生成顺序；视频encoder/decoder保持时间因果，可服务AR或并行去噪",
+    sharing: "同一套实现/API覆盖C/D与image/video，但checkpoint、词表和Qwen head不天然共享",
+    open: "NVIDIA官方项目、代码、预训练模型与推理接口已公开",
+    priority: "精读",
+    summary: "提供连续/离散、图像/视频、不同空间与时间压缩率的可比tokenizer家族，最高组合压缩率可到2048×。它不是生成范式，而是让离散CE与连续Flow在相近codec设计下拥有更公平的状态空间端点。",
+    why: "IBQ-AR、URSA与ELF比较常把离散/连续tokenizer、图像/视频压缩率和动力学方式同时更换。Cosmos Tokenizer能把这些混杂拆开，并为多帧威胁研究提供因果视频codec基线。",
+    inspiration: "先在同一数据上校准离散与连续Cosmos变体的重建、OCR、扰动稳定性和token吞吐，再分别接Qwen3离散CE、URSA path与ELF velocity。共享应发生在Qwen上下文和实验预算层，不强迫连续latent映射进IBQ词表。",
+    experiment: "固定Qwen3、视频数据、可见像素、下游Transformer与总FLOPs，交叉比较IBQ/Cosmos-discrete/Cosmos-continuous × AR/URSA/ELF。分开报告tokenizer-only OCR/NED/LPIPS、静态T2I、未来预测、horizon drift、动作可控性、采样步数、吞吐和显存。",
+    paper: "https://arxiv.org/abs/2501.03575",
+    code: "https://github.com/NVIDIA/Cosmos-Tokenizer",
     featured: true,
     idea: true,
   },
@@ -3180,7 +3298,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.07</strong>
+        <strong>DAILY BRIEF · 2026.08.08</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -3240,7 +3358,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>114</b><span>精选条目</span></div>
+                <div><b>119</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -3397,6 +3515,10 @@ export default function Home() {
                   <tr><th>KVAE</th><td>图像/视频Gaussian连续latent</td><td>VAE重建 + CDS diffusability筛选；下游velocity FM</td><td>tokenizer无顺序 / 下游并行Flow</td><td>必须把重建、latent几何和固定生成器质量分层比较</td></tr>
                   <tr><th>Robust-WAM</th><td>video-VAE latent + future DINO query</td><td>video/action velocity + future semantic cosine</td><td>连续Flow积分；teacher仅训练期</td><td>可渲染状态与稳健语义状态双空间协同</td></tr>
                   <tr><th>PhyLatent</th><td>JEPA连续future embedding</td><td>future MSE + 物理/反事实结构约束</td><td>latent AR rollout + MPC</td><td>全局non-collapse不等于局部物理与动作可辨识</td></tr>
+                  <tr><th>EG-FM</th><td>pixel/连续网格；clean endpoint从低通图像随t移动到完整图像</td><td>image-energy schedule下的moving-endpoint velocity</td><td>低频结构→高频细节的Flow ODE</td><td>固定backbone/数据，仅改变path与target；迁移IBQ时需在embedding网格或decoder feature定义频率</td></tr>
+                  <tr><th>SURE</th><td>noisy image/video latent + timestep；Gaussian reward mean/variance</td><td>不确定性感知latent utility + reliability-weighted local reward gradient</td><td>保持原采样顺序，只在选定transition施加局部后训练</td><td>比较终点、均匀step与方差加权reward；隔离reward密度和可靠性</td></tr>
+                  <tr><th>TiTok</th><td>32/64/128个1D离散视觉token；无固定2D slot对应</td><td>tokenizer重建/VQ + 下游masked clean-token CE</td><td>1D slots并行迭代unmask</td><td>改变tokenizer信息瓶颈，不是2×2 Stage3 head替换；须单报OCR与空间定位上限</td></tr>
+                  <tr><th>Cosmos Tokenizer</th><td>matched连续/离散image/video latent家族</td><td>tokenizer重建/感知/量化；下游CE或velocity</td><td>codec无固定顺序；AR/URSA/ELF由下游决定</td><td>交叉控制state type、压缩率与生成范式，避免同时更换三项</td></tr>
                 </tbody>
               </table>
             </div>
@@ -3450,6 +3572,8 @@ export default function Home() {
                   <tr><th>Break-even audit</th><td>比较pre-vision、post-vision和inner-LLM决策位置</td><td>token数相同也可能wall-clock不同</td><td>不改head；逐stage同步计时</td><td>以真实可跳过算子和decision overhead为准</td><td>防止把N/4序列或理论FLOPs误报为端到端加速</td></tr>
                   <tr><th>RUTA</th><td>query-conditioned Bernoulli保留；非anchor聚合</td><td>逐样本K(x,q)，平均预算受rate penalty控制</td><td>不改原head；可扩展为1/2/4-slot local恢复</td><td>训练采样、推理adaptive Top-K</td><td>固定2×2之外的可学习rate–utility对照</td></tr>
                   <tr><th>KVAE tokenizer audit</th><td>不做Qwen序列merge；更换为8×8连续latent tokenizer</td><td>由8×8空间压缩决定，与N/4 folding分开</td><td>下游Flow velocity；无K-way ID head</td><td>全图连续并行去噪</td><td>隔离tokenizer可生成性/CDS与Stage3离散head收益</td></tr>
+                  <tr><th>TiTok global queries</th><td>用32/64/128个learned query全局压缩图像，不保留TL/TR/BL/BR位置</td><td>固定M，与局部N/4 folding按相同预算比较</td><td>1D masked generator + tokenizer decoder</td><td>全局slots并行迭代unmask</td><td>是tokenizer级信息瓶颈；必须单独测OCR、阅读顺序与小目标定位</td></tr>
+                  <tr><th>Cosmos tokenizer audit</th><td>不做Qwen merge；选择离散/连续、image/video与8×/16×空间codec</td><td>由codec压缩率决定，和Stage3 merge ratio分层</td><td>离散K-way或连续velocity取决于下游</td><td>tokenizer无顺序；下游AR/URSA/ELF</td><td>提供state type × dynamics的matched交叉实验，隔离tokenizer收益</td></tr>
                 </tbody>
               </table>
             </div>
@@ -3506,6 +3630,8 @@ export default function Home() {
                   <tr><th>PhyLatent</th><td>JEPA连续observation/future latent</td><td>真实action + counterfactual permutation</td><td>next latent + 物理状态/动作可分约束</td><td>JEPA predictor + training-only regularizers</td><td>多步latent rollout + MPC</td><td>给Qwen hidden增加物理collapse诊断，不要求像素生成</td></tr>
                   <tr><th>LAWM-3D</th><td>多视角RGB、decoder-only depth与VGGT feature</td><td>人类视频自监督Gaussian latent action</td><td>未来RGB-D重建 + 3D feature alignment</td><td>β-VAE action tokenizer + Cosmos video diffusion</td><td>人类视频预训后机器人长时rollout</td><td>latent action可接Qwen条件，但不共享IBQ词表</td></tr>
                   <tr><th>GAUGE</th><td>真实/模拟/生成RGB与标定物理观测量</td><td>外力、碰撞与可控初始条件</td><td>无训练目标；参数、轨迹和时间稳定性审计</td><td>兼容AR、Diffusion、Flow与模拟器</td><td>评估horizon漂移；不提供规划器</td><td>为所有UMM世界模型补充FVD之外的物理测量层</td></tr>
+                  <tr><th>MASS</th><td>schema-defined typed entity records为权威共享状态；RGB按视角渲染</td><td>所有玩家joint actions + 外生事件</td><td>下一typed state field/token + camera-conditioned render</td><td>record内AR、record间并行；state dynamics与renderer解耦</td><td>canonical state多步rollout；千人万步压力测试，按需渲染</td><td>在Qwen3/IBQ之上增加共享可解析state层，统一多视角理解—预测—行动</td></tr>
+                  <tr><th>Cosmos Tokenizer</th><td>连续/离散因果video latent，空间8×/16×、时间4×/8×</td><td>仅codec；动作由下游world model注入</td><td>重建/量化；下游可预测ID、noise或velocity</td><td>tokenizer无动力学；支持AR、Diffusion与Flow公平接入</td><td>是否长时rollout取决于下游；因果codec避免未来帧泄漏</td><td>用matched C/D视频状态隔离IBQ、URSA、ELF和动力学方式的贡献</td></tr>
                 </tbody>
               </table>
             </div>
