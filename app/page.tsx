@@ -3084,7 +3084,7 @@ const papers: Paper[] = [
     action: "所有玩家联合真实动作与外生事件；动作先改变权威状态，再影响各视角",
     rollout: "canonical state多步递归；项目报告1024玩家、10000 ticks压力测试，并按需渲染",
     evaluation: "state recovery/exact match、count/position/event F1、cross-view disagreement、invalid state与画质",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3106,7 +3106,7 @@ const papers: Paper[] = [
     inspiration: "为IBQ/ELF训练OCR/结构latent critic，同时预测均值与方差；用多teacher、轻扰动或同prompt多采样分歧校准方差。对文字、小目标和威胁区域分别产生可靠度，避免背景美学reward压过稀疏证据。",
     experiment: "固定Qwen3、IBQ、ELF/URSA checkpoint、采样步数和reward预算，比较终点reward、均匀step reward、均值latent reward、SURE均值+方差加权。报告生成OCR、GenEval/DPG、reward—人工相关性、各timestep梯度方差、显存、多样性与overoptimization。",
     paper: "https://arxiv.org/abs/2608.06125",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3129,7 +3129,7 @@ const papers: Paper[] = [
     experiment: "固定Qwen3、IBQ、ELF backbone、数据、time sampler、步数与FLOPs，比较straight fixed endpoint、全局heat-kernel moving endpoint、OCR-aware Laplacian endpoint和URSA metric path。逐t报告频率能量、字符可读率、embedding→ID回投率、GenEval/DPG、block exact match、吞吐与显存。",
     paper: "https://arxiv.org/abs/2608.05811",
     code: "https://github.com/ysng123/EG-FM",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3152,7 +3152,7 @@ const papers: Paper[] = [
     experiment: "固定Qwen3、图像数据、token预算、decoder容量和训练FLOPs，比较原IBQ网格、2×2 folding、TiTok-32/64/128与TiTok+OCR anchors。分别报告tokenizer-only NED/PSNR/LPIPS、OCRBench/DocVQA/TextVQA、生成文字OCR、T2I、延迟和显存。",
     paper: "https://arxiv.org/abs/2406.07550",
     code: "https://github.com/bytedance/1d-tokenizer",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3175,6 +3175,127 @@ const papers: Paper[] = [
     experiment: "固定Qwen3、视频数据、可见像素、下游Transformer与总FLOPs，交叉比较IBQ/Cosmos-discrete/Cosmos-continuous × AR/URSA/ELF。分开报告tokenizer-only OCR/NED/LPIPS、静态T2I、未来预测、horizon drift、动作可控性、采样步数、吞吐和显存。",
     paper: "https://arxiv.org/abs/2501.03575",
     code: "https://github.com/NVIDIA/Cosmos-Tokenizer",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "meanflow",
+    index: "120",
+    title: "Mean Flows for One-step Generative Modeling",
+    shortTitle: "MeanFlow",
+    date: "2025-05-19 · 基础补读",
+    category: "连续 Flow",
+    paradigm: "Average-Velocity MeanFlow · One-step Generation",
+    state: "预训练VAE连续latent（主实验32×32×4）；从Gaussian噪声到data latent",
+    objective: "MeanFlow identity直接学习区间平均velocity u(z,r,t)；JVP + stop-gradient",
+    decoding: "一步z₀=z₁-u(z₁,0,1)，亦可用2/4步区间更新；无需teacher蒸馏",
+    sharing: "原工作使用DiT，不共享离散词表/head；Transformer块可迁移，但需双时间条件与连续输出adapter",
+    open: "论文与作者官方JAX实现已公开",
+    priority: "精读",
+    summary: "何恺明团队把Flow Matching从预测某一时刻的瞬时速度v改为预测区间[r,t]的平均速度u。模型以MeanFlow identity训练，不依赖预训练teacher、渐进蒸馏或额外课程，主实验可用一次函数评估直接从噪声到图像latent。",
+    why: "这是ELF最干净的少步对照：保持连续状态、Transformer容量和数据不变，只改变velocity的定义，就能检验ELF需要多步积分究竟来自轨迹弯曲，还是目标本身缺少跨区间信息。它也比把URSA直接压成一步更容易隔离离散路径与连续路径的差异。",
+    inspiration: "在Qwen3+IBQ的连续分支中，让merged hidden预测四个可解码latent的average velocity；终点再投影回TL/TR/BL/BR原始ID。JVP训练会增加算子复杂度，因此应与减少的NFE做端到端盈亏核算。",
+    experiment: "固定Qwen3、IBQ/连续adapter、数据、参数量与总FLOPs，比较ELF瞬时velocity（4/8/16/32步）、MeanFlow平均velocity（1/2/4步）、STEP-OPD少步蒸馏与URSA metric path。报告latent→ID回投率、block exact match、生成OCR、GenEval/DPG、OCRBench/DocVQA/TextVQA、JVP训练开销、吞吐、显存和1-NFE稳定性。",
+    paper: "https://arxiv.org/abs/2505.13447",
+    code: "https://github.com/Gsunshine/meanflow",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "rectified-flow",
+    index: "121",
+    title: "Flow Straight and Fast: Learning to Generate and Transfer Data with Rectified Flow",
+    shortTitle: "Rectified Flow",
+    date: "2022-09-07 · ICLR 2023基础补读",
+    category: "连续 Flow",
+    paradigm: "Rectified Flow · Reflow",
+    state: "连续pixel、VAE latent或token embedding；源分布与数据之间的线性插值状态",
+    objective: "沿直线插值回归瞬时velocity；reflow用模型coupling重复拉直轨迹",
+    decoding: "确定性ODE；轨迹越直，粗Euler/少步采样越准确",
+    sharing: "不天然共享tokenizer、vocabulary或输出head；可复用Transformer主干并加连续输入/velocity head",
+    open: "论文、官方教程与代码已公开",
+    priority: "精读",
+    summary: "Rectified Flow用直线插值构造监督并学习ODE速度场，再通过reflow把模型自身的source–target coupling进一步拉直。它奠定了现代少步Flow的路径设计视角：减少采样步数不能只压缩solver，还要让生成轨迹本身更接近直线。",
+    why: "ELF、MeanFlow和普通Flow Matching常被笼统归为velocity prediction，但三者控制变量不同：ELF预测瞬时velocity，Rectified Flow改变coupling并可重复reflow，MeanFlow直接预测区间平均velocity。把它们拆开能避免把一步能力归因错位。",
+    inspiration: "可在IBQ embedding或专门的可解码连续latent上测trajectory curvature与终点ID边界穿越。OCR笔画、小目标和高频区域若在后段出现急转，说明需要改变path/coupling，而不仅是增加solver步数。",
+    experiment: "固定Qwen3、同一连续视觉状态、time sampler与训练预算，比较straight Flow、1×/2× reflow、MeanFlow和ELF；统一扫描1/2/4/8 NFE，记录轨迹曲率、终点投影准确率、生成文字OCR、T2I、训练额外pass、推理延迟与显存。",
+    paper: "https://arxiv.org/abs/2209.03003",
+    code: "https://github.com/gnobitab/RectifiedFlow",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "mdlm",
+    index: "122",
+    title: "Simple and Effective Masked Diffusion Language Models",
+    shortTitle: "MDLM",
+    date: "2024-06-11 · NeurIPS 2024基础补读",
+    category: "离散 Diffusion",
+    paradigm: "Absorbing-mask Discrete Diffusion",
+    state: "离散token ID / one-hot；额外吸收态[MASK]",
+    objective: "SUBS参数化下的clean-token logits与加权masked CE；Rao-Blackwellized连续时间ELBO",
+    decoding: "从全MASK开始，反复并行恢复并提交token；支持ancestral、缓存优化或semi-AR采样",
+    sharing: "可完整复用IBQ vocabulary、embedding与K-way head；Qwen AR权重可初始化主干，但需改双向/block attention与mask训练",
+    open: "论文、项目页、训练代码与checkpoint已公开",
+    priority: "精读",
+    summary: "MDLM把离散diffusion化简为吸收MASK过程，并用SUBS参数化得到稳定的加权masked CE目标。它不需要在simplex中存连续概率，也不依赖token距离，是URSA metric path之前最标准、最容易复现的离散并行生成基线。",
+    why: "若URSA优于AR，必须知道收益来自全局迭代、metric-aware转移还是特定schedule。MDLM保留同一IBQ ID、embedding和visual head，只把前向过程换成随机mask，能单独测“并行去掩码”本身的贡献。",
+    inspiration: "2×2 Stage3可把四个原始ID视为同一masked block：固定平均NFE，比较独立slot置信度提交、块内共同提交和OCR-aware提交。由于没有embedding几何，它还能检验IBQ code距离是否真的被URSA有效利用。",
+    experiment: "固定Qwen3+IBQ、visual vocabulary、head、数据和NFE，比较AR、MDLM single-mask、URSA metric path与LLaDA式block masking；报告每slot准确率、block exact match、提交顺序、OCR/小目标保留、自由生成退化、全序列重复forward成本、吞吐和峰值显存。",
+    paper: "https://arxiv.org/abs/2406.07524",
+    code: "https://github.com/kuleshov-group/mdlm",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "iris-world-model",
+    index: "123",
+    title: "Transformers are Sample-Efficient World Models",
+    shortTitle: "IRIS",
+    date: "2022-09-01 · ICLR 2023基础补读",
+    category: "世界模型",
+    paradigm: "Discrete-token AR World Model + Imagination RL",
+    state: "离散VQ observation token grid；图像tokenizer与动力学Transformer分离",
+    objective: "动作条件的next visual-token CE + reward/termination预测",
+    decoding: "给定历史frame tokens与真实离散action，自回归生成下一观测并递归想象",
+    sharing: "原模型不共享LLM词表/主干；Qwen3+IBQ可替换tokenizer与AR dynamics，但reward/done/policy head独立",
+    open: "论文、官方代码、配置、数据与预训练模型已公开",
+    priority: "精读",
+    summary: "IRIS把Atari画面压成离散token，让Transformer把观测、动作、奖励与终止信号建模为可想象的经验，再仅用想象轨迹训练actor–critic。它是“视觉token语言模型如何真正成为世界模型”的经典离散端点。",
+    why: "Qwen3+IBQ若只预测下一帧ID，仍只是视频生成器。IRIS明确加入action、reward、done和imagined policy learning，因此能检验离散视觉token是否支持闭环决策，而不只是在FVD/LPIPS上还原纹理。",
+    inspiration: "把多帧威胁视频写成[IBQ state, action/intervention, reward/risk, continuation]交错序列；动作可包含摄像机转向、告警或规避。生成未来后应直接驱动威胁策略，而不是解码视频再人工判断。",
+    experiment: "固定IBQ、Qwen3、视频和动作数据，比较next-frame ID AR、MDLM/URSA离散动力学与ELF连续future；所有路线使用相同reward/done/policy head。除FVD外报告action-shuffle敏感性、reward预测、1/8/32步horizon drift、想象策略成功率、吞吐和显存。",
+    paper: "https://arxiv.org/abs/2209.00588",
+    code: "https://github.com/eloialonso/iris",
+    action: "Atari真实离散action token；与视觉历史共同条件化下一状态",
+    rollout: "多步imagined rollout + actor–critic闭环策略；不依赖在线MPC搜索",
+    evaluation: "Atari 100k；同时看token预测、reward/done与imagined policy return",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "td-mpc2",
+    index: "124",
+    title: "TD-MPC2: Scalable, Robust World Models for Continuous Control",
+    shortTitle: "TD-MPC2",
+    date: "2023-10-25 · ICLR 2024基础补读",
+    category: "世界模型",
+    paradigm: "Decoder-free Latent Dynamics + MPC",
+    state: "encoder产生的连续SimNorm control latent；不要求重建像素",
+    objective: "next-latent一致性L2 + 101-bin离散reward/value CE + policy/value目标",
+    decoding: "确定性latent dynamics递推；以policy prior引导CEM/MPC搜索连续action序列",
+    sharing: "无视觉tokenizer或renderer共享要求；可把Qwen3/IBQ hidden作为observation encoder，动力学/reward/value/policy head专属",
+    open: "论文、项目页、官方代码、数据与300余个checkpoint已公开",
+    priority: "精读",
+    summary: "TD-MPC2不尝试还原未来像素，而是学习足以预测转移、reward和value的控制latent，并在短时latent rollout中用MPC反复规划。它扩展到104个连续控制任务与317M多任务agent，是生成型世界模型必须面对的控制效率端点。",
+    why: "对多帧威胁检测，清晰未来视频未必带来更好决策。TD-MPC2提供最强的反例：如果只预测control-sufficient latent就能提高规避/告警成功率，那么IBQ/ELF渲染应作为可解释辅助，而不是动力学主目标。",
+    inspiration: "保留Qwen3+IBQ负责OCR、目标身份与解释，另在merged hidden上训练next-latent、risk/reward和value head；MPC只在紧凑latent里展开。需要生成证据视频时再挂可选IBQ/ELF renderer，避免每条候选动作都运行昂贵采样器。",
+    experiment: "固定observation encoder、动作数据、参数量和训练FLOPs，比较完整IBQ未来、DINO/JEPA next-latent与TD-MPC2 control latent。统一报告威胁排序、TTC、action-shuffle、闭环成功率、horizon error、每次replan延迟；另报OCR/画质但不把它们当控制主指标。",
+    paper: "https://arxiv.org/abs/2310.16828",
+    code: "https://github.com/nicklashansen/tdmpc2",
+    action: "真实连续action；多任务通过action masking与task embedding统一",
+    rollout: "短时latent rollout + policy-prior CEM/MPC，receding-horizon闭环执行",
+    evaluation: "104个连续控制任务；task success/return、robustness、latency与扩展性",
     featured: true,
     idea: true,
   },
@@ -3298,7 +3419,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.08</strong>
+        <strong>DAILY BRIEF · 2026.08.09</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -3344,9 +3465,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 025]</p>
-              <h1>统一不等于全共享，<br />压缩不等于固定预算</h1>
-              <p className="hero-copy">今日新增五项：Physics of MM Pretraining定位早期统一与模态专属FFN的共享边界；STEP-OPD同时蒸馏velocity和层间表示演化；RUTA用rate–utility学习逐样本视觉预算；ToolArtist把检索、原生绘图与反思纳入统一策略；CoCo则用反事实一致性检验世界模型是否真正响应动作。重点服务Qwen3+IBQ训练时序、2×2 Stage3动态预算、生成OCR与统一理解—生成—预测—行动。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 028]</p>
+              <h1>一步生成不只压缩采样，<br />世界预测不只生成画面</h1>
+              <p className="hero-copy">周末基础补读五项：MeanFlow把ELF式瞬时velocity改为区间average velocity，给出无需teacher的一步端点；Rectified Flow厘清路径拉直与reflow；MDLM提供可复用IBQ词表与head的标准mask基线；IRIS把离散视觉token接入reward、done与想象策略；TD-MPC2则提供不重建像素的控制型latent+MPC端点。重点服务Qwen3+IBQ、URSA→ELF、OCR与统一理解—生成—预测—行动的公平对照。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -3358,7 +3479,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>119</b><span>精选条目</span></div>
+                <div><b>124</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -3519,6 +3640,9 @@ export default function Home() {
                   <tr><th>SURE</th><td>noisy image/video latent + timestep；Gaussian reward mean/variance</td><td>不确定性感知latent utility + reliability-weighted local reward gradient</td><td>保持原采样顺序，只在选定transition施加局部后训练</td><td>比较终点、均匀step与方差加权reward；隔离reward密度和可靠性</td></tr>
                   <tr><th>TiTok</th><td>32/64/128个1D离散视觉token；无固定2D slot对应</td><td>tokenizer重建/VQ + 下游masked clean-token CE</td><td>1D slots并行迭代unmask</td><td>改变tokenizer信息瓶颈，不是2×2 Stage3 head替换；须单报OCR与空间定位上限</td></tr>
                   <tr><th>Cosmos Tokenizer</th><td>matched连续/离散image/video latent家族</td><td>tokenizer重建/感知/量化；下游CE或velocity</td><td>codec无固定顺序；AR/URSA/ELF由下游决定</td><td>交叉控制state type、压缩率与生成范式，避免同时更换三项</td></tr>
+                  <tr><th>MeanFlow</th><td>VAE/可解码连续latent</td><td>区间平均velocity u(z,r,t)；JVP训练</td><td>默认1 NFE，可做少步区间更新</td><td>与ELF固定同一状态/主干，只改变瞬时v→平均u并核算JVP开销</td></tr>
+                  <tr><th>Rectified Flow</th><td>连续pixel、VAE latent或embedding</td><td>直线插值瞬时velocity + 可选reflow</td><td>确定性ODE；轨迹拉直后少步Euler</td><td>把coupling/reflow、velocity定义和solver步数拆开</td></tr>
+                  <tr><th>MDLM</th><td>离散token ID + absorbing [MASK]</td><td>SUBS clean-token logits / weighted masked CE</td><td>全MASK→并行迭代提交；可semi-AR</td><td>复用IBQ词表/embedding/head，隔离普通mask与URSA metric path</td></tr>
                 </tbody>
               </table>
             </div>
@@ -3574,6 +3698,7 @@ export default function Home() {
                   <tr><th>KVAE tokenizer audit</th><td>不做Qwen序列merge；更换为8×8连续latent tokenizer</td><td>由8×8空间压缩决定，与N/4 folding分开</td><td>下游Flow velocity；无K-way ID head</td><td>全图连续并行去噪</td><td>隔离tokenizer可生成性/CDS与Stage3离散head收益</td></tr>
                   <tr><th>TiTok global queries</th><td>用32/64/128个learned query全局压缩图像，不保留TL/TR/BL/BR位置</td><td>固定M，与局部N/4 folding按相同预算比较</td><td>1D masked generator + tokenizer decoder</td><td>全局slots并行迭代unmask</td><td>是tokenizer级信息瓶颈；必须单独测OCR、阅读顺序与小目标定位</td></tr>
                   <tr><th>Cosmos tokenizer audit</th><td>不做Qwen merge；选择离散/连续、image/video与8×/16×空间codec</td><td>由codec压缩率决定，和Stage3 merge ratio分层</td><td>离散K-way或连续velocity取决于下游</td><td>tokenizer无顺序；下游AR/URSA/ELF</td><td>提供state type × dynamics的matched交叉实验，隔离tokenizer收益</td></tr>
+                  <tr><th>MDLM block baseline</th><td>2×2 merge不改tokenizer；四个原始ID可独立或共同mask</td><td>N/4个global block；local状态仍为4个ID</td><td>共享K-way clean-token head</td><td>块间/块内并行去mask；按置信度提交</td><td>与local AR、URSA metric path比较时保持IBQ和四slot监督完全一致</td></tr>
                 </tbody>
               </table>
             </div>
@@ -3632,6 +3757,8 @@ export default function Home() {
                   <tr><th>GAUGE</th><td>真实/模拟/生成RGB与标定物理观测量</td><td>外力、碰撞与可控初始条件</td><td>无训练目标；参数、轨迹和时间稳定性审计</td><td>兼容AR、Diffusion、Flow与模拟器</td><td>评估horizon漂移；不提供规划器</td><td>为所有UMM世界模型补充FVD之外的物理测量层</td></tr>
                   <tr><th>MASS</th><td>schema-defined typed entity records为权威共享状态；RGB按视角渲染</td><td>所有玩家joint actions + 外生事件</td><td>下一typed state field/token + camera-conditioned render</td><td>record内AR、record间并行；state dynamics与renderer解耦</td><td>canonical state多步rollout；千人万步压力测试，按需渲染</td><td>在Qwen3/IBQ之上增加共享可解析state层，统一多视角理解—预测—行动</td></tr>
                   <tr><th>Cosmos Tokenizer</th><td>连续/离散因果video latent，空间8×/16×、时间4×/8×</td><td>仅codec；动作由下游world model注入</td><td>重建/量化；下游可预测ID、noise或velocity</td><td>tokenizer无动力学；支持AR、Diffusion与Flow公平接入</td><td>是否长时rollout取决于下游；因果codec避免未来帧泄漏</td><td>用matched C/D视频状态隔离IBQ、URSA、ELF和动力学方式的贡献</td></tr>
+                  <tr><th>IRIS</th><td>VQ离散observation token grid</td><td>Atari真实离散action</td><td>next visual-token CE + reward/termination</td><td>动作条件AR Transformer</td><td>多步imagined rollout + actor–critic闭环策略</td><td>可用Qwen3+IBQ替换离散dynamics；补齐reward/done/policy接口</td></tr>
+                  <tr><th>TD-MPC2</th><td>连续SimNorm control latent；无pixel decoder</td><td>真实连续action</td><td>next latent L2 + 离散reward/value CE</td><td>隐式latent dynamics + policy prior</td><td>短时rollout + CEM/MPC滚动规划</td><td>Qwen3/IBQ只做观测encoder；渲染与控制latent解耦</td></tr>
                 </tbody>
               </table>
             </div>
