@@ -3198,7 +3198,7 @@ const papers: Paper[] = [
     experiment: "固定Qwen3、IBQ/连续adapter、数据、参数量与总FLOPs，比较ELF瞬时velocity（4/8/16/32步）、MeanFlow平均velocity（1/2/4步）、STEP-OPD少步蒸馏与URSA metric path。报告latent→ID回投率、block exact match、生成OCR、GenEval/DPG、OCRBench/DocVQA/TextVQA、JVP训练开销、吞吐、显存和1-NFE稳定性。",
     paper: "https://arxiv.org/abs/2505.13447",
     code: "https://github.com/Gsunshine/meanflow",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3221,7 +3221,7 @@ const papers: Paper[] = [
     experiment: "固定Qwen3、同一连续视觉状态、time sampler与训练预算，比较straight Flow、1×/2× reflow、MeanFlow和ELF；统一扫描1/2/4/8 NFE，记录轨迹曲率、终点投影准确率、生成文字OCR、T2I、训练额外pass、推理延迟与显存。",
     paper: "https://arxiv.org/abs/2209.03003",
     code: "https://github.com/gnobitab/RectifiedFlow",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3244,7 +3244,7 @@ const papers: Paper[] = [
     experiment: "固定Qwen3+IBQ、visual vocabulary、head、数据和NFE，比较AR、MDLM single-mask、URSA metric path与LLaDA式block masking；报告每slot准确率、block exact match、提交顺序、OCR/小目标保留、自由生成退化、全序列重复forward成本、吞吐和峰值显存。",
     paper: "https://arxiv.org/abs/2406.07524",
     code: "https://github.com/kuleshov-group/mdlm",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3270,7 +3270,7 @@ const papers: Paper[] = [
     action: "Atari真实离散action token；与视觉历史共同条件化下一状态",
     rollout: "多步imagined rollout + actor–critic闭环策略；不依赖在线MPC搜索",
     evaluation: "Atari 100k；同时看token预测、reward/done与imagined policy return",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3296,6 +3296,128 @@ const papers: Paper[] = [
     action: "真实连续action；多任务通过action masking与task embedding统一",
     rollout: "短时latent rollout + policy-prior CEM/MPC，receding-horizon闭环执行",
     evaluation: "104个连续控制任务；task success/return、robustness、latency与扩展性",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "lost-in-interpolation",
+    index: "125",
+    title: "Lost in Interpolation: Why Predictive Feedback Fails in Diffusion Language Models",
+    shortTitle: "Lost in Interpolation",
+    date: "2026-08-06",
+    category: "离散 Diffusion",
+    paradigm: "Masked Discrete Diffusion + Hyperspherical Predictive Feedback",
+    state: "离散token ID；反馈时把top-k预测映射为词向量球面上的连续方向",
+    objective: "MDLM clean-token logits / CE；S-SM用Fréchet mean聚合候选方向并以SLERP回馈",
+    decoding: "从MASK迭代恢复；每步把球面soft prediction而非欧氏LERP写回下一轮",
+    sharing: "完整共享原MDLM vocabulary、embedding与K-way head；可从AR/LLM权重初始化主干",
+    open: "论文已公开；截至收录日未发现作者官方代码仓库",
+    priority: "精读",
+    summary: "论文发现MASK embedding与预测token embedding在训练中维持近恒定夹角，词向量norm也基本稳定，说明反馈空间更接近超球面而非欧氏空间。Spherical Soft-Masking先在球面上求top-k Fréchet mean，再用SLERP与MASK方向插值，并恢复原始mask norm。",
+    why: "这是URSA→ELF改造中很容易被忽略的几何变量：连续feedback是否有效，不只取决于noise/velocity/CE目标，还取决于IBQ embedding应按欧氏、球面还是离散metric解释。若直接LERP四个slot的IBQ embedding，可能把中间状态推入训练从未覆盖的低范数区域。",
+    inspiration: "先测IBQ code embedding的norm分布、两两角度与视觉/语义距离相关性；若近球面，可把URSA的metric path、ELF直线插值和S-SM球面插值放在同一Qwen3 checkpoint上比较。OCR字符与小目标应单独统计，因为近邻code方向错误可能造成语义上小、像素上致命的变化。",
+    experiment: "固定Qwen3、IBQ词表、mask schedule、训练token、K-way head和NFE，只改变feedback：hard argmax、top-k概率均值、embedding LERP、Fréchet+SLERP。报告每slot/2×2 block准确率、embedding norm drift、角度路径长度、OCRBench/DocVQA/TextVQA、生成文字OCR、吞吐、显存与自由生成退化。",
+    paper: "https://arxiv.org/abs/2608.06529",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "worldtrace",
+    index: "126",
+    title: "Addressable Memory for Video World Models",
+    shortTitle: "WorldTrace",
+    date: "2026-08-07 · ICML 2026 F2S Workshop Best Paper",
+    category: "世界模型",
+    paradigm: "Training-free Addressable KV Memory for AR Video World Models",
+    state: "AR视频世界模型的RoPE-rotated K/V；近期原样窗口 + 固定数量summary slots",
+    objective: "不重训动力学；canonical-phase key aggregation或转场landmark原样写入",
+    decoding: "沿用原视频AR/chunk生成；summary slot使用始终处于训练范围内的虚拟位置",
+    sharing: "不改视觉tokenizer、Transformer或输出head；直接作用于已共享/未共享UMM的时序KV cache",
+    open: "论文与NVIDIA官方项目页、LoopMem评测说明已公开；未见独立代码仓库",
+    priority: "精读",
+    summary: "WorldTrace指出长rollout遗忘不一定是内容被删掉，而可能是时间RoPE偏移越过训练范围后，缓存内容无法被attention寻址。它用slot-rank虚拟位置保持summary始终in-distribution，并分别以Field writer维持连贯性、Landmark writer保存可回访场景。",
+    why: "多帧威胁检测常需要在很久以后重新识别同一车辆、文字标志或目标。若直接压缩已旋转的Qwen3视频KV，平均不同RoPE相位会损坏证据；这类系统误差不能靠提高IBQ重建或多跑ELF采样步数修复。",
+    inspiration: "为Qwen3+IBQ保留短期原始frame/block cache，再把长期证据写到固定可寻址slots；OCR文本、目标身份和威胁转场采用verbatim landmark，背景运动用canonical aggregation。静态生成head、URSA/ELF动力学与memory策略应作为三个正交变量。",
+    experiment: "固定视频tokenizer、Qwen3、URSA/ELF生成器和单次rollout预算，比较滑窗、naive KV平均、canonical Field、Landmark与二者混合。报告1×/4×/8×/16×训练horizon的目标重识别、OCR字符串保持、LoopMem式回访PAC、horizon drift、cache显存、吞吐和闭环告警成功率。",
+    paper: "https://arxiv.org/abs/2608.07408",
+    code: "https://research.nvidia.com/labs/sil/projects/WorldTrace/",
+    codeLabel: "项目页",
+    action: "沿用底层交互视频模型的动作/相机控制；WorldTrace只管理历史观测记忆",
+    rollout: "支持超过训练窗口的长时AR rollout与场景回访；本身不新增规划器",
+    evaluation: "TempSSIM、Local Scene Drift、LoopMem/PAC、不同拓扑/路径/视角/多次回访",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "unijepa",
+    index: "127",
+    title: "UniJEPA: A Unified Joint-Embedding Predictive Architecture for Task-Agnostic Visual World Modeling",
+    shortTitle: "UniJEPA",
+    date: "2026-08-07 · ICML 2026",
+    category: "世界模型",
+    paradigm: "Unified Photometric + Temporal JEPA",
+    state: "从raw pixels端到端学习的共享连续语义embedding；无像素/离散token decoder要求",
+    objective: "next-embedding prediction + Gaussian anti-collapse regularizer；无EMA、stop-gradient或预训练encoder",
+    decoding: "无生成式采样；image transformation与video next-state在latent中直接预测",
+    sharing: "图像不变性与视频等变动力学共享encoder、predictor和latent；action post-training另接条件",
+    open: "论文已公开并获ICML 2026接收；截至收录日未发现作者官方代码仓库",
+    priority: "精读",
+    summary: "UniJEPA把单图光度变换预测与视频时间预测合并到一个latent空间和统一损失中：前者学习不变结构，后者学习等变动力学。动作条件后训练后，可把goal feature作为预测目标进行零样本规划。",
+    why: "它是“统一理解—生成—预测—行动”中不生成像素的强对照。Qwen3+IBQ若在OCR重建上更好却在规划上不如UniJEPA，说明细节codec与控制充分语义状态不应强迫合一；反之则可证明语义化IBQ兼具两者。",
+    inspiration: "在原IBQ/Qwen hidden旁增加共享JEPA semantic subspace，让静态增强保持不变、真实运动保持等变；IBQ decoder继续承担文字和纹理证据。URSA/ELF只负责需要可视化的未来，MPC优先在低延迟JEPA空间展开。",
+    experiment: "固定Qwen3、数据、encoder参数量和总FLOPs，比较IBQ next-ID、ELF future embedding、纯temporal JEPA、photometric+temporal UniJEPA。统一报告OCRBench/DocVQA/TextVQA、linear probe、动作可分性、1/8/32步latent drift、CEM/MPC成功率、规划延迟；另报可选renderer画质但不作为主指标。",
+    paper: "https://arxiv.org/abs/2608.07409",
+    action: "离线轨迹上的真实action条件后训练；goal feature作为规划目标",
+    rollout: "多步latent prediction + zero-shot planning；无像素生成开销",
+    evaluation: "image/video/control benchmark、表示坍塌、规划准确率与相对生成式世界模型的速度",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "simwam",
+    index: "128",
+    title: "SimWAM: A Simple World Action Model for End-to-End Autonomous Driving",
+    shortTitle: "SimWAM",
+    date: "2026-08-07",
+    category: "世界模型",
+    paradigm: "Training-only Video Expert + Action Flow Matching",
+    state: "预训练视频生成expert的连续latent/hidden + 轻量轨迹action expert",
+    objective: "video与action联合Flow Matching；后续RL优化组合式驾驶reward",
+    decoding: "训练时联合建模未来视频与trajectory velocity；推理丢弃video branch，action expert直接采样轨迹",
+    sharing: "两个expert不共享参数，仅通过统一attention接口交互；isolated mask禁止action偷看未来frame",
+    open: "论文、官方代码与模型权重已公开",
+    priority: "精读",
+    summary: "SimWAM把视频生成明确降为training-only世界监督：隔离attention保证动作预测不依赖未来帧输入，因此训练后可安全删除昂贵视频分支，留下独立低延迟planner。视频backbone与action expert可分别替换和扩缩。",
+    why: "这给URSA→ELF一个很实用的反命题：世界生成分支可能最有价值的是塑造Qwen3 hidden，而非在每次威胁决策时都生成未来图像。它还能避免把“看过GT future”造成的动作提升误判为可部署能力。",
+    inspiration: "用IBQ-URSA或ELF作为训练期future expert，与多帧威胁action/risk head通过受限cross-attention交互；严格屏蔽action head访问GT未来。部署时只保留Qwen3 context与action Flow，生成未来仅在需要解释或人工复核时启用。",
+    experiment: "固定当前观测、动作标签、Qwen3与训练FLOPs，比较action-only、共享参数WAM、SimWAM隔离双expert、训练后保留/删除future branch。报告open-loop轨迹误差、闭环成功率、碰撞/漏警、GT-future leakage probe、OOD迁移、推理NFE、p50/p95延迟、显存；视频质量只作辅助。",
+    paper: "https://arxiv.org/abs/2608.07468",
+    code: "https://github.com/H-EmbodVis/SimWAM",
+    action: "连续ego trajectory；action expert以Flow Matching预测并用RL做reward优化",
+    rollout: "推理不生成未来视频，直接闭环输出轨迹；视频world prior只在训练期使用",
+    evaluation: "NAVSIM PDMS、nuScenes零样本迁移、轨迹质量、闭环reward与推理延迟",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "same-attention-different-truths",
+    index: "129",
+    title: "Same Attention, Different Truths: Put Logit-Lens over Visual Attention to Detect and Mitigate LVLM Object Hallucination",
+    shortTitle: "Same Attention, Different Truths",
+    date: "2026-08-07 · CVPR 2026 Highlight",
+    category: "可解释性",
+    paradigm: "Visual Attention × Logit-Lens Causal Diagnosis",
+    state: "LVLM中高attention视觉区域的hidden feature与词表logits",
+    objective: "training-free一致性检查；HARM区域遮蔽或VEED视觉证据增强解码",
+    decoding: "先定位高attention区域，再用Logit Lens检验其能否解码出目标object token并选择干预",
+    sharing: "不改视觉tokenizer/主干/head；直接复用LLM unembedding检查视觉hidden的可读语义",
+    open: "论文已公开，CVPR 2026 Highlight；作者说明代码将公开，当前尚未发布",
+    priority: "精读",
+    summary: "论文发现真实物体与幻觉物体在中后层获得的视觉attention强度相近，差异在于被关注区域的hidden能否通过Logit Lens解码成目标词。由此区分视觉不确定性与上下文共现先验两种机制，并分别使用HARM与VEED处理。",
+    why: "这能直接拆解OCR/DocVQA失败：Qwen3可能确实关注了文字区域，但2×2 merge后的hidden已无法线性读出字符；也可能字符证据仍在，却被语言共现先验压过。只看attention heatmap无法区分二者。",
+    inspiration: "对原始IBQ、2×2 folding、URSA与ELF分别做visual-region logit-lens，测字符、目标类别、坐标和威胁词能否从同一层读出。将不可读区域的分数反馈给动态merge：恢复1×1 slot、追加crop或增强visual logits，而不是盲目增加全图token。",
+    experiment: "固定Qwen3、IBQ与问答数据，构造正确/混淆/强共现三组OCR和威胁样本；比较attention score、logit-lens rank、HARM反事实、VEED与late 1×1 refinement。报告OCRBench/POPE/CHAIR、字符NED、小目标召回、证据忠实度、额外延迟和误杀真实证据比例。",
+    paper: "https://arxiv.org/abs/2608.07302",
     featured: true,
     idea: true,
   },
@@ -3419,7 +3541,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.09</strong>
+        <strong>DAILY BRIEF · 2026.08.10</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -3465,9 +3587,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 028]</p>
-              <h1>一步生成不只压缩采样，<br />世界预测不只生成画面</h1>
-              <p className="hero-copy">周末基础补读五项：MeanFlow把ELF式瞬时velocity改为区间average velocity，给出无需teacher的一步端点；Rectified Flow厘清路径拉直与reflow；MDLM提供可复用IBQ词表与head的标准mask基线；IRIS把离散视觉token接入reward、done与想象策略；TD-MPC2则提供不重建像素的控制型latent+MPC端点。重点服务Qwen3+IBQ、URSA→ELF、OCR与统一理解—生成—预测—行动的公平对照。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 029]</p>
+              <h1>生成路径要尊重表示几何，<br />长期世界记忆要始终可寻址</h1>
+              <p className="hero-copy">今日五项聚焦三个尚未被公平控制的变量：Lost in Interpolation指出DLM预测反馈应遵循embedding球面几何；WorldTrace把长时遗忘定位为RoPE寻址失效；UniJEPA与SimWAM分别给出无像素规划和训练期视频expert端点；Same Attention则证明高attention不等于视觉证据可被词表读出。共同服务Qwen3+IBQ、URSA→ELF、OCR/DocVQA与统一理解—生成—预测—行动。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -3479,7 +3601,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>124</b><span>精选条目</span></div>
+                <div><b>129</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -3643,6 +3765,8 @@ export default function Home() {
                   <tr><th>MeanFlow</th><td>VAE/可解码连续latent</td><td>区间平均velocity u(z,r,t)；JVP训练</td><td>默认1 NFE，可做少步区间更新</td><td>与ELF固定同一状态/主干，只改变瞬时v→平均u并核算JVP开销</td></tr>
                   <tr><th>Rectified Flow</th><td>连续pixel、VAE latent或embedding</td><td>直线插值瞬时velocity + 可选reflow</td><td>确定性ODE；轨迹拉直后少步Euler</td><td>把coupling/reflow、velocity定义和solver步数拆开</td></tr>
                   <tr><th>MDLM</th><td>离散token ID + absorbing [MASK]</td><td>SUBS clean-token logits / weighted masked CE</td><td>全MASK→并行迭代提交；可semi-AR</td><td>复用IBQ词表/embedding/head，隔离普通mask与URSA metric path</td></tr>
+                  <tr><th>Spherical Soft-Masking</th><td>离散ID + 超球面token embedding方向</td><td>原MDLM clean-token CE；Fréchet top-k + SLERP只改变反馈</td><td>迭代mask恢复；球面soft prediction写回下一步</td><td>固定IBQ词表/head/schedule，隔离欧氏LERP与球面几何</td></tr>
+                  <tr><th>SimWAM</th><td>连续视频expert hidden + action trajectory latent</td><td>video/action联合velocity；action以isolated attention防GT future泄漏</td><td>训练双Flow；推理丢弃视频分支，仅采样action</td><td>检验生成世界监督是否必须保留在部署路径</td></tr>
                 </tbody>
               </table>
             </div>
@@ -3699,6 +3823,8 @@ export default function Home() {
                   <tr><th>TiTok global queries</th><td>用32/64/128个learned query全局压缩图像，不保留TL/TR/BL/BR位置</td><td>固定M，与局部N/4 folding按相同预算比较</td><td>1D masked generator + tokenizer decoder</td><td>全局slots并行迭代unmask</td><td>是tokenizer级信息瓶颈；必须单独测OCR、阅读顺序与小目标定位</td></tr>
                   <tr><th>Cosmos tokenizer audit</th><td>不做Qwen merge；选择离散/连续、image/video与8×/16×空间codec</td><td>由codec压缩率决定，和Stage3 merge ratio分层</td><td>离散K-way或连续velocity取决于下游</td><td>tokenizer无顺序；下游AR/URSA/ELF</td><td>提供state type × dynamics的matched交叉实验，隔离tokenizer收益</td></tr>
                   <tr><th>MDLM block baseline</th><td>2×2 merge不改tokenizer；四个原始ID可独立或共同mask</td><td>N/4个global block；local状态仍为4个ID</td><td>共享K-way clean-token head</td><td>块间/块内并行去mask；按置信度提交</td><td>与local AR、URSA metric path比较时保持IBQ和四slot监督完全一致</td></tr>
+                  <tr><th>Spherical feedback audit</th><td>2×2结构不变；只改变四slot soft embedding回馈几何</td><td>N/4 global block + 4个原始ID</td><td>共享K-way head；top-k Fréchet mean + SLERP</td><td>hard ID / LERP / SLERP迭代反馈</td><td>检查IBQ norm/角度，避免连续中间态跌出code manifold</td></tr>
+                  <tr><th>Logit-Lens evidence audit</th><td>不再merge；检查1×1与2×2 hidden中的字符/目标是否可线性读出</td><td>保持相同token预算，仅增加诊断probe</td><td>复用Qwen unembedding；无新生成head</td><td>attention定位→logit-lens一致性→必要时局部1×1恢复</td><td>区分“看到了区域”与“hidden仍保有可读视觉证据”</td></tr>
                 </tbody>
               </table>
             </div>
@@ -3759,6 +3885,9 @@ export default function Home() {
                   <tr><th>Cosmos Tokenizer</th><td>连续/离散因果video latent，空间8×/16×、时间4×/8×</td><td>仅codec；动作由下游world model注入</td><td>重建/量化；下游可预测ID、noise或velocity</td><td>tokenizer无动力学；支持AR、Diffusion与Flow公平接入</td><td>是否长时rollout取决于下游；因果codec避免未来帧泄漏</td><td>用matched C/D视频状态隔离IBQ、URSA、ELF和动力学方式的贡献</td></tr>
                   <tr><th>IRIS</th><td>VQ离散observation token grid</td><td>Atari真实离散action</td><td>next visual-token CE + reward/termination</td><td>动作条件AR Transformer</td><td>多步imagined rollout + actor–critic闭环策略</td><td>可用Qwen3+IBQ替换离散dynamics；补齐reward/done/policy接口</td></tr>
                   <tr><th>TD-MPC2</th><td>连续SimNorm control latent；无pixel decoder</td><td>真实连续action</td><td>next latent L2 + 离散reward/value CE</td><td>隐式latent dynamics + policy prior</td><td>短时rollout + CEM/MPC滚动规划</td><td>Qwen3/IBQ只做观测encoder；渲染与控制latent解耦</td></tr>
+                  <tr><th>WorldTrace</th><td>AR视频模型RoPE K/V；近期窗口 + 可寻址summary slots</td><td>沿用底层相机/交互action</td><td>不改未来生成目标；canonical Field或verbatim Landmark写入</td><td>training-free KV memory + 原AR/Flow视频动力学</td><td>超过训练窗口的长时rollout与场景回访；无新增planner</td><td>不改IBQ/URSA/ELF，只把memory position与dynamics正交控制</td></tr>
+                  <tr><th>UniJEPA</th><td>共享连续embedding；光度不变性 + 时间等变性</td><td>离线轨迹真实action；goal feature</td><td>next embedding + Gaussian anti-collapse regularizer</td><td>统一photometric/temporal JEPA</td><td>多步latent rollout + zero-shot planning</td><td>Qwen3/IBQ的decoder-free语义动力学端点；renderer可选</td></tr>
+                  <tr><th>SimWAM</th><td>预训练视频生成expert + 独立action expert</td><td>连续ego trajectory</td><td>video/action velocity + RL driving reward</td><td>联合Flow Matching；isolated attention双expert</td><td>部署只保留action planner，不生成未来视频</td><td>可用IBQ-URSA/ELF作training-only future expert，避免推理开销</td></tr>
                 </tbody>
               </table>
             </div>
