@@ -3440,7 +3440,7 @@ const papers: Paper[] = [
     inspiration: "对文字、小目标和威胁区域建立full/zoom/remove三视图；若zoom成功而remove不影响full，就把zoom logits蒸馏回原始IBQ或merged hidden，并提高该block的1×1保留概率。再按blind-spot区域统计codebook usage与per-image token diversity，判断当前AR/GRU塌缩究竟发生在codec还是证据利用阶段。",
     experiment: "固定Qwen3、IBQ、Stage3 head、数据与训练token，比较原SFT、只用crop增强、CVPD三门筛选+token KL、CVPD+动态1×1恢复。报告OCRBench/DocVQA/TextVQA、full↔zoom KL、remove因果效应、字符NED、小目标/威胁召回、区域codebook perplexity、延迟和额外训练成本。",
     paper: "https://arxiv.org/abs/2608.09931",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3462,7 +3462,7 @@ const papers: Paper[] = [
     inspiration: "把Qwen3文本prompt、已提交视觉block与理解侧图像证据保持clean，只对当前待生成的四个IBQ slot或未来block施加URSA metric corruption；prefix继续保留next-token CE。这样能从同一AR checkpoint公平比较AR、普通MDLM、URSA与PCD-URSA，而不把条件破坏差异混入结果。",
     experiment: "固定Qwen3+IBQ、mask/metric schedule、数据、head、NFE与FLOPs，比较全序列共同corrupt、clean-prefix suffix diffusion、PCD混合prefix CE、纯AR。报告2×2 slot/block准确率、T2I/OCR、prompt adherence、teacher-forcing/free-running差、采样吞吐、显存和训练稳定性。",
     paper: "https://arxiv.org/abs/2608.09424",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3484,7 +3484,7 @@ const papers: Paper[] = [
     inspiration: "为Qwen3+IBQ保留一个不进入全局序列的pixel/detail skip：文字与高频block在IBQ前提取轻量局部feature，既可条件化ELF/URSA路径，也可在IBQ decoder侧二次注入。它不改变主token预算，适合判断codebook usage塌缩是否因重建细节被迫挤进少数语义code。",
     experiment: "固定IBQ codebook、Qwen3、URSA/ELF主干与训练FLOPs，比较无skip、condition-side pixel skip、decoder-side skip和双侧PGSR。分别报告tokenizer-only字符NED/LPIPS、区域codebook usage、OCRBench/DocVQA/TextVQA、生成文字OCR、T2I、额外显存与局部attention耗时。",
     paper: "https://arxiv.org/abs/2608.09133",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3506,7 +3506,7 @@ const papers: Paper[] = [
     inspiration: "在query与任务schema中显式加入风险等级，让高后果文字、关键帧、小目标和轨迹block保留1×1或触发zoom；低风险背景允许2×2/4×4。内容重要性决定保留哪里，后果曲线决定给多少预算，两者不要混成一个attention分数。",
     experiment: "固定平均token数、Qwen3、IBQ与Stage3 head，比较uniform 2×2、attention merge、RUTA rate–utility和consequence-sensitive allocator。按低/中/高风险分别报告OCR/NED、漏警率、成本加权错误、吞吐、p50/p95延迟、显存，并验证同图不同问题的预算是否真的改变。",
     paper: "https://arxiv.org/abs/2608.09176",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3533,6 +3533,125 @@ const papers: Paper[] = [
     action: "真实/策略/人类动作；局部扰动、跨场景donor action与teleoperation轨迹",
     rollout: "评测固定物理时长的开放环生成，并与simulator反事实reference对齐；可作为闭环规划前置验收",
     evaluation: "五套因果probe、1.8万余实例、六个开源ACWM、三类机器人benchmark",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "stream-forcing",
+    index: "135",
+    title: "Stream Forcing: Constructing Unified Training Trajectory for Robust Streaming Video Generation",
+    shortTitle: "Stream Forcing",
+    date: "2026-08-11",
+    category: "连续 Flow",
+    paradigm: "Frame-indexed Streaming Video Diffusion",
+    state: "连续视频VAE latent；每帧携带独立且相关的noise level",
+    objective: "沿原视频diffusion denoising目标训练；联合校准使noise配置从独立采样连续过渡到推理一致轨迹",
+    decoding: "按流式帧序执行专门denoising order；时间相关采样保持跨帧噪声与历史一致",
+    sharing: "不要求新tokenizer或新输出head；可在同一视频diffusion/Flow主干上只替换训练noise-trajectory分布",
+    open: "论文已公开；截至收录日未发现作者官方项目页或代码仓库",
+    priority: "精读",
+    summary: "Stream Forcing把流式视频生成中的训练—推理错配写成frame-indexed噪声随机过程：训练轨迹从覆盖充分的独立noise配置平滑演化到真实推理顺序，再用联合校准与时间相关采样保证轨迹和跨帧关系。论文在UCF-101上报告FVD改善36.6%，长时零样本外推改善27.9%。",
+    why: "你当前GenEval已升至约0.27且loss仍缓慢下降，说明merged-token路线并非立即失效，但训练接口可能让模型看到的block状态与自由生成时不同。Stream Forcing的价值不是换更大backbone，而是证明：分块生成即使状态和head不变，仅训练时的历史、噪声与提交顺序错配，就足以显著拖慢或破坏长时生成。",
+    inspiration: "把2×2 block视为stream unit：训练早期广泛采样四slot的独立/相关corruption，随后逐步提高与真实解码一致的配置占比；AR local head则从GT前缀逐步过渡到生成前缀。URSA可对metric time做block-indexed schedule，ELF可对continuous t做同样轨迹校准，而不改变IBQ tokenizer与Qwen3。",
+    experiment: "固定Qwen3、IBQ、2×2 merge、local head、数据与总FLOPs，比较全teacher forcing、随机block corruption、纯inference-order训练、Stream-Forcing式连续课程。共同报告GenEval、生成文字OCR、slot/block准确率、teacher-forcing/free-running差、早/晚block error、codebook perplexity、训练loss斜率、NFE、吞吐与显存；先用10M/20M/40M样本画data-scaling曲线。",
+    paper: "https://arxiv.org/abs/2608.10439",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "sieve-cross-modal-residual",
+    index: "136",
+    title: "When Vision Becomes Text: Visual Token Pruning via Cross-Modal Residual Guidance in VLMs",
+    shortTitle: "SIEVE",
+    date: "2026-08-11",
+    category: "统一视觉 Token",
+    paradigm: "Cross-modal Absorption + Residual-guided Token Compression",
+    state: "各层视觉hidden与文本token张成的子空间；残差表示尚未被文本吸收的视觉信息",
+    objective: "training-free；Tikhonov正则最小二乘投影后，联合CMR、文本相关性与残差空间多样性选token",
+    decoding: "随LLM层数动态压缩视觉token；保留文本尚不能解释且与任务互补的视觉证据",
+    sharing: "完全复用视觉encoder、LLM、embedding与输出head；只增加层内投影、打分和KV裁剪",
+    open: "论文已公开；截至收录日未发现作者官方代码仓库",
+    priority: "精读",
+    summary: "SIEVE发现视觉信息会随LLM加深逐步写入文本表示，并用Cross-Modal Absorption量化这一过程；Cross-Modal Residual则测量文本子空间仍解释不了的视觉内容。LLaVA-NeXT-7B只保留11.1%视觉token时维持97.5%平均性能，并报告3.62× prefill、2.49×端到端加速与6.02× KV缩减。",
+    why: "它给固定输入端2×2 merger一个明确警告：四个IBQ token的内容如果还没有被Qwen3文本/上下文hidden吸收，提前合并就是不可逆信息损失；反之，深层已经被文本表示解释的视觉token继续保留只会增加成本。这比仅靠attention或token相似度更接近‘何时可以安全merge’。",
+    inspiration: "在Qwen3每隔若干层测original 1×1 IBQ hidden相对文本/merged-block子空间的CMR。高CMR的文字、边界、小目标与关键帧保持1×1或进入local memory；低CMR且已被文本吸收的token再压缩。它还能检验2×2 merger是否真的把四slot信息写入单个Qwen hidden，而不只看最终VQA分数。",
+    experiment: "固定平均N/4预算与Qwen3+IBQ，比较输入前固定2×2、attention merge、相似度merge、SIEVE中层压缩、输入2×2+高CMR late-reactivation。报告OCRBench/DocVQA/TextVQA、生成文字OCR、每层CMA/CMR、四slot线性probe、字符/小目标保留率、prefill、端到端p50/p95、KV显存和投影开销。",
+    paper: "https://arxiv.org/abs/2608.10489",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "insight-doc",
+    index: "137",
+    title: "InSight-doc: Agentic Visual Perception for Long-Document Understanding",
+    shortTitle: "InSight-doc",
+    date: "2026-08-11",
+    category: "多帧推理",
+    paradigm: "Low-resolution Overview + Agentic High-resolution Zoom",
+    state: "低分辨率多页视觉上下文 + 按需高分辨率region evidence",
+    objective: "17.9K带zoom轨迹SFT + 19.2K hard-example RL，学习何时、到哪里提高视觉分辨率",
+    decoding: "先低分辨率通读，再把zoom视为推理动作选择局部证据；无需外部retriever",
+    sharing: "复用同一8B多模态模型与文本head；分辨率/region是agent动作而非固定额外视觉分支",
+    open: "论文、训练代码、数据集与模型已公开",
+    priority: "精读",
+    summary: "InSight-doc把视觉分辨率当成reasoning-time预算：先以低分辨率覆盖长文档，只在证据不足时放大相关区域。InSight-doc-8B在文档VQA上提升4.3–16.4点；长文档幻觉降低超过40%，延迟降低41%–68%。",
+    why: "这比全图长期保留1×1 IBQ更适合你的OCR/DocVQA与多帧威胁检测：固定2×2 merger负责廉价全局覆盖，只有答案不确定、字符细节不足或关键帧冲突时才恢复原始slot。它把‘merger是否可行’改写成‘merge后是否保留可恢复证据与触发策略’。",
+    inspiration: "缓存merge前的IBQ ID或轻量pixel crop；Qwen3先读N/4 merged blocks，并输出zoom(frame/page, box, scale)动作。被选区域重新注入1×1原始token，再执行OCR、DocVQA或威胁判断。训练可从full-resolution teacher生成zoom轨迹，并用最终正确率减token/延迟成本做RL。",
+    experiment: "固定平均视觉token与最大延迟，比较全程1×1、固定2×2、2×2+entropy zoom、2×2+SIEVE-CMR zoom、InSight-doc式SFT+RL。报告OCRBench/DocVQA/TextVQA、关键帧/小目标召回、zoom命中率、无效zoom率、幻觉、平均/尾部token、p50/p95延迟与缓存显存。",
+    paper: "https://arxiv.org/abs/2608.10628",
+    code: "https://github.com/m-Just/InSight-doc",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "fact-wam",
+    index: "138",
+    title: "FACT: Failure-Aware Causal Training for World-Action Models",
+    shortTitle: "FACT",
+    date: "2026-08-10",
+    category: "世界模型",
+    paradigm: "Failure-aware Causal Diffusion World-Action Model",
+    state: "action、task-progress value与未来视频连续latent，由同一causal diffusion Transformer建模",
+    objective: "联合denoise action/value/future-video；失败轨迹屏蔽动作模仿loss但保留失败future与低progress监督",
+    decoding: "先采样动作，再以clean action slot条件化未来与value；可选对N个候选动作做progress rerank",
+    sharing: "同一causal diffusion Transformer共享上下文；结构mask禁止noisy action读取clean action，避免目标泄漏",
+    open: "论文、项目页与官方代码仓库已公开",
+    priority: "精读",
+    summary: "FACT指出只用成功示范训练的世界模型没有理由预测坏动作的真实后果，容易在错误动作下幻觉成功。它把失败rollout作为有效future监督，并让progress head同时见成功与失败；真实双臂任务成功率由82%升至89%，候选评分后92%，坏动作未来PSNR提高6.4 dB。",
+    why: "对多帧威胁检测和‘理解—生成—预测—行动’，真正重要的不是生成常见未来，而是对错误干预、漏检、错误轨迹和危险动作产生可区分后果。只训练正常视频会让Qwen3+IBQ/URSA/ELF学成视觉惯性模型，即使FVD很好也无法可靠规划。",
+    inspiration: "将第一帧/多帧IBQ状态、候选威胁处置动作与未来block放入同一causal接口：成功和失败轨迹都监督future；失败数据不教策略模仿，但训练risk/progress与未来后果。部署可只用轻量value筛选动作，必要时再调用完整URSA/ELF生成解释。",
+    experiment: "固定Qwen3、IBQ、动作数据量、future head与FLOPs，比较success-only、success+failure但全模仿、FACT mask、FACT+N候选rerank。报告同状态多动作可分性、bad-action future PSNR/FVD、progress校准、失败幻觉率、1/8/32步horizon drift、闭环成功/漏警、NFE、延迟与显存。",
+    paper: "https://arxiv.org/abs/2608.10232",
+    code: "https://github.com/Bariona/FACT",
+    action: "真实连续双臂action chunk；clean executed action条件化后果，noisy action slot用于生成",
+    rollout: "未来视频与progress可用于候选评分；支持仿真和真实机器人闭环执行",
+    evaluation: "RoboTwin 50任务、真实双臂操作、bad-action future质量、success-biased hallucination与闭环成功率",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "flex-pi",
+    index: "139",
+    title: "Flex-π: A Multi-Stream World-Action Model with Compute Flexibility",
+    shortTitle: "Flex-π",
+    date: "2026-08-11",
+    category: "世界模型",
+    paradigm: "Multi-stream Latent Flow Matching + Mixture-of-Transformers",
+    state: "Wan-2.2 VAE的RGB/pointmap latent + DINOv3语义token + action latent，投影到共享主干空间",
+    objective: "所有选中视觉流与action联合Flow Matching；per-stream dropout与cross-modality forcing",
+    decoding: "同一checkpoint可按需只采样action，或联合生成RGB、3D、语义future与action的任意子集",
+    sharing: "共享Mixture-of-Transformers与self-attention接口；RGB/pointmap共享冻结VAE，DINO使用独立冻结encoder+adapter",
+    open: "论文、项目页与代码仓库已公开；训练/推理代码及checkpoint标注为即将发布",
+    priority: "精读",
+    summary: "Flex-π把外观、3D pointmap、DINO语义与动作作为可插拔流联合去噪，并用per-stream dropout让一个6B checkpoint覆盖56种输入/输出组合：action-only约60 ms，full joint约193 ms。项目报告在真实双臂精密、柔性和长时任务上比强基线高2–7倍。",
+    why: "它正面回答统一模型是否必须让一个IBQ latent同时承担纹理、语义、几何和动作：不必。真正可共享的是主干交互空间与训练目标，各流仍可保留最合适的codec。对当前Qwen3+IBQ，生成清晰度、OCR语义和世界动力学竞争同一codebook容量，可能就是loss下降慢和样本效率低的来源之一。",
+    inspiration: "保留IBQ作为可渲染外观流，增加DINO/Qwen语义流与低维几何/轨迹流；用stream dropout训练Qwen3在缺任一流时仍能预测其他流。部署威胁检测时默认只输出risk/action；需要可视解释时再打开future IBQ/ELF流，形成真正可伸缩的理解—生成—预测—行动接口。",
+    experiment: "固定Qwen3参数量、总训练FLOPs与数据，比较单IBQ流、IBQ+语义双流、IBQ+几何+语义三流；每种都扫描action-only与joint future。报告OCRBench/DocVQA/TextVQA、T2I、未来语义/几何误差、闭环成功、stream缺失鲁棒性、跨流线性probe、60/193ms式质量—延迟前沿与每流显存。",
+    paper: "https://arxiv.org/abs/2608.10860",
+    code: "https://github.com/geyan21/flex-pi",
+    action: "连续双臂action chunk，与视觉future latent联合Flow Matching",
+    rollout: "action-only低延迟闭环或full-joint未来生成；同一权重按需启用不同stream",
+    evaluation: "RoboTwin、LIBERO与真实双臂精密/柔性/长时任务，任务成功、OOD、数据效率与延迟前沿",
     featured: true,
     idea: true,
   },
@@ -3656,7 +3775,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.11</strong>
+        <strong>DAILY BRIEF · 2026.08.12</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -3702,9 +3821,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 030]</p>
-              <h1>先区分“没有视觉证据”与“没有使用证据”，<br />再比较生成与世界动力学</h1>
-              <p className="hero-copy">今日五项构成一条完整诊断链：CVPD用zoom/remove反事实发现Qwen3可编码却未调用的视觉盲点；PCD对齐Diffusion训练与clean-prefix生成接口；PGSR在VAE压缩前后保留像素证据；风险敏感压缩把token预算分给高后果OCR与威胁区域；WorldSimProbe则检查动作是否真的引起对应运动与环境反应。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 031]</p>
+              <h1>Merged-token 路线仍值得继续，<br />下一步应对齐训练轨迹、压缩时点与多流状态</h1>
+              <p className="hero-copy">今日五项分别补齐当前收敛诊断的关键变量：Stream Forcing处理分块生成的训练—推理轨迹错配；SIEVE测量视觉信息何时已写入文本hidden、决定何时安全压缩；InSight-doc让2×2 merge在需要时恢复高分辨率；FACT用失败后果约束世界模型；Flex-π则把外观、语义、3D与动作拆成可插拔联合Flow流。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -3716,7 +3835,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>134</b><span>精选条目</span></div>
+                <div><b>139</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -3884,6 +4003,8 @@ export default function Home() {
                   <tr><th>SimWAM</th><td>连续视频expert hidden + action trajectory latent</td><td>video/action联合velocity；action以isolated attention防GT future泄漏</td><td>训练双Flow；推理丢弃视频分支，仅采样action</td><td>检验生成世界监督是否必须保留在部署路径</td></tr>
                   <tr><th>PCD</th><td>clean prefix IDs + corrupted suffix IDs</td><td>prefix next-token CE + suffix no-shift clean-token CE</td><td>clean prompt条件下并行迭代恢复suffix</td><td>固定Qwen/IBQ/head/NFE，只改变corruption与label接口；可从AR权重初始化</td></tr>
                   <tr><th>PGSR</th><td>VAE latent + pre-VAE多尺度pixel evidence</td><td>冻结Flow velocity + 轻量trajectory/decoder grounding</td><td>连续latent ODE后由pixel-grounded decoder渲染</td><td>隔离latent动力学与codec遗忘；OCR/小目标需单测压缩前证据</td></tr>
+                  <tr><th>Stream Forcing</th><td>连续视频VAE latent + frame-indexed noise level</td><td>沿用原denoising目标；连续校准训练noise轨迹</td><td>流式帧序与专门denoising order</td><td>固定ELF/Flow主干与target，只改变训练历史和noise配置到推理轨迹的对齐</td></tr>
+                  <tr><th>Flex-π</th><td>RGB/pointmap VAE latent + DINO语义 + action latent</td><td>多流联合Flow Matching + cross-modality forcing</td><td>同权重按需action-only或full-joint生成</td><td>检验单IBQ统一状态与外观/语义/几何多流共享主干的容量—延迟前沿</td></tr>
                 </tbody>
               </table>
             </div>
@@ -3944,6 +4065,8 @@ export default function Home() {
                   <tr><th>Logit-Lens evidence audit</th><td>不再merge；检查1×1与2×2 hidden中的字符/目标是否可线性读出</td><td>保持相同token预算，仅增加诊断probe</td><td>复用Qwen unembedding；无新生成head</td><td>attention定位→logit-lens一致性→必要时局部1×1恢复</td><td>区分“看到了区域”与“hidden仍保有可读视觉证据”</td></tr>
                   <tr><th>CVPD blind-spot audit</th><td>同一区域构造full / zoom / remove三视图</td><td>平均预算不变；只给三门筛选出的blind spot增加局部预算</td><td>原head + zoom→full token-level KL蒸馏</td><td>zoom sharpen且remove无效时判为“已编码但未利用”</td><td>区分IBQ缺失与Qwen证据利用失败，并指导1×1恢复</td></tr>
                   <tr><th>Consequence-sensitive allocation</th><td>内容选择器决定位置，任务后果曲线决定每请求总预算</td><td>保持全局平均N/4；高风险可1×1，低风险可2×2/4×4</td><td>不改Stage3 head；只改变token/resolution allocation</td><td>先离线校准cost–error–budget，再按query风险分配</td><td>同图不同问题必须获得不同预算；报告cost-weighted error而非仅平均分</td></tr>
+                  <tr><th>SIEVE cross-modal residual</th><td>每层把视觉hidden投影到文本token子空间，按不可解释残差保留token</td><td>逐层可变；固定平均N/4或同FLOPs</td><td>不改Stage3 head；CMR只决定何时压缩或重新激活</td><td>文本尚未吸收的高CMR视觉证据必须保留</td><td>把“压缩位置”从输入前固定merge升级为可测量的跨层控制变量</td></tr>
+                  <tr><th>InSight-doc zoom</th><td>低分辨率全局2×2 + agent选择region恢复1×1/高分辨率crop</td><td>平均预算固定，按query不确定性动态追加</td><td>原Qwen/IBQ head；zoom是显式感知动作</td><td>先overview后局部证据，必要时多轮放大</td><td>让merged-token路线可逆，单独衡量触发策略、缓存和尾部延迟</td></tr>
                 </tbody>
               </table>
             </div>
@@ -4008,6 +4131,8 @@ export default function Home() {
                   <tr><th>UniJEPA</th><td>共享连续embedding；光度不变性 + 时间等变性</td><td>离线轨迹真实action；goal feature</td><td>next embedding + Gaussian anti-collapse regularizer</td><td>统一photometric/temporal JEPA</td><td>多步latent rollout + zero-shot planning</td><td>Qwen3/IBQ的decoder-free语义动力学端点；renderer可选</td></tr>
                   <tr><th>SimWAM</th><td>预训练视频生成expert + 独立action expert</td><td>连续ego trajectory</td><td>video/action velocity + RL driving reward</td><td>联合Flow Matching；isolated attention双expert</td><td>部署只保留action planner，不生成未来视频</td><td>可用IBQ-URSA/ELF作training-only future expert，避免推理开销</td></tr>
                   <tr><th>WorldSimProbe</th><td>生成视频 + simulator reference motion/contact证据</td><td>局部扰动、跨场景donor、人类/策略/专家真实action</td><td>无训练目标；审计action→robot motion→environment response</td><td>兼容AR、Diffusion、Flow与混合ACWM</td><td>固定时长rollout；作为闭环规划与数据生成前置验收</td><td>用同一Qwen3+IBQ公平比较AR/URSA/ELF的因果可控性</td></tr>
+                  <tr><th>FACT</th><td>未来视频continuous latent + task-progress value</td><td>真实连续action；clean executed action条件化future/value</td><td>action、future video与progress联合denoising；失败仍监督后果</td><td>Causal Diffusion Transformer</td><td>先采样动作；可生成后果并用value重排候选，支持闭环</td><td>可用IBQ-URSA/ELF替换future流，重点加入失败反事实与泄漏隔离</td></tr>
+                  <tr><th>Flex-π</th><td>RGB/pointmap共享Wan-VAE latent + DINO语义token</td><td>连续双臂action chunk</td><td>各视觉future与action velocity联合Flow Matching</td><td>多流Mixture-of-Transformers + stream dropout</td><td>同checkpoint支持action-only 60ms或full-joint约193ms闭环/生成</td><td>共享主干与交互空间，不强迫IBQ同时承担外观、语义、3D和动作</td></tr>
                 </tbody>
               </table>
             </div>
