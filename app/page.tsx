@@ -3555,7 +3555,7 @@ const papers: Paper[] = [
     inspiration: "把2×2 block视为stream unit：训练早期广泛采样四slot的独立/相关corruption，随后逐步提高与真实解码一致的配置占比；AR local head则从GT前缀逐步过渡到生成前缀。URSA可对metric time做block-indexed schedule，ELF可对continuous t做同样轨迹校准，而不改变IBQ tokenizer与Qwen3。",
     experiment: "固定Qwen3、IBQ、2×2 merge、local head、数据与总FLOPs，比较全teacher forcing、随机block corruption、纯inference-order训练、Stream-Forcing式连续课程。共同报告GenEval、生成文字OCR、slot/block准确率、teacher-forcing/free-running差、早/晚block error、codebook perplexity、训练loss斜率、NFE、吞吐与显存；先用10M/20M/40M样本画data-scaling曲线。",
     paper: "https://arxiv.org/abs/2608.10439",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3577,7 +3577,7 @@ const papers: Paper[] = [
     inspiration: "在Qwen3每隔若干层测original 1×1 IBQ hidden相对文本/merged-block子空间的CMR。高CMR的文字、边界、小目标与关键帧保持1×1或进入local memory；低CMR且已被文本吸收的token再压缩。它还能检验2×2 merger是否真的把四slot信息写入单个Qwen hidden，而不只看最终VQA分数。",
     experiment: "固定平均N/4预算与Qwen3+IBQ，比较输入前固定2×2、attention merge、相似度merge、SIEVE中层压缩、输入2×2+高CMR late-reactivation。报告OCRBench/DocVQA/TextVQA、生成文字OCR、每层CMA/CMR、四slot线性probe、字符/小目标保留率、prefill、端到端p50/p95、KV显存和投影开销。",
     paper: "https://arxiv.org/abs/2608.10489",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3600,7 +3600,7 @@ const papers: Paper[] = [
     experiment: "固定平均视觉token与最大延迟，比较全程1×1、固定2×2、2×2+entropy zoom、2×2+SIEVE-CMR zoom、InSight-doc式SFT+RL。报告OCRBench/DocVQA/TextVQA、关键帧/小目标召回、zoom命中率、无效zoom率、幻觉、平均/尾部token、p50/p95延迟与缓存显存。",
     paper: "https://arxiv.org/abs/2608.10628",
     code: "https://github.com/m-Just/InSight-doc",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3626,7 +3626,7 @@ const papers: Paper[] = [
     action: "真实连续双臂action chunk；clean executed action条件化后果，noisy action slot用于生成",
     rollout: "未来视频与progress可用于候选评分；支持仿真和真实机器人闭环执行",
     evaluation: "RoboTwin 50任务、真实双臂操作、bad-action future质量、success-biased hallucination与闭环成功率",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3652,6 +3652,132 @@ const papers: Paper[] = [
     action: "连续双臂action chunk，与视觉future latent联合Flow Matching",
     rollout: "action-only低延迟闭环或full-joint未来生成；同一权重按需启用不同stream",
     evaluation: "RoboTwin、LIBERO与真实双臂精密/柔性/长时任务，任务成功、OOD、数据效率与延迟前沿",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "rift-wam",
+    index: "140",
+    title: "Keep the Future, Drop the Rollout: RIFT for World Action Models",
+    shortTitle: "RIFT",
+    date: "2026-08-12",
+    category: "世界模型",
+    paradigm: "One-pass Future Tokens + Fixed K/V Interface",
+    state: "首帧视频latent + 带时空位置的anticipation tokens；每层future K/V cache",
+    objective: "原生video/action Flow Matching + training-only conditional future-latent FM；停梯度L2 probe仅诊断",
+    decoding: "一次VideoStack prefill写入完整future K/V，随后action Flow反复读取同一cache；不解码未来视频",
+    sharing: "保留Fast-WAM的video/action专家与future-read接口；producer和consumer通过共享cache连接",
+    open: "论文与完整训练/干预细节已公开；截至收录日未发现作者官方代码仓库",
+    priority: "精读",
+    summary: "RIFT先用闭环干预证明action expert确实读取future cache的内容与时空位置，但对cache如何沿视频去噪轨迹演化并不敏感；随后用learned anticipation tokens在一次前向中构造最终future K/V。LIBERO成功率98.8%，action-chunk延迟相对rollout WAM降低68.2%–89.1%。",
+    why: "它把生成可观看的未来与给策略提供有用预测状态拆开。对Qwen3+IBQ而言，若多帧威胁判断只需目标轨迹、接触风险和状态变化，就没有必要让URSA/ELF每次完成像素级rollout。",
+    inspiration: "让Qwen3读取首帧/历史merged IBQ，并用带未来时空位置的anticipation blocks一次产生逐层K/V；威胁/action head直接读取cache。完整IBQ-URSA或ELF future仅在需要可视解释、审计或数据生成时打开。",
+    experiment: "固定Qwen3、IBQ、数据、future token数与action head，比较无future、8步URSA future、8步ELF future、final-cache replay和RIFT one-pass cache。除FVD外报告cache mask/空间shuffle/时间swap后的决策变化、轨迹误差、1/8/32步闭环成功、漏警、p50/p95延迟、NFE与KV显存。",
+    paper: "https://arxiv.org/abs/2608.11521",
+    action: "32步action chunk；action Flow Matching读取固定future-position K/V",
+    rollout: "策略闭环但无测试时视频rollout；一遍future prefill后完成action denoising",
+    evaluation: "40项LIBERO、RoboTwin 2.0、future-cache因果干预、EE-ADE、成功率与延迟",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "forewam",
+    index: "141",
+    title: "Foresight Without Seeing: Latent Futures for World Action Models",
+    shortTitle: "ForeWAM",
+    date: "2026-08-12",
+    category: "世界模型",
+    paradigm: "Future-KV + Latent-action Dynamics Registers",
+    state: "当前帧clean VAE latent + 随机future slots + 紧凑dynamics registers",
+    objective: "未来latent Flow + action Flow；冻结LaWM teacher以latent-action target监督registers",
+    decoding: "Video DiT在σ=1做一次prefill并缓存逐层K/V；Action DiT以10步或蒸馏2步读取cache，不渲染未来",
+    sharing: "Video DiT与Action DiT通过Future-KV和structured attention连接；教师、GT future仅训练期存在",
+    open: "论文与方法细节已公开；截至收录日未发现作者官方项目页或代码仓库",
+    priority: "精读",
+    summary: "ForeWAM放弃测试时未来视频，但保留显式预测接口：Future-KV提供分布式时空context，dynamics registers提供动作相关状态变化摘要。LIBERO平均96.7%，2步Ours-Flash为96.9%；LIBERO-Plus联合配置61.6%，action推理延迟从568 ms降到220 ms。",
+    why: "RIFT回答future cache能否一次写出，ForeWAM给出双粒度表示：高容量K/V保存场景未来，少量register保存物体运动、接触变化和任务进度，天然对应多帧威胁检测的像素证据与结构化态势。",
+    inspiration: "保留merged visual K/V作为高容量历史/未来接口，同时增加8–32个dynamics registers，由目标轨迹、接触/遮挡事件和风险进度监督。OCR字符串与外观留在IBQ路径，威胁趋势不依赖重建完整未来帧。",
+    experiment: "固定Qwen3/IBQ与总latent数，比较仅Future-KV、仅registers、无监督register、轨迹/事件teacher监督及二者联合；交叉action/威胁head 10步与2步蒸馏。报告OCR保持、目标/接触probe、future-slot permutation、horizon drift、闭环成功/漏警、延迟与显存。",
+    paper: "https://arxiv.org/abs/2608.11605",
+    action: "连续action chunk，由Action DiT Flow生成；支持10步与2步蒸馏版本",
+    rollout: "无显式未来视频；一次Future-KV prefill后直接闭环控制",
+    evaluation: "LIBERO、LIBERO-Plus、组件消融、成功率、延迟与潜在动力学可读性",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "world-tokens",
+    index: "142",
+    title: "World Tokens: Enhancing Embodied Policies with Training-Time World Modeling",
+    shortTitle: "World Tokens",
+    date: "2026-08-10",
+    category: "世界模型",
+    paradigm: "Training-only Video World Model + Exclusive Token Bottleneck",
+    state: "VLM视觉语言feature → 固定数量world tokens；训练期连接future-video latent denoiser",
+    objective: "future-video denoising与action generation联合训练；两路梯度共同塑造world tokens",
+    decoding: "训练期生成未来latent；部署移除整个video world-model分支，只由world tokens条件化action expert",
+    sharing: "World Adapter是理解、动力学和action的唯一共享接口；exclusive routing防止action绕过它",
+    open: "论文已公开；截至收录日未发现作者官方代码或项目页",
+    priority: "精读",
+    summary: "World Tokens用World Adapter把VLM输出压成固定token，并强制future denoiser与action expert都只读它。世界模型只作为训练信号，部署时被完整删除，因此保持VLA级action延迟。",
+    why: "它是RIFT/ForeWAM的关键反向对照：未来表示究竟必须在测试时显式存在，还是训练时塑造Qwen hidden就够了。若多帧威胁任务主要依赖语义状态而非可视future，这条路线成本更低。",
+    inspiration: "在Qwen3 merged hidden后放固定world-token adapter，同时让URSA/ELF future分支和威胁/action head只能读取它；训练后分别保留和删除future分支。exclusive routing可避免action绕过预测状态。",
+    experiment: "固定Qwen3、IBQ、adapter参数与FLOPs，比较action-only、future auxiliary但可绕行、exclusive world tokens、部署保留future read。报告world-token干预/置乱、OCR与目标状态probe、future prediction、1/8/32步闭环成功、漏警、训练成本与部署延迟。",
+    paper: "https://arxiv.org/abs/2608.09730",
+    action: "由action expert生成连续动作；world tokens是唯一视觉语言条件",
+    rollout: "训练期future-video denoising；部署无world-model推理或未来渲染",
+    evaluation: "LIBERO、SIMPLER、真实R1 Pro，matched action-only基线与VLA级延迟",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "x-tokenizer-action",
+    index: "143",
+    title: "X-Tokenizer: A Multimodal Action Tokenizer for Vision-Language-Action Pretraining",
+    shortTitle: "X-Tokenizer",
+    date: "2026-06-07 · v2近期补读",
+    category: "世界模型",
+    paradigm: "Semantic Residual Quantization for Action",
+    state: "连续action chunk → 多层RVQ离散tuple；首层语义code + 深层重建residual codes",
+    objective: "action重建 + 首层Masked Action Modeling + VL对比对齐 + next-frame VL feature prediction",
+    decoding: "编码器输出多级action IDs，RVQ embedding求和后由轻量decoder恢复连续可执行动作",
+    sharing: "冻结tokenizer可接混合离散—连续VLA；离散首层作为LLM语义接口，深层保留控制精度",
+    open: "论文、项目页、Apache-2.0代码与模型资源已公开",
+    priority: "精读",
+    summary: "X-Tokenizer把动作tokenizer从压缩器改成语义接口：第一级RVQ通过masked action modeling、VLM对齐和未来视觉语义预测学习粗动作意图，后续级只补执行残差。在17类机械臂、240万轨迹和20亿action frames上预训练。",
+    why: "视觉IBQ的语义—重建矛盾在动作侧同样存在。把连续action硬量化成无结构ID会让Qwen3难以学习靠近、抓取、避让等意图，只回归连续向量又难与LLM接口统一。",
+    inspiration: "让Qwen3只预测语义action code，局部decoder或Flow head再补细粒度连续残差；视觉IBQ也可仿照首层语义code+深层纹理residual，避免一个codebook同时承担OCR语义与像素细节。",
+    experiment: "固定Qwen3、轨迹、action horizon与decoder，比较连续Flow action、普通RVQ IDs、首层语义ID+连续residual、全层离散AR/URSA。报告action重建、语义grounding、code usage、跨具身迁移、闭环成功与延迟；视觉侧单报tokenizer上限。",
+    paper: "https://arxiv.org/abs/2606.14752",
+    code: "https://github.com/X-Square-Robot/X-Tokenizer",
+    action: "真实连续action经SRQ形成多级离散code，再解码回可执行action",
+    rollout: "tokenizer本身不做world rollout；next-frame VL prediction仅预训练期塑形语义code",
+    evaluation: "RoboTwin 2.0、真实桌面任务、VQA/grounding、跨17类机械臂与长时任务",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "barrier-flow-vla",
+    index: "144",
+    title: "Safe Vision Language Action Models via Barrier Enhanced Flow Matching",
+    shortTitle: "Barrier-FM",
+    date: "2026-07-31 · 近期补读",
+    category: "世界模型",
+    paradigm: "Control-Barrier-guided Action Flow Matching",
+    state: "连续action chunk / trajectory latent；安全集由机器人状态与几何barrier定义",
+    objective: "不重训原Flow；推理时以smooth LogSumExp聚合barrier约束velocity/QP",
+    decoding: "在每个Flow去噪/ODE更新中修正action velocity，使整段chunk满足安全约束",
+    sharing: "任意Flow action head的模块化inference层；不改变VLM、tokenizer、训练数据或语义条件",
+    open: "论文与理论/实验细节已公开；截至收录日未发现作者官方代码仓库",
+    priority: "泛读",
+    summary: "Barrier-FM不是在最终action后裁剪，而是把Control Barrier Function直接注入Flow采样路径，并用LogSumExp平滑聚合整段action chunk的安全性。它无需安全专用数据或再训练。",
+    why: "UMM扩展到行动后，生成质量和任务成功之外必须报告约束违例。ELF/MeanFlow/Rectified Flow式连续action head具有可微velocity路径，正适合把安全条件作为采样控制变量。",
+    inspiration: "把禁入区域、最小安全距离、目标碰撞锥或设备限位写成barrier，在ELF/Flow action或未来轨迹采样时逐步约束，同时保留原Qwen3语义意图。",
+    experiment: "固定Qwen3、IBQ、action Flow checkpoint和NFE，比较无约束、最终clip、每步Barrier-FM及同计算量rejection sampling；报告任务成功、最小安全margin、违规率、轨迹曲率/加速度、语义偏移与额外延迟。",
+    paper: "https://arxiv.org/abs/2607.29569",
+    action: "连续action chunk；CBF可由平面、球形障碍或任务特定安全函数定义",
+    rollout: "不生成视觉未来；在Flow action trajectory采样内部施加安全约束",
+    evaluation: "2D Maze、机器人操作与导航、安全margin、轨迹质量、成功率和计算开销",
     featured: true,
     idea: true,
   },
@@ -3775,7 +3901,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.12</strong>
+        <strong>DAILY BRIEF · 2026.08.13</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -3821,9 +3947,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 031]</p>
-              <h1>Merged-token 路线仍值得继续，<br />下一步应对齐训练轨迹、压缩时点与多流状态</h1>
-              <p className="hero-copy">今日五项分别补齐当前收敛诊断的关键变量：Stream Forcing处理分块生成的训练—推理轨迹错配；SIEVE测量视觉信息何时已写入文本hidden、决定何时安全压缩；InSight-doc让2×2 merge在需要时恢复高分辨率；FACT用失败后果约束世界模型；Flex-π则把外观、语义、3D与动作拆成可插拔联合Flow流。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 032]</p>
+              <h1>统一模型不必总是“看见未来”，<br />但必须保留可验证的预测接口</h1>
+              <p className="hero-copy">今日五项聚焦理解—生成—预测—行动的部署接口：RIFT与ForeWAM用一次future prefill替代迭代视频rollout；World Tokens把世界模型限制为训练期表示监督；X-Tokenizer把离散动作拆成语义意图与执行残差；Barrier-FM则把安全约束直接写入连续action Flow的采样路径。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -3835,7 +3961,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>139</b><span>精选条目</span></div>
+                <div><b>144</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -4005,6 +4131,8 @@ export default function Home() {
                   <tr><th>PGSR</th><td>VAE latent + pre-VAE多尺度pixel evidence</td><td>冻结Flow velocity + 轻量trajectory/decoder grounding</td><td>连续latent ODE后由pixel-grounded decoder渲染</td><td>隔离latent动力学与codec遗忘；OCR/小目标需单测压缩前证据</td></tr>
                   <tr><th>Stream Forcing</th><td>连续视频VAE latent + frame-indexed noise level</td><td>沿用原denoising目标；连续校准训练noise轨迹</td><td>流式帧序与专门denoising order</td><td>固定ELF/Flow主干与target，只改变训练历史和noise配置到推理轨迹的对齐</td></tr>
                   <tr><th>Flex-π</th><td>RGB/pointmap VAE latent + DINO语义 + action latent</td><td>多流联合Flow Matching + cross-modality forcing</td><td>同权重按需action-only或full-joint生成</td><td>检验单IBQ统一状态与外观/语义/几何多流共享主干的容量—延迟前沿</td></tr>
+                  <tr><th>X-Tokenizer</th><td>连续action → 首层语义ID + 深层RVQ residual IDs</td><td>重建 + masked action modeling + VL对齐 + future-feature prediction</td><td>LLM可预测粗语义ID；轻量decoder/连续head补执行残差</td><td>把动作tokenizer语义、重建精度与上层AR/URSA/Flow方式分别控制</td></tr>
+                  <tr><th>Barrier-FM</th><td>连续action chunk / trajectory latent</td><td>原Flow velocity + inference-time CBF/QP约束</td><td>保持ODE/denoising顺序，每步修正为安全velocity</td><td>固定ELF/Flow checkpoint与NFE，只改变采样约束并报告安全—语义偏移</td></tr>
                 </tbody>
               </table>
             </div>
@@ -4133,6 +4261,11 @@ export default function Home() {
                   <tr><th>WorldSimProbe</th><td>生成视频 + simulator reference motion/contact证据</td><td>局部扰动、跨场景donor、人类/策略/专家真实action</td><td>无训练目标；审计action→robot motion→environment response</td><td>兼容AR、Diffusion、Flow与混合ACWM</td><td>固定时长rollout；作为闭环规划与数据生成前置验收</td><td>用同一Qwen3+IBQ公平比较AR/URSA/ELF的因果可控性</td></tr>
                   <tr><th>FACT</th><td>未来视频continuous latent + task-progress value</td><td>真实连续action；clean executed action条件化future/value</td><td>action、future video与progress联合denoising；失败仍监督后果</td><td>Causal Diffusion Transformer</td><td>先采样动作；可生成后果并用value重排候选，支持闭环</td><td>可用IBQ-URSA/ELF替换future流，重点加入失败反事实与泄漏隔离</td></tr>
                   <tr><th>Flex-π</th><td>RGB/pointmap共享Wan-VAE latent + DINO语义token</td><td>连续双臂action chunk</td><td>各视觉future与action velocity联合Flow Matching</td><td>多流Mixture-of-Transformers + stream dropout</td><td>同checkpoint支持action-only 60ms或full-joint约193ms闭环/生成</td><td>共享主干与交互空间，不强迫IBQ同时承担外观、语义、3D和动作</td></tr>
+                  <tr><th>RIFT</th><td>首帧latent + 带时空位置的anticipation token K/V</td><td>连续action Flow chunk</td><td>training-only conditional future-latent FM塑形cache；部署只采action</td><td>一次future prefill + 固定K/V消费</td><td>无视频rollout；闭环控制，延迟接近current-only</td><td>IBQ/URSA/ELF可作为可选render teacher，Qwen只需一次写出可干预future cache</td></tr>
+                  <tr><th>ForeWAM</th><td>当前VAE latent + noisy future slots + dynamics registers</td><td>连续action Flow，10步或2步蒸馏</td><td>future latent Flow + latent-action teacher监督register</td><td>Future-KV prefill + structured attention</td><td>不渲染future；直接闭环，保留显式预测接口</td><td>IBQ K/V保存OCR/外观，register保存目标运动、接触与风险进度</td></tr>
+                  <tr><th>World Tokens</th><td>VLM feature压成固定world-token bottleneck</td><td>连续action expert</td><td>训练期future-video denoising + action objective</td><td>training-only world model + exclusive routing</td><td>部署删除video分支；无future read或渲染</td><td>最便宜的Qwen3+IBQ预测性辅助基线，需用干预验证world tokens未被绕过</td></tr>
+                  <tr><th>X-Tokenizer</th><td>首层语义action ID + 深层重建residual IDs</td><td>真实连续action的多级RVQ接口</td><td>重建、MAM、VL对齐与next-frame feature prediction</td><td>离散语义接口 + 连续执行解码</td><td>由下游VLA闭环；tokenizer本身不做future rollout</td><td>把统一理解—生成扩展到离散意图—连续行动，并与IBQ语义/细节分层呼应</td></tr>
+                  <tr><th>Barrier-FM</th><td>连续action trajectory + 几何安全集</td><td>连续action chunk</td><td>原Flow velocity；推理期CBF/QP修正</td><td>Control-barrier-guided Flow sampling</td><td>不预测视觉未来；每步保证chunk安全约束</td><td>适合作为ELF/Flow action安全层；必须单报约束违例、语义偏移与额外延迟</td></tr>
                 </tbody>
               </table>
             </div>
