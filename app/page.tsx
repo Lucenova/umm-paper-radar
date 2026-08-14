@@ -3677,7 +3677,7 @@ const papers: Paper[] = [
     action: "32步action chunk；action Flow Matching读取固定future-position K/V",
     rollout: "策略闭环但无测试时视频rollout；一遍future prefill后完成action denoising",
     evaluation: "40项LIBERO、RoboTwin 2.0、future-cache因果干预、EE-ADE、成功率与延迟",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3702,7 +3702,7 @@ const papers: Paper[] = [
     action: "连续action chunk，由Action DiT Flow生成；支持10步与2步蒸馏版本",
     rollout: "无显式未来视频；一次Future-KV prefill后直接闭环控制",
     evaluation: "LIBERO、LIBERO-Plus、组件消融、成功率、延迟与潜在动力学可读性",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3727,7 +3727,7 @@ const papers: Paper[] = [
     action: "由action expert生成连续动作；world tokens是唯一视觉语言条件",
     rollout: "训练期future-video denoising；部署无world-model推理或未来渲染",
     evaluation: "LIBERO、SIMPLER、真实R1 Pro，matched action-only基线与VLA级延迟",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3753,7 +3753,7 @@ const papers: Paper[] = [
     action: "真实连续action经SRQ形成多级离散code，再解码回可执行action",
     rollout: "tokenizer本身不做world rollout；next-frame VL prediction仅预训练期塑形语义code",
     evaluation: "RoboTwin 2.0、真实桌面任务、VQA/grounding、跨17类机械臂与长时任务",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3778,6 +3778,129 @@ const papers: Paper[] = [
     action: "连续action chunk；CBF可由平面、球形障碍或任务特定安全函数定义",
     rollout: "不生成视觉未来；在Flow action trajectory采样内部施加安全约束",
     evaluation: "2D Maze、机器人操作与导航、安全margin、轨迹质量、成功率和计算开销",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "v-rae-video-latent",
+    index: "145",
+    title: "V-RAE: Rethinking Video Latent Spaces for Generation",
+    shortTitle: "V-RAE",
+    date: "2026-08-13",
+    category: "语义对齐",
+    paradigm: "Frozen Semantic Encoder + Reconstructable Video RAE",
+    state: "冻结DINOv3 / SigLIP2 / EUPE / V-JEPA 2.1特征，经temporal pooling形成连续语义video latent",
+    objective: "tokenizer用L1+LPIPS+GAN+Gram重建；生成器以Rectified Flow预测clean semantic latent",
+    decoding: "100步Euler并行生成连续latent，再由冻结V-RAE decoder恢复视频",
+    sharing: "理解encoder直接定义生成latent空间；pooler、decoder与DiT分工，不共享离散vocabulary或输出head",
+    open: "论文与项目页已公开；截至收录日未发现官方训练代码或权重",
+    priority: "精读",
+    summary: "V-RAE把冻结视觉基础模型的语义特征改造成可重建视频latent，并在matched DiT下报告最多约6倍更快收敛。它还指出重建FVD不足以预测下游生成质量，提出更贴近生成器行为的tFVD诊断。",
+    why: "当前IBQ的低perplexity、颜色调色板塌缩和Stage 3难学，可能不只是大词表head问题，也可能是重建最优的code空间对生成动力学不友好。V-RAE提供了‘生成友好latent’的连续端点，能与URSA离散metric path和ELF embedding velocity形成干净三角对照。",
+    inspiration: "保留IBQ作为可解码像素分支，同时从冻结DINO/Qwen视觉特征学习轻量temporal pooler与decoder，让Qwen3条件化语义连续latent；OCR与细粒度重建仍由IBQ监督，运动、物体身份和长时一致性由semantic RAE承担。",
+    experiment: "固定Qwen3、视频数据、decoder容量与训练FLOPs，比较IBQ-ID AR、IBQ-ID URSA、IBQ embedding ELF、V-RAE式semantic latent ELF；分别报告tokenizer-only重建、code usage、达到同loss所需样本、OCRBench/DocVQA/TextVQA、T2I、tFVD、未来语义误差和horizon drift。",
+    paper: "https://arxiv.org/abs/2608.13556",
+    code: "https://v-rae.github.io/",
+    codeLabel: "项目",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "cmd-causal-distillation",
+    index: "146",
+    title: "Context-Matched Distillation: Teacher Causality for Autoregressive Video Distillation",
+    shortTitle: "CMD",
+    date: "2026-08-13",
+    category: "连续 Flow",
+    paradigm: "Causal Teacher + Context-Matched Few-Step Distillation",
+    state: "causal video latent blocks、student-generated prefix cache与随时间变化的控制条件",
+    objective: "teacher只在可用因果prefix上评分；Prefix Scoring与Prefix Corruption稳定少步蒸馏",
+    decoding: "帧间或chunk间AR，块内少步Diffusion / Flow；每个block只读取已生成历史和当前可用控制",
+    sharing: "teacher与student保持同一causal架构和初始化；禁止未来帧、未来控制及GT历史泄漏",
+    open: "论文与项目页已公开；截至收录日未发现官方训练代码",
+    priority: "精读",
+    summary: "CMD指出视频蒸馏常见的非因果teacher和真实历史条件会产生context mismatch：训练评分很好，free-running却迅速漂移。它用因果teacher、缓存的学生prefix与可控prefix corruption对齐训练和推理上下文。",
+    why: "这直接对应2×2 folding后的Stage 3和URSA→ELF少步改造：若teacher看到了当前GT block、未来block或完整控制序列，loss下降并不能证明模型会在自生成IBQ历史上稳定工作。",
+    inspiration: "把每个merged block视为causal chunk：Qwen3只提供前一block hidden，teacher与student都在相同的自生成prefix上预测TL/TR/BL/BR；以受控比例腐化历史IBQ block，专门训练OCR字符、小目标和多帧轨迹的误差恢复。",
+    experiment: "固定Qwen3、IBQ、teacher checkpoint、student NFE和总FLOPs，比较非因果teacher、因果teacher、Prefix Scoring、Prefix Scoring+Corruption；报告teacher-forcing/free-running差距、2×2 block exact match、误差随horizon累积、OCRBench/DocVQA/TextVQA、T2I、吞吐与峰值显存。",
+    paper: "https://arxiv.org/abs/2608.13391",
+    code: "https://hmrishavbandy.github.io/cmd-site/",
+    codeLabel: "项目",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "sgu-umm-closed-loop",
+    index: "147",
+    title: "Do You See What You Draw? A Semantic Closed-Loop Framework for Holistic Evaluation of Unified Multimodal Models",
+    shortTitle: "SGU",
+    date: "2026-08-12",
+    category: "评测诊断",
+    paradigm: "Self-Generative-Understanding Closed Loop",
+    state: "原图→文本描述→自生成图像→视觉问答/推理响应",
+    objective: "无需新增训练；用阶段替换和闭环任务得分分解理解、语言瓶颈、生成与再理解",
+    decoding: "理解→描述→生成→重新理解的串联闭环",
+    sharing: "由同一UMM调用理解与生成分支，检验功能共享而非只检查tokenizer/Transformer名义共享",
+    open: "论文已公开；截至收录日未发现作者官方代码仓库",
+    priority: "精读",
+    summary: "SGU让UMM先描述输入，再依据自己的描述生成图像，最后回答关于自生成图像的问题；结果显示单独理解或生成很强的模型，在自生成上下文里仍会显著失真。",
+    why: "OCRBench或GenEval各自变好，并不能证明Qwen3+IBQ已经统一。SGU能定位失败究竟来自原图理解、caption丢失文字/布局、AR/URSA/ELF生成，还是模型无法重新读取自己生成的文字和小目标。",
+    inspiration: "构造OCR/DocVQA闭环：文档图→结构化caption/OCR schema→重绘→再次DocVQA；多帧威胁闭环则让模型描述目标轨迹→生成未来帧→再判断风险，并对每一段替换oracle输入。",
+    experiment: "固定Qwen3、IBQ、prompt与数据，比较AR、URSA、ELF三种生成分支；分别替换oracle caption、oracle image与独立强VLM evaluator。报告原始理解、重绘文字CER、布局关系、self-VQA、威胁判断一致率及端到端闭环下降。",
+    paper: "https://arxiv.org/abs/2608.11907",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "playworld-agent-benchmark",
+    index: "148",
+    title: "PlayWorld: An Agent Player for Evaluating Long-Horizon Interactive World Models",
+    shortTitle: "PlayWorld",
+    date: "2026-08-13",
+    category: "世界模型",
+    paradigm: "Agent-Player Long-Horizon Interactive Benchmark",
+    state: "世界模型生成的RGB观测、动作历史、目标进度与有限交互记忆",
+    objective: "无生成训练目标；Agent Player用Keep / Stop / Extend / Correct / End策略完成高层目标并逐阶段评分",
+    decoding: "策略反复观察生成世界、适配不同动作粒度并闭环修改后续动作",
+    sharing: "模型无关评测层；不要求共享tokenizer/Transformer，但统一不同世界模型的交互协议",
+    open: "论文、项目页、评测代码与数据入口已公开",
+    priority: "精读",
+    summary: "PlayWorld用Agent Player在171个场景中主动操作视频世界模型，评价几何一致性、交互忠实度、视野外演化与长时目标进展。对9个代表模型的测试显示，短视频质量仍远未转化为可靠长时交互。",
+    why: "固定动作序列既无法适配不同模型的控制粒度，也不能反映多帧威胁系统能否根据新证据纠正计划。PlayWorld补齐了FVD、LPIPS和单轮action-following之后真正重要的闭环端点。",
+    inspiration: "把Agent Player换成Qwen3 threat player：观察历史/生成future，选择保持、扩帧、纠正轨迹、停止或报警；统一用目标可达性、误警/漏警与动作后的环境响应评价IBQ-AR、URSA和ELF世界模型。",
+    experiment: "固定Qwen3、IBQ、场景与每回合总NFE，比较脚本动作、统一离散动作、模型自适配Agent Player；在AR/URSA/ELF三条动力学上报告1/8/32步成功率、动作修正次数、视野外状态保持、因果响应、horizon error、p95延迟和总计算。",
+    paper: "https://arxiv.org/abs/2608.13552",
+    code: "https://kxding.github.io/project/PlayWorld/",
+    codeLabel: "项目",
+    action: "Agent Player按目标动态选择动作，并适配不同世界模型的控制粒度",
+    rollout: "长时闭环交互；持续观察、纠错、扩展或终止，显式检查视野外演化",
+    evaluation: "171个场景；几何、交互、out-of-sight演化、目标进展、长时成功率与计算成本",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "dreamx-phi",
+    index: "149",
+    title: "DreamX-Phi 1.0: A Geometry-aware Action-conditioned Video World Model",
+    shortTitle: "DreamX-Phi",
+    date: "2026-08-13",
+    category: "世界模型",
+    paradigm: "Geometry-aware Action-conditioned Video Diffusion + Few-step DMD",
+    state: "Wan2.2视频VAE latent + depth几何 + SAM3 object mask / V-JEPA语义feature",
+    objective: "future-latent denoising、depth分支、object-centric V-JEPA一致性，并以DMD蒸馏少步student",
+    decoding: "观测帧、语言指令与双臂SE(3)+gripper轨迹条件化未来视频；teacher多步、student少步",
+    sharing: "冻结视频生成主干与语义teacher；PRoPE把双臂几何action注入attention，不共享LLM vocabulary/head",
+    open: "论文与官方仓库已公开；代码和权重标注为WorldArena2挑战后发布",
+    priority: "精读",
+    summary: "DreamX-Phi在Wan2.2-TI2V-5B上增加PRoPE几何动作编码、depth分支和SAM3/V-JEPA物体一致性监督，再用DMD得到少步模型，目标是同时保持动作可控、空间几何和交互物体身份。",
+    why: "将动作压成普通token ID容易丢失双臂相对位姿和接触几何；只优化视频像素又会让小物体、文字标记和威胁目标随rollout漂移。该工作给出动作几何、场景几何与语义身份三种监督的可分解模板。",
+    inspiration: "在Qwen3+IBQ中让文本/离散action表达意图，另用PRoPE式SE(3)或轨迹position编码调制URSA/ELF attention；以目标mask内V-JEPA/Qwen视觉feature约束小目标、文字区域与身份跨帧一致。",
+    experiment: "固定Qwen3、IBQ、视频数据、参数与NFE，依次增加普通action token、SE(3)-PRoPE、depth辅助、object-semantic teacher和DMD；报告action shuffle/镜像反事实、轨迹误差、接触成功、OCR/身份保持、1/8/32步漂移、闭环成功、FVD与延迟。",
+    paper: "https://arxiv.org/abs/2608.13489",
+    code: "https://github.com/AMAP-ML/DreamX-Phi",
+    action: "文本指令 + 双臂末端执行器SE(3)轨迹与gripper状态",
+    rollout: "action-conditioned未来视频；少步student面向低延迟闭环与反事实预览",
+    evaluation: "动作遵循、几何/物体一致性、视频质量、少步速度与机器人交互任务",
     featured: true,
     idea: true,
   },
@@ -3901,7 +4024,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.13</strong>
+        <strong>DAILY BRIEF · 2026.08.14</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -3947,9 +4070,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 032]</p>
-              <h1>统一模型不必总是“看见未来”，<br />但必须保留可验证的预测接口</h1>
-              <p className="hero-copy">今日五项聚焦理解—生成—预测—行动的部署接口：RIFT与ForeWAM用一次future prefill替代迭代视频rollout；World Tokens把世界模型限制为训练期表示监督；X-Tokenizer把离散动作拆成语义意图与执行残差；Barrier-FM则把安全约束直接写入连续action Flow的采样路径。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 033]</p>
+              <h1>先把“表示是否适合生成”与<br />“模型是否真正统一”分开验证</h1>
+              <p className="hero-copy">今日五项补齐三条关键证据链：V-RAE比较重建latent与生成友好latent，CMD消除少步视频蒸馏中的未来泄漏和prefix错配，SGU用自生成—再理解闭环审计UMM；PlayWorld与DreamX-Phi进一步把评测推进到长时交互、动作几何与物体一致性。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -3961,7 +4084,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>144</b><span>精选条目</span></div>
+                <div><b>149</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -4133,6 +4256,9 @@ export default function Home() {
                   <tr><th>Flex-π</th><td>RGB/pointmap VAE latent + DINO语义 + action latent</td><td>多流联合Flow Matching + cross-modality forcing</td><td>同权重按需action-only或full-joint生成</td><td>检验单IBQ统一状态与外观/语义/几何多流共享主干的容量—延迟前沿</td></tr>
                   <tr><th>X-Tokenizer</th><td>连续action → 首层语义ID + 深层RVQ residual IDs</td><td>重建 + masked action modeling + VL对齐 + future-feature prediction</td><td>LLM可预测粗语义ID；轻量decoder/连续head补执行残差</td><td>把动作tokenizer语义、重建精度与上层AR/URSA/Flow方式分别控制</td></tr>
                   <tr><th>Barrier-FM</th><td>连续action chunk / trajectory latent</td><td>原Flow velocity + inference-time CBF/QP约束</td><td>保持ODE/denoising顺序，每步修正为安全velocity</td><td>固定ELF/Flow checkpoint与NFE，只改变采样约束并报告安全—语义偏移</td></tr>
+                  <tr><th>V-RAE</th><td>冻结视觉基础模型的连续semantic video latent</td><td>tokenizer重建 + clean-latent Rectified Flow</td><td>100步Euler并行生成latent，再由冻结decoder恢复视频</td><td>固定DiT/decoder与数据，隔离重建友好latent和生成友好latent</td></tr>
+                  <tr><th>CMD</th><td>causal video latent block + student-generated prefix</td><td>因果teacher score + few-step distillation</td><td>块间AR、块内少步Diffusion/Flow</td><td>teacher未来泄漏、GT/self prefix mismatch与prefix corruption</td></tr>
+                  <tr><th>SGU</th><td>图像—caption—自生成图像—回答的跨模态闭环</td><td>无新训练；端到端闭环与阶段替换评分</td><td>理解→描述→生成→重新理解</td><td>固定prompt/evaluator，用oracle替换分离理解、语言瓶颈与生成误差</td></tr>
                 </tbody>
               </table>
             </div>
@@ -4266,6 +4392,10 @@ export default function Home() {
                   <tr><th>World Tokens</th><td>VLM feature压成固定world-token bottleneck</td><td>连续action expert</td><td>训练期future-video denoising + action objective</td><td>training-only world model + exclusive routing</td><td>部署删除video分支；无future read或渲染</td><td>最便宜的Qwen3+IBQ预测性辅助基线，需用干预验证world tokens未被绕过</td></tr>
                   <tr><th>X-Tokenizer</th><td>首层语义action ID + 深层重建residual IDs</td><td>真实连续action的多级RVQ接口</td><td>重建、MAM、VL对齐与next-frame feature prediction</td><td>离散语义接口 + 连续执行解码</td><td>由下游VLA闭环；tokenizer本身不做future rollout</td><td>把统一理解—生成扩展到离散意图—连续行动，并与IBQ语义/细节分层呼应</td></tr>
                   <tr><th>Barrier-FM</th><td>连续action trajectory + 几何安全集</td><td>连续action chunk</td><td>原Flow velocity；推理期CBF/QP修正</td><td>Control-barrier-guided Flow sampling</td><td>不预测视觉未来；每步保证chunk安全约束</td><td>适合作为ELF/Flow action安全层；必须单报约束违例、语义偏移与额外延迟</td></tr>
+                  <tr><th>V-RAE</th><td>冻结DINO/V-JEPA等连续semantic video latent</td><td>文本条件；无显式机器人action</td><td>clean semantic latent + 可解码视频</td><td>Representation Autoencoder + Rectified Flow</td><td>支持future prediction；闭环规划未报告</td><td>把IBQ重建流与ELF语义动力学流分开，需同时报告tFVD和任务指标</td></tr>
+                  <tr><th>CMD</th><td>causal video latent blocks + self-generated prefix</td><td>随时间可用的控制条件</td><td>teacher score / few-step student future latent</td><td>块间AR + 块内Diffusion/Flow蒸馏</td><td>长时生成；训练上下文严格匹配free-running</td><td>可直接审计Qwen3+IBQ的未来泄漏、prefix mismatch和horizon drift</td></tr>
+                  <tr><th>PlayWorld</th><td>世界模型生成RGB、目标进度与交互历史</td><td>Agent Player自适配动作粒度</td><td>无训练目标；闭环目标完成与世界反应评测</td><td>兼容AR、Diffusion、Flow与混合世界模型</td><td>171场景长时闭环，观察—纠错—扩展—终止</td><td>为AR/URSA/ELF提供同一Agent Player，防止只比FVD或固定动作跟随</td></tr>
+                  <tr><th>DreamX-Phi</th><td>Wan2.2 VAE latent + depth + object semantic feature</td><td>文本 + 双臂SE(3)轨迹与gripper</td><td>future latent、depth、物体一致性与少步DMD</td><td>geometry-aware video diffusion + DMD</td><td>action-conditioned future rollout；面向低延迟反事实预览</td><td>Qwen负责语义意图，PRoPE保持动作几何，IBQ/ELF承担可渲染future</td></tr>
                 </tbody>
               </table>
             </div>
