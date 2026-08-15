@@ -3802,7 +3802,7 @@ const papers: Paper[] = [
     paper: "https://arxiv.org/abs/2608.13556",
     code: "https://v-rae.github.io/",
     codeLabel: "项目",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3826,7 +3826,7 @@ const papers: Paper[] = [
     paper: "https://arxiv.org/abs/2608.13391",
     code: "https://hmrishavbandy.github.io/cmd-site/",
     codeLabel: "项目",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3848,7 +3848,7 @@ const papers: Paper[] = [
     inspiration: "构造OCR/DocVQA闭环：文档图→结构化caption/OCR schema→重绘→再次DocVQA；多帧威胁闭环则让模型描述目标轨迹→生成未来帧→再判断风险，并对每一段替换oracle输入。",
     experiment: "固定Qwen3、IBQ、prompt与数据，比较AR、URSA、ELF三种生成分支；分别替换oracle caption、oracle image与独立强VLM evaluator。报告原始理解、重绘文字CER、布局关系、self-VQA、威胁判断一致率及端到端闭环下降。",
     paper: "https://arxiv.org/abs/2608.11907",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3875,7 +3875,7 @@ const papers: Paper[] = [
     action: "Agent Player按目标动态选择动作，并适配不同世界模型的控制粒度",
     rollout: "长时闭环交互；持续观察、纠错、扩展或终止，显式检查视野外演化",
     evaluation: "171个场景；几何、交互、out-of-sight演化、目标进展、长时成功率与计算成本",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3901,6 +3901,123 @@ const papers: Paper[] = [
     action: "文本指令 + 双臂末端执行器SE(3)轨迹与gripper状态",
     rollout: "action-conditioned未来视频；少步student面向低延迟闭环与反事实预览",
     evaluation: "动作遵循、几何/物体一致性、视频质量、少步速度与机器人交互任务",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "alaya-evoke",
+    index: "150",
+    title: "Alaya-EVOKE: From Linear-Scaling Supervision to Endless World",
+    shortTitle: "Alaya-EVOKE",
+    date: "2026-08-13",
+    category: "世界模型",
+    paradigm: "External World-State Memory + Sparse-attention Few-step Video World Model",
+    state: "camera-indexed外部world-state bank + view-relevant检索 + bounded denoiser context",
+    objective: "长时sparse-attention teacher；30秒self-forced distribution matching蒸馏3步student",
+    decoding: "每1.5秒生成一个chunk；3步、无CFG，外部状态循环写入并按当前视角读取",
+    sharing: "状态记忆与生成主干解耦；不共享LLM词表/head，但可把Qwen/IBQ事件状态写入同一bank",
+    open: "论文与完整方法/评测已公开；截至收录日未发现作者官方代码仓库",
+    priority: "精读",
+    summary: "Evoke把无限交互的两类瓶颈拆开：相机索引的外部世界状态保存场景几何，denoiser只检索当前视角相关信息；teacher以chunk分组、远帧检索与线性attention全局态获得线性增长的长时监督，再蒸馏为无CFG的3步student。单张H200、384×640下，每1.5秒chunk用2.11秒生成。",
+    why: "多帧威胁系统若把全部历史IBQ token塞进Qwen KV，显存和检索噪声都会随时间增长；只保留滑窗又会忘记视野外目标、文字标记和已发生事件。Evoke给出把持久世界状态与短期生成上下文分离的可操作设计。",
+    inspiration: "建立以相机位姿/场景区域索引的IBQ+语义事件bank：Qwen3只读取当前帧、最近若干帧及与当前视角相交的历史目标/文字/轨迹；URSA或ELF负责局部future chunk，bank保存可跨窗口复用的几何与身份状态。",
+    experiment: "固定Qwen3、IBQ、Flow主干、数据与3 NFE，比较全历史KV、固定滑窗、滑窗+向量检索、Evoke式camera-indexed state bank。报告1/8/32/128 chunk的身份/OCR保持、视野外目标回访、动作响应、horizon drift、显存随时长斜率、p95延迟与闭环威胁判断。",
+    paper: "https://arxiv.org/abs/2608.13546",
+    action: "文本/事件控制可逐chunk改变；外部camera-indexed state约束视角一致性",
+    rollout: "开放时长连续rollout；bounded context + recurrent external memory",
+    evaluation: "WBench、VBench-Long、VBench-2.0、长时内容漂移、实时性与显存/计算增长",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "himec-fixed-interface",
+    index: "151",
+    title: "HIMEC: Directional Change Representation and Fixed-Interface Decoding for Remote Sensing Image Change Captioning",
+    shortTitle: "HIMEC",
+    date: "2026-08-12",
+    category: "多帧推理",
+    paradigm: "Directional Change Tokens + Regime-matched Fixed Decoder Interface",
+    state: "双时相feature分解为appearance、disappearance与shared-context三流，再压成change-query tokens",
+    objective: "scene caption CE + training-only phrase supervision；固定zero input保持训练/推理接口一致",
+    decoding: "scene decoder只读取change-query memory；诊断cascade比较teacher-forced与AR local states",
+    sharing: "视觉变化encoder与文本decoder通过固定query接口连接；不共享视觉tokenizer/vocabulary/head",
+    open: "论文与官方仓库已公开；代码、模型及复现说明标注为论文发表后发布",
+    priority: "精读",
+    summary: "HIMEC先显式分开出现、消失和不变背景，再用learned queries形成唯一的样本相关memory。它还测得teacher-forced local state与推理AR state平均cosine distance为0.69；匹配训练/推理条件能恢复大部分损失，而随机打乱state对应关系没有可测代价，说明接口错配可能比名义层次结构更关键。",
+    why: "这与2×2 Stage 3和多帧威胁检测同时对口：真正需要保留的不是两帧全部外观，而是新增、消失、位移和共享背景；同时，hᵢ预测当前GT block或训练只见GT历史会制造虚假收益。",
+    inspiration: "将相邻帧IBQ/Qwen hidden分成enter、leave/move与persistent三类change tokens，威胁head只读取固定数量query memory；训练local block head时用self-generated或受控腐化prefix，保持与free-running完全相同的输入接口。",
+    experiment: "固定Qwen3、IBQ、token预算与数据，比较直接concat、signed difference、appearance/disappearance/shared DCR；交叉GT prefix、self prefix与prefix corruption。报告变化分类、目标出现/消失/轨迹召回、2×2 block exact match、OCR/文字变化、teacher-forcing gap、延迟与显存。",
+    paper: "https://arxiv.org/abs/2608.12502",
+    code: "https://github.com/ayshaashra/HIMEC",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "contactguard",
+    index: "152",
+    title: "ContactGuard: Pre-Contact Execution Monitoring with Action-Conditioned Latent World Models",
+    shortTitle: "ContactGuard",
+    date: "2026-08-13",
+    category: "世界模型",
+    paradigm: "Action-conditioned Latent Consequence Model + Failure Probe",
+    state: "紧凑多视角视觉embedding；不生成未来像素",
+    objective: "无标签轨迹训练短时next-latent；少量pre-contact标签训练轻量failure probe",
+    decoding: "接触前anchor状态，沿策略计划action chunk前滚到post-contact latent并决定abort",
+    sharing: "策略保持不变，world model作为外接监控器；可复用Qwen3语义hidden或IBQ上层embedding",
+    open: "论文与真实机器人结果已公开；截至收录日未发现作者官方代码仓库",
+    priority: "精读",
+    summary: "ContactGuard在动作真正造成接触前预测其短时视觉后果：latent world model从无标签机器人轨迹学习，多视角embedding避免像素视频开销，再用小规模失败标签训练probe。部署时直接读取原策略的action chunk，预测危险就提前中止，无需改动底层策略。",
+    why: "它比‘生成未来视频看起来是否合理’更接近你的威胁检测终点：系统必须在碰撞、滑落、漏抓或危险接近发生前给出可校准的停止信号，而且延迟低到能进入闭环。",
+    inspiration: "对Qwen3+IBQ增加一个短时semantic consequence head，输入当前多帧merged hidden与候选处置action；默认只输出风险/abort，不解码图像。只有高不确定样本再调用URSA/ELF渲染future作为解释或复核。",
+    experiment: "固定Qwen3、视觉encoder、action chunk、无标签轨迹和failure标签量，比较当前帧classifier、无action latent predictor、真实action predictor、打乱action predictor与完整IBQ/ELF video rollout。报告提前量、AUROC/AUPRC、漏警/误警、action-shuffle敏感性、闭环中止成功率、延迟和显存。",
+    paper: "https://arxiv.org/abs/2608.13438",
+    action: "底层策略计划的真实action chunk",
+    rollout: "接触前短时latent rollout；以abort信号闭环干预，无像素解码",
+    evaluation: "真实接触丰富操作、failure prediction、corrupted-action消融、live-robot pre-contact abort",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "xyzflow",
+    index: "153",
+    title: "XYZFlow: Scaling Multi-dimensional Shortcut Flows for Efficient Generative Modeling",
+    shortTitle: "XYZFlow",
+    date: "2026-08-13 · v2 · ICML 2026",
+    category: "连续 Flow",
+    paradigm: "Non-Markovian Shortcut Flow + Next Shortcut Prediction",
+    state: "连续图像/VAE latent patch及其完整denoising trajectory",
+    objective: "shortcut Flow velocity；时间维条件化完整去噪历史，空间维预测下一patch轨迹",
+    decoding: "少步Flow；patch间顺序生成，patch内并行去噪，并以前序patch轨迹作prior",
+    sharing: "连续生成head与AR式空间context结合；可由现有Flow/DiT初始化，但不天然共享离散LLM vocabulary/head",
+    open: "论文与ICML 2026版本已公开；截至收录日未发现作者官方代码仓库",
+    priority: "精读",
+    summary: "XYZFlow把少步生成从单纯蒸馏改写为两个正交的可辨识性来源：时间维让当前更新读取完整denoising history，空间维以Next Shortcut Prediction顺序生成patch并复用前序patch的去噪轨迹。论文报告相对teacher 7.2–8.5倍加速。",
+    why: "它是2×2 merged Stage 3缺失的连续对照：ELF通常让所有位置共同预测velocity，Block Transformer在四个离散ID内做local AR；XYZFlow则让块间/patch间因果、块内连续并行，直接检验空间顺序能否减少少步Flow的轨迹歧义。",
+    inspiration: "把每个Qwen merged hidden作为一个2×2 patch context：global Qwen按raster预测patch，local Flow用2–4步并行恢复TL/TR/BL/BR的连续可解码latent，并把前一patch的velocity history作为额外条件，而非只传最终hidden。",
+    experiment: "固定Qwen3、IBQ或可解码latent、数据、参数与总FLOPs，比较ELF全局并行、block-causal Flow、XYZFlow式full-history、local AR K-way head；扫描1/2/4/8 NFE。报告latent→ID回投、四slot/block准确率、OCRBench/DocVQA/TextVQA、T2I、邻块接缝、吞吐与KV/trajectory memory。",
+    paper: "https://arxiv.org/abs/2608.12276",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "dscc-cross-anchor",
+    index: "154",
+    title: "Dual-Stream Cross-Anchor Correction for Grounded Long-Form Captions",
+    shortTitle: "DSCC",
+    date: "2026-08-13",
+    category: "可解释性",
+    paradigm: "Object-anchor Representation Alignment + Per-step Cross-attention Retrieval",
+    state: "中层object hidden、冻结文本anchor与深层语言hidden",
+    objective: "双向对比对齐 + 长caption CE；两阶段curriculum gate连接perception/cognition streams",
+    decoding: "自回归每一步由深层hidden cross-attend object anchors；生成顺序不变",
+    sharing: "保持同一MLLM主干；在中层塑形证据表示并让深层持续检索，不改视觉tokenizer或词表head",
+    open: "论文与完整消融已公开；截至收录日未发现作者官方代码仓库",
+    priority: "精读",
+    summary: "DSCC不在解码后过滤幻觉，而是在主干内部建立两条证据通路：perception stream把中层object hidden与冻结文本anchor双向对齐，cognition stream让深层每个AR步都查询anchors。它在同一backbone、语料和训练日程下得到约1.9倍长caption、88.19% object-mention precision，同时明确承认charts与optical illusions上的domain limit。",
+    why: "OCR、DocVQA和威胁检测的错误常发生在Qwen已编码局部证据、但长生成时语言先验重新接管。DSCC提供比attention热图更可干预的机制：分别测中层是否形成可读对象/文字anchor，以及深层是否在每个答案token真正读取它。",
+    inspiration: "把IBQ/Qwen中层的文字span、目标track和关键帧query对齐到OCR字符串/类别/风险事件anchors；在深层答案与caption生成时持续cross-attend。需要按域拆分文字、图表、自然物体和威胁目标，避免anchor vocab覆盖差异制造虚假提升。",
+    experiment: "固定Qwen3、IBQ、caption数据和长度分布，比较SFT、仅中层anchor对齐、仅深层anchor检索与DSCC；增加anchor shuffle/remove、视觉crop remove和跨域图表测试。报告OCRBench/DocVQA/TextVQA、对象precision/recall、长答案幻觉、跨模态归因、延迟与额外显存。",
+    paper: "https://arxiv.org/abs/2608.12746",
     featured: true,
     idea: true,
   },
@@ -4024,7 +4141,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.14</strong>
+        <strong>DAILY BRIEF · 2026.08.15</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -4070,9 +4187,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 033]</p>
-              <h1>先把“表示是否适合生成”与<br />“模型是否真正统一”分开验证</h1>
-              <p className="hero-copy">今日五项补齐三条关键证据链：V-RAE比较重建latent与生成友好latent，CMD消除少步视频蒸馏中的未来泄漏和prefix错配，SGU用自生成—再理解闭环审计UMM；PlayWorld与DreamX-Phi进一步把评测推进到长时交互、动作几何与物体一致性。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 034]</p>
+              <h1>把世界记忆、短时生成与<br />危险决策拆成三个可验证接口</h1>
+              <p className="hero-copy">今日五项聚焦长期状态与因果证据：Alaya-EVOKE把持久世界状态外置并蒸馏3步生成，ContactGuard用短时latent后果直接做接触前中止；HIMEC审计teacher-forcing接口错配，XYZFlow提供块间顺序、块内少步Flow的新对照，DSCC则让深层生成持续读取中层视觉anchor。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -4084,7 +4201,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>149</b><span>精选条目</span></div>
+                <div><b>154</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -4259,6 +4376,9 @@ export default function Home() {
                   <tr><th>V-RAE</th><td>冻结视觉基础模型的连续semantic video latent</td><td>tokenizer重建 + clean-latent Rectified Flow</td><td>100步Euler并行生成latent，再由冻结decoder恢复视频</td><td>固定DiT/decoder与数据，隔离重建友好latent和生成友好latent</td></tr>
                   <tr><th>CMD</th><td>causal video latent block + student-generated prefix</td><td>因果teacher score + few-step distillation</td><td>块间AR、块内少步Diffusion/Flow</td><td>teacher未来泄漏、GT/self prefix mismatch与prefix corruption</td></tr>
                   <tr><th>SGU</th><td>图像—caption—自生成图像—回答的跨模态闭环</td><td>无新训练；端到端闭环与阶段替换评分</td><td>理解→描述→生成→重新理解</td><td>固定prompt/evaluator，用oracle替换分离理解、语言瓶颈与生成误差</td></tr>
+                  <tr><th>HIMEC</th><td>appearance / disappearance / shared-context change tokens</td><td>caption CE + training-only phrase supervision</td><td>固定zero-input接口；query memory条件化AR</td><td>GT/self prefix与训练—推理接口必须匹配；双时相变化表示单独控制</td></tr>
+                  <tr><th>XYZFlow</th><td>连续patch latent + 完整denoising trajectory</td><td>shortcut Flow velocity；时空多维条件</td><td>patch间顺序 / patch内少步Flow</td><td>与ELF同state/backbone/NFE，隔离full-history和Next Shortcut Prediction</td></tr>
+                  <tr><th>DSCC</th><td>中层object hidden + frozen text anchors</td><td>双向对比对齐 + 长caption CE</td><td>AR每步cross-attend视觉anchor</td><td>分开中层证据可读性、深层证据检索与anchor域覆盖</td></tr>
                 </tbody>
               </table>
             </div>
@@ -4396,6 +4516,8 @@ export default function Home() {
                   <tr><th>CMD</th><td>causal video latent blocks + self-generated prefix</td><td>随时间可用的控制条件</td><td>teacher score / few-step student future latent</td><td>块间AR + 块内Diffusion/Flow蒸馏</td><td>长时生成；训练上下文严格匹配free-running</td><td>可直接审计Qwen3+IBQ的未来泄漏、prefix mismatch和horizon drift</td></tr>
                   <tr><th>PlayWorld</th><td>世界模型生成RGB、目标进度与交互历史</td><td>Agent Player自适配动作粒度</td><td>无训练目标；闭环目标完成与世界反应评测</td><td>兼容AR、Diffusion、Flow与混合世界模型</td><td>171场景长时闭环，观察—纠错—扩展—终止</td><td>为AR/URSA/ELF提供同一Agent Player，防止只比FVD或固定动作跟随</td></tr>
                   <tr><th>DreamX-Phi</th><td>Wan2.2 VAE latent + depth + object semantic feature</td><td>文本 + 双臂SE(3)轨迹与gripper</td><td>future latent、depth、物体一致性与少步DMD</td><td>geometry-aware video diffusion + DMD</td><td>action-conditioned future rollout；面向低延迟反事实预览</td><td>Qwen负责语义意图，PRoPE保持动作几何，IBQ/ELF承担可渲染future</td></tr>
+                  <tr><th>Alaya-EVOKE</th><td>camera-indexed外部world-state bank + bounded local context</td><td>逐chunk文本/事件控制与相机视角</td><td>长时future chunk；30秒self-forced分布蒸馏</td><td>sparse-attention teacher + 3-step student</td><td>开放时长rollout；外部记忆按视角检索，context不随会话增长</td><td>把Qwen/IBQ持久状态与URSA/ELF局部生成解耦，单测记忆、动力学和渲染</td></tr>
+                  <tr><th>ContactGuard</th><td>紧凑多视角视觉embedding</td><td>原策略计划的真实action chunk</td><td>短时post-contact next latent + failure probability</td><td>action-conditioned latent world model + probe</td><td>接触前短时rollout并闭环abort；不生成像素</td><td>Qwen3默认只输出风险/停止，URSA/ELF仅在高不确定样本渲染future</td></tr>
                 </tbody>
               </table>
             </div>
