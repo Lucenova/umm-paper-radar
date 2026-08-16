@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 100640)
+Total output lines: 4659
+
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -2685,34 +2688,7 @@ const papers: Paper[] = [
     sharing: "全局与局部视觉路径共享action expert；register承载具身空间信息",
     open: "论文与补充材料公开；截至核对时未见官方代码仓库",
     priority: "精读",
-    summary: "AtVLA发现具身post-training学到的位置、深度顺序与局部几何会因global-token容量不足而泄漏到低信息patch。它先用register token整顿注意力，再由action expert采样多个action chunk估计不确定性，仅在高不确定步骤裁剪并重编码相关高分辨率区域。",
-    why: "它给固定2×2 Token Merge提供清晰的恢复机制：全局压缩保留效率，但不能假设所有区域都能被同等恢复。OCR、小目标、接触点和威胁关键帧应由不确定性触发1×1或高分辨率旁路。",
-    inspiration: "Stage3先由local head生成四个IBQ ID分布，以slot entropy、block置信度或多次sample分歧触发refinement；触发时回看原图crop/1×1 token，并把证据追加到Qwen缓存prefix后重新预测，而不是整图取消merge。",
-    experiment: "固定平均token/FLOPs，比较全图1×1、固定2×2、attention-only crop、Stage3 entropy gate与answer/action disagreement gate；报告触发率、四slot accuracy、OCRBench、TextVQA、DocVQA、小目标召回、延迟与缓存成本。",
-    paper: "https://arxiv.org/abs/2608.02197",
-    action: "连续action chunks；多样本分歧估计决策不确定性",
-    rollout: "闭环replanning；约30%步骤触发高分辨率crop重编码",
-    evaluation: "LIBERO、SimplerEnv、真实单目操作；成功率与1.4–1.6×总计算",
-    featured: false,
-    idea: true,
-  },
-  {
-    id: "omnipack",
-    index: "100",
-    title: "OmniPack: Unified Token Compression for Efficient Omni-modal Large Language Models",
-    shortTitle: "OmniPack",
-    date: "2026-08-04 · 今日新提交",
-    category: "统一视觉 Token",
-    paradigm: "Pre-LLM Structural Merge + Inner-LLM Semantic Compression",
-    state: "连续视觉/音频token；压缩后仍为连续hidden，不产生新离散ID",
-    objective: "训练免费；结构重要性、全局覆盖、相似度merge与文本引导协同选择",
-    decoding: "不改变原LLM解码；先压缩输入，充分跨模态交互后再做query-aware consolidation",
-    sharing: "复用原Omni-LLM、attention与输出head；压缩器不改词表或tokenizer",
-    open: "论文与官方代码仓库已公开",
-    priority: "精读",
-    summary: "OmniPack把token压缩拆为两个时点：进入LLM前按模态重要性、全局覆盖和相似度消除结构冗余；进入LLM并完成充分交互后，再利用文本引导与音视频协作压缩任务相关表示。Qwen2.5-Omni-7B上，论文报告保留98.0%原性能时FLOPs降至16.7%。",
-    why: "它说明固定2×2 merge只有局部相似性，没有全局覆盖、query relevance与跨模态证据保护。对OCR、小目标和多帧威胁检测，真正危险的不是压缩率本身，而是压缩发生得太早且不可恢复。",
-    inspiration: "可把Stage3前的IBQ folding改为两级：输入端只合并低风险背景block；Qwen3中层根据问题、OCR和多帧证据重新聚合。离散生成监督仍保留四个原始ID，OmniPack仅决定哪些context位置进入全局主干。",
+    summary: "AtVLA发现具身post-training学到的位置、深度顺序与局部几何会因global-token容量不足而泄漏到低信息patch。它先用register token整顿注意力，再由action expert采样多个action chunk估计不确定性，仅在高不确定步骤裁剪并重编码相关高分辨率区域。"…640 tokens truncated…只合并低风险背景block；Qwen3中层根据问题、OCR和多帧证据重新聚合。离散生成监督仍保留四个原始ID，OmniPack仅决定哪些context位置进入全局主干。",
     experiment: "固定Qwen3、IBQ、平均4:1 token预算和训练数据，比较固定2×2、仅pre-LLM动态merge、仅inner-LLM pruning与OmniPack两级压缩；统一报告四slot CE、block exact match、OCRBench、DocVQA、TextVQA、小目标/关键帧召回、真实FLOPs、延迟和显存。",
     paper: "https://arxiv.org/abs/2608.03812",
     code: "https://github.com/RowanSu/OmniPack",
@@ -3926,7 +3902,7 @@ const papers: Paper[] = [
     action: "文本/事件控制可逐chunk改变；外部camera-indexed state约束视角一致性",
     rollout: "开放时长连续rollout；bounded context + recurrent external memory",
     evaluation: "WBench、VBench-Long、VBench-2.0、长时内容漂移、实时性与显存/计算增长",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3949,7 +3925,7 @@ const papers: Paper[] = [
     experiment: "固定Qwen3、IBQ、token预算与数据，比较直接concat、signed difference、appearance/disappearance/shared DCR；交叉GT prefix、self prefix与prefix corruption。报告变化分类、目标出现/消失/轨迹召回、2×2 block exact match、OCR/文字变化、teacher-forcing gap、延迟与显存。",
     paper: "https://arxiv.org/abs/2608.12502",
     code: "https://github.com/ayshaashra/HIMEC",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3974,7 +3950,7 @@ const papers: Paper[] = [
     action: "底层策略计划的真实action chunk",
     rollout: "接触前短时latent rollout；以abort信号闭环干预，无像素解码",
     evaluation: "真实接触丰富操作、failure prediction、corrupted-action消融、live-robot pre-contact abort",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -3996,7 +3972,7 @@ const papers: Paper[] = [
     inspiration: "把每个Qwen merged hidden作为一个2×2 patch context：global Qwen按raster预测patch，local Flow用2–4步并行恢复TL/TR/BL/BR的连续可解码latent，并把前一patch的velocity history作为额外条件，而非只传最终hidden。",
     experiment: "固定Qwen3、IBQ或可解码latent、数据、参数与总FLOPs，比较ELF全局并行、block-causal Flow、XYZFlow式full-history、local AR K-way head；扫描1/2/4/8 NFE。报告latent→ID回投、四slot/block准确率、OCRBench/DocVQA/TextVQA、T2I、邻块接缝、吞吐与KV/trajectory memory。",
     paper: "https://arxiv.org/abs/2608.12276",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4018,6 +3994,120 @@ const papers: Paper[] = [
     inspiration: "把IBQ/Qwen中层的文字span、目标track和关键帧query对齐到OCR字符串/类别/风险事件anchors；在深层答案与caption生成时持续cross-attend。需要按域拆分文字、图表、自然物体和威胁目标，避免anchor vocab覆盖差异制造虚假提升。",
     experiment: "固定Qwen3、IBQ、caption数据和长度分布，比较SFT、仅中层anchor对齐、仅深层anchor检索与DSCC；增加anchor shuffle/remove、视觉crop remove和跨域图表测试。报告OCRBench/DocVQA/TextVQA、对象precision/recall、长答案幻觉、跨模态归因、延迟与额外显存。",
     paper: "https://arxiv.org/abs/2608.12746",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "vq-vae-codec-contract",
+    index: "155",
+    title: "Neural Discrete Representation Learning (VQ-VAE)",
+    shortTitle: "VQ-VAE",
+    date: "2017-11-02 · v2 2018-05-30 · 基础补读",
+    category: "统一视觉 Token",
+    paradigm: "Discrete Codec + Separate Autoregressive Prior",
+    state: "encoder feature zₑ → 最近邻 codebook vector eₖ；离散ID k只是地址",
+    objective: "重建 + codebook + commitment；上层prior另学next-ID likelihood",
+    decoding: "生成ID网格 → codec内部E_codec[k]查表 → 固定decoder重建",
+    sharing: "ID可与Qwen视觉词表对齐；Qwen输入embedding与codec embedding不必共享参数",
+    open: "论文公开；原论文未维护单一官方训练仓库",
+    priority: "精读",
+    summary: "VQ-VAE把离散ID和解码向量的职责分开：上层prior预测索引，重建decoder读取codec codebook中的量化向量。这个接口是判断训练vision embeddings是否会破坏FLUX/X-Omni decoder的最基础依据。",
+    why: "你当前最需要确认的不是‘embedding能不能训练’，而是实际decode路径。若生成后调用tokenizer.decode(ids)，decoder会重新查冻结的E_codec；训练独立E_llm通常不会改变它。只有把E_llm向量直接喂给固定decoder，或错误地与E_codec绑权，才会产生表示漂移。",
+    inspiration: "把视觉ID视为共享地址，而不是强迫同一向量同时承担Qwen语义输入和像素重建。Qwen侧E_llm可以训练；codec侧E_codec与decoder保持冻结，并用显式适配器管理二者关系。",
+    experiment: "对同一ID网格做三路解码：A tokenizer.decode(ids)，B E_codec[ids]→decoder，C E_llm[ids]→decoder。A/B应数值一致；若C退化，只说明两套embedding空间不同，并不代表正常ID解码链路被破坏。同步记录重建FID/LPIPS、OCR CER与A/B最大误差。",
+    paper: "https://arxiv.org/abs/1711.00937",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "ibq-index-backprop",
+    index: "156",
+    title: "Scalable Image Tokenization with Index Backpropagation Quantization",
+    shortTitle: "IBQ",
+    date: "2024-12-03 · v2 2025-03-10 · ICCV 2025",
+    category: "统一视觉 Token",
+    paradigm: "Full-codebook Differentiable Vector Quantization",
+    state: "可学习codec codebook + 离散ID；STE在one-hot categorical distribution上反传",
+    objective: "全codebook index backprop + 重建/感知/对抗tokenizer loss",
+    decoding: "ID → 训练完成的IBQ codec向量 → tokenizer decoder",
+    sharing: "tokenizer训练时联合优化encoder/codebook；下游Qwen训练时应显式分离E_llm与冻结E_codec",
+    open: "论文与官方训练代码已公开",
+    priority: "精读",
+    summary: "IBQ让所有codebook entries在每步都获得梯度，可扩展到2¹⁸词表并维持高利用率。它解释了为何IBQ训练阶段必须联合更新codec codebook，也同时说明下游UMM阶段不能无意中继续移动decoder所依赖的同一张表。",
+    why: "这与你的Qwen3 + IBQ/X-Omni接口最直接相关。‘IBQ codebook可训练’成立于tokenizer联合训练；当FLUX/tokenizer decoder冻结后，继续更新其输入codebook会改变decoder看到的latent分布。",
+    inspiration: "保留两张以同一ID索引的表：冻结E_codec负责重建，E_llm由E_codec初始化或投影后服务理解/生成主干。只有计划联合微调decoder时，才把codec codebook加入训练参数。",
+    experiment: "比较①冻结E_codec、训练E_llm，②绑权E_llm=E_codec且冻结，③绑权并训练但冻结decoder，④codebook+decoder联合微调。报告||E_llm−P(E_codec)||、code usage/perplexity、tokenizer-only重建、OCRBench/DocVQA/TextVQA与T2I。",
+    paper: "https://arxiv.org/abs/2412.02692",
+    code: "https://github.com/tencentarc/seed-voken",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "tokenflow-dual-codebook",
+    index: "157",
+    title: "TokenFlow: Unified Image Tokenizer for Multimodal Understanding and Generation",
+    shortTitle: "TokenFlow",
+    date: "2024-12-04 · v2 2025-08-07 · CVPR 2025",
+    category: "统一视觉 Token",
+    paradigm: "Shared-index Dual-codebook Tokenizer",
+    state: "同一离散ID分别映射到semantic vector与pixel/reconstruction vector",
+    objective: "语义蒸馏/对齐 + 像素重建；两套表示以共享索引耦合",
+    decoding: "Qwen读取E_sem[id]；图像decoder读取E_pix[id]",
+    sharing: "共享ID、token顺序和语义对应；不强制共享embedding参数或输出head",
+    open: "论文与官方代码已公开",
+    priority: "精读",
+    summary: "TokenFlow用共享索引连接语义codebook和像素codebook，让同一个视觉token在理解时提供高层语义，在生成重建时提供低层细节，而不要求一个向量同时优化两个冲突目标。",
+    why: "它给出了你当前接口问题最干净的架构答案：ID统一不等于embedding绑权。E_llm和E_codec可以按同一ID对齐，但decoder只读取像素表，Qwen只读取语义表。",
+    inspiration: "无需立即重训X-Omni tokenizer；先保留冻结pixel codebook/decoder，在Qwen侧训练semantic embedding或semantic adapter，并加入同ID对齐、邻域保持和OCR区域加权监督。",
+    experiment: "固定ID、decoder、Qwen3与数据，比较单表绑权、单表冻结+MLP、双表共享ID、双表+语义蒸馏。共同测A/B解码一致性、重建、OCR/DocVQA/TextVQA、T2I、梯度cosine与额外显存。",
+    paper: "https://arxiv.org/abs/2412.03069",
+    code: "https://github.com/ByteVisionLab/TokenFlow",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "wintok-hybrid-tokenizer",
+    index: "158",
+    title: "WinTok: A Win-Win Hybrid Tokenizer via Decomposing Visual Understanding and Generation with Transferable Tokens",
+    shortTitle: "WinTok",
+    date: "2026-05-18 · ECCV 2026",
+    category: "统一视觉 Token",
+    paradigm: "Pixel Tokens + Learnable Semantic Tokens",
+    state: "可解码pixel tokens与从视觉基础模型蒸馏的semantic tokens并存",
+    objective: "像素重建 + 非对称语义蒸馏；避免两个目标争用同一latent容量",
+    decoding: "decoder只读取pixel tokens；MLLM读取semantic tokens并可结合pixel context",
+    sharing: "共享图像与上层主干接口，但pixel/semantic token角色与参数分离",
+    open: "论文、官方代码与模型入口已公开",
+    priority: "精读",
+    summary: "WinTok不建立两套完整tokenizer，而是在可解码pixel tokens旁增加少量可迁移semantic tokens，以非对称蒸馏增强理解，同时保留像素生成质量。",
+    why: "这是比直接训练decoder codebook更低风险的X-Omni改造：保持IBQ pixel ID和FLUX decoder契约不动，把Qwen需要的语义容量放到额外tokens或adapter。",
+    inspiration: "OCR/DocVQA可让semantic tokens负责文字、布局和对象证据，原始IBQ tokens继续承担精确重建；Stage 3仍预测原始ID，不必让四个2×2 slot共用一套被语义训练拉动的codec向量。",
+    experiment: "固定codec/decoder和总视觉token预算，比较raw IBQ、E_llm可训练、额外4/16/64 semantic tokens、TokenFlow式双表。按tokenizer-only重建、OCR、VQA、T2I、slot exact match、吞吐和显存画Pareto曲线。",
+    paper: "https://arxiv.org/abs/2605.18115",
+    code: "https://github.com/markywg/WinTok",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "uniflow-pixel-flow-tokenizer",
+    index: "159",
+    title: "UniFlow: A Unified Pixel Flow Tokenizer for Visual Understanding and Generation",
+    shortTitle: "UniFlow",
+    date: "2025-10-12 · ICLR 2026",
+    category: "语义对齐",
+    paradigm: "Semantic Encoder + Patch-wise Pixel Flow Decoder",
+    state: "预训练视觉encoder连续semantic feature；像素patch作为Flow终点",
+    objective: "层级自蒸馏保持语义 + patch-wise pixel Flow velocity",
+    decoding: "semantic features条件化连续Flow，逐patch恢复像素；无离散ID回投",
+    sharing: "理解/生成共享semantic encoder与条件空间；生成head、像素状态和LLM词表分离",
+    open: "论文与官方代码已公开",
+    priority: "泛读",
+    summary: "UniFlow从强语义encoder出发，用轻量patch-wise pixel Flow承担重建，说明统一理解和生成也可以共享语义条件空间，而不必共享离散codec embedding。",
+    why: "它是X-Omni/IBQ双embedding方案的连续端点：若离散ID契约过于僵硬，可让Qwen语义hidden直接条件化pixel Flow，同时完全绕开‘训练后的E_llm能否喂给冻结decoder’。",
+    inspiration: "把它作为URSA/离散Stage 3之外的公平对照：固定Qwen3语义条件和数据，只将生成出口换为冻结codec ID、可训练双表ID或patch Flow，明确收益来自表示接口还是动力学建模。",
+    experiment: "固定Qwen3、训练图像、参数与总FLOPs，比较IBQ-ID CE、IBQ双embedding、ELF embedding velocity和UniFlow式pixel Flow；统一报告理解、OCR、T2I、NFE、吞吐、显存及decoder接口复杂度。",
+    paper: "https://arxiv.org/abs/2510.10575",
+    code: "https://github.com/ZhengrongYue/UniFlow",
     featured: true,
     idea: true,
   },
@@ -4141,7 +4231,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.15</strong>
+        <strong>DAILY BRIEF · 2026.08.16</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -4187,9 +4277,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 034]</p>
-              <h1>把世界记忆、短时生成与<br />危险决策拆成三个可验证接口</h1>
-              <p className="hero-copy">今日五项聚焦长期状态与因果证据：Alaya-EVOKE把持久世界状态外置并蒸馏3步生成，ContactGuard用短时latent后果直接做接触前中止；HIMEC审计teacher-forcing接口错配，XYZFlow提供块间顺序、块内少步Flow的新对照，DSCC则让深层生成持续读取中层视觉anchor。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 035]</p>
+              <h1>先确认 decode 走的是原 codec embedding，<br />还是训练后的 Qwen embedding</h1>
+              <p className="hero-copy">周末无新arXiv批次，今日补齐视觉tokenizer—decoder契约：VQ-VAE与IBQ明确“ID是地址”，TokenFlow与WinTok把语义表示和像素重建表示拆开，UniFlow则给出共享语义空间、独立pixel Flow出口的连续端点。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -4201,7 +4291,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>154</b><span>精选条目</span></div>
+                <div><b>159</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -4379,6 +4469,11 @@ export default function Home() {
                   <tr><th>HIMEC</th><td>appearance / disappearance / shared-context change tokens</td><td>caption CE + training-only phrase supervision</td><td>固定zero-input接口；query memory条件化AR</td><td>GT/self prefix与训练—推理接口必须匹配；双时相变化表示单独控制</td></tr>
                   <tr><th>XYZFlow</th><td>连续patch latent + 完整denoising trajectory</td><td>shortcut Flow velocity；时空多维条件</td><td>patch间顺序 / patch内少步Flow</td><td>与ELF同state/backbone/NFE，隔离full-history和Next Shortcut Prediction</td></tr>
                   <tr><th>DSCC</th><td>中层object hidden + frozen text anchors</td><td>双向对比对齐 + 长caption CE</td><td>AR每步cross-attend视觉anchor</td><td>分开中层证据可读性、深层证据检索与anchor域覆盖</td></tr>
+                  <tr><th>VQ-VAE contract</th><td>离散ID地址 + codec codebook vector</td><td>tokenizer重建/commitment；上层prior另学ID likelihood</td><td>ID生成顺序由上层决定；decoder重新查E_codec</td><td>检查decode(ids)是否绕过可训练E_llm，禁止隐式跨空间直连</td></tr>
+                  <tr><th>IBQ</th><td>全codebook可微优化 + 离散ID</td><td>index backprop STE + 重建/感知/对抗</td><td>tokenizer无固定顺序；下游AR/URSA/ELF决定</td><td>联合tokenizer训练可更新E_codec；冻结decoder的下游阶段应分离E_llm</td></tr>
+                  <tr><th>TokenFlow</th><td>同一ID → semantic / pixel双codebook</td><td>语义蒸馏/对齐 + 像素重建</td><td>Qwen读取E_sem；decoder读取E_pix</td><td>共享索引不等于绑权；隔离语义增益与codec重建稳定性</td></tr>
+                  <tr><th>WinTok</th><td>pixel tokens + 独立semantic tokens</td><td>重建 + 非对称视觉语义蒸馏</td><td>decoder只读pixel tokens；语义tokens服务理解</td><td>固定总token预算，比较额外语义容量与单表embedding训练</td></tr>
+                  <tr><th>UniFlow tokenizer</th><td>连续semantic feature + pixel Flow state</td><td>层级自蒸馏 + patch-wise pixel velocity</td><td>Flow ODE恢复像素；无离散ID回投</td><td>共享语义条件空间而非codec embedding，作为连续接口对照</td></tr>
                 </tbody>
               </table>
             </div>
@@ -4441,6 +4536,7 @@ export default function Home() {
                   <tr><th>Consequence-sensitive allocation</th><td>内容选择器决定位置，任务后果曲线决定每请求总预算</td><td>保持全局平均N/4；高风险可1×1，低风险可2×2/4×4</td><td>不改Stage3 head；只改变token/resolution allocation</td><td>先离线校准cost–error–budget，再按query风险分配</td><td>同图不同问题必须获得不同预算；报告cost-weighted error而非仅平均分</td></tr>
                   <tr><th>SIEVE cross-modal residual</th><td>每层把视觉hidden投影到文本token子空间，按不可解释残差保留token</td><td>逐层可变；固定平均N/4或同FLOPs</td><td>不改Stage3 head；CMR只决定何时压缩或重新激活</td><td>文本尚未吸收的高CMR视觉证据必须保留</td><td>把“压缩位置”从输入前固定merge升级为可测量的跨层控制变量</td></tr>
                   <tr><th>InSight-doc zoom</th><td>低分辨率全局2×2 + agent选择region恢复1×1/高分辨率crop</td><td>平均预算固定，按query不确定性动态追加</td><td>原Qwen/IBQ head；zoom是显式感知动作</td><td>先overview后局部证据，必要时多轮放大</td><td>让merged-token路线可逆，单独衡量触发策略、缓存和尾部延迟</td></tr>
+                  <tr><th>Dual-embedding ID contract</th><td>2×2仍监督四个原始ID；E_llm[id]可训练，E_codec[id]冻结</td><td>N/4个global block + [B,M,4]原始ID目标</td><td>共享K-way ID head；decoder按ID重新查E_codec</td><td>块间/块内顺序不变，只审计ID→embedding→decoder路径</td><td>区分“共享ID”与“共享向量”；避免把E_llm漂移误判为正常codec解码损坏</td></tr>
                 </tbody>
               </table>
             </div>
