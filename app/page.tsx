@@ -4155,7 +4155,7 @@ const papers: Paper[] = [
     inspiration: "为每个2×2 block增加结构head，预测四slot占用、边界或重要性pattern，并让原有共享K-way head继续恢复四个IBQ ID。OCR字符、小目标和威胁边界可由structure code门控1×1恢复或slot-weighted CE。",
     experiment: "固定Qwen3、IBQ、2×2 merge、数据与FLOPs，比较单一block标签、4×K并行ID、local causal 4×K、FIRM式4-bit/16-code结构head+4×K ID。报告slot accuracy、block exact match、边界F1、小目标召回、OCRBench/DocVQA/TextVQA、T2I、head显存与延迟。",
     paper: "https://arxiv.org/abs/2608.13980",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4182,7 +4182,7 @@ const papers: Paper[] = [
     action: "真实/错配游戏action stream；显式state可施加碰撞器与实体分离规则",
     rollout: "两阶段AR state长时rollout；状态可编辑、可修复，再按需渲染RGB",
     evaluation: "关节误差、实体距离、ground penetration、动作错配敏感性、FVD与长时可控性",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4204,7 +4204,7 @@ const papers: Paper[] = [
     inspiration: "在URSA→ELF改造中加入轻量depth/pointmap/correspondence出口，保持Qwen3与数据预算不变；多帧威胁任务则用跨帧dense correspondence监督目标身份和轨迹，而文本head负责解释风险关系。",
     experiment: "固定Qwen3、IBQ、merge ratio与训练图像，比较仅VQA/T2I、+结构化3D token、+dense depth/pointmap、两者联合。报告OCRBench/DocVQA/TextVQA、空间QA、对应PCK、深度/位姿、T2I、梯度cosine、吞吐和额外显存。",
     paper: "https://arxiv.org/abs/2608.14138",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4226,7 +4226,7 @@ const papers: Paper[] = [
     inspiration: "为OCRBench/DocVQA/TextVQA建立同源probe：字符可见性、字符—区域绑定、表格行列绑定、单步比较/计数。逐项替换为oracle OCR或1×1 crop，定位性能上限到底卡在tokenizer、merge还是Qwen。",
     experiment: "固定Qwen3/IBQ和总样本量，比较复杂CoT SFT、OCR perception-only、region grounding-only、simple arithmetic-only与三者混合。报告各probe、held-out复杂DocVQA/ChartQA、OCRBench、跨模板迁移、答案长度与幻觉率。",
     paper: "https://arxiv.org/abs/2608.13766",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4252,6 +4252,128 @@ const papers: Paper[] = [
     action: "短时action chunk；高层预测命题转移，低层预测局部状态后果",
     rollout: "闭环replan；高层跨长时LTL进度，低层短时安全rollout",
     evaluation: "CALVIN、真实UR5e、LTL满足、liveness/safety与推理期steering",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "equilibrium-forcing",
+    index: "165",
+    title: "Equilibrium Forcing: Adaptive Video Generation Without Noise Conditioning",
+    shortTitle: "EqF",
+    date: "2026-08-11",
+    category: "连续 Flow",
+    paradigm: "Noise-unconditional Denoising Field + Closed-loop Fixed-point Sampling",
+    state: "连续视频latent；训练样本由clean latent与Gaussian noise线性插值",
+    objective: "velocity v=ε−x；与Flow Matching相同目标，但模型不接收显式noise level / timestep",
+    decoding: "从当前样本hidden估计有效噪声，warp自适应步长并迭代到fixed point；预算可动态重分配",
+    sharing: "默认视频backbone/codec与Qwen、IBQ分离；可从Wan类Flow权重做Equilibrium Finetuning，但不能直接复用离散AR head",
+    open: "论文与官方项目页已公开；代码目前仅按请求提供，未发现公开仓库",
+    priority: "精读",
+    summary: "EqF删除Flow Matching的显式时间/噪声条件，让单一denoising field从当前sample本身推断有效噪声，再在推理时用反馈决定步长与剩余预算。项目页在Minecraft、RealEstate10K和DROID展示长视频，并指出预设schedule与真实sample progress的偏差会随AR rollout累积。",
+    why: "这为URSA→ELF提供了新的诊断：当前生成code palette持续收缩，未必只因head或codebook，也可能是训练时给定的t/schedule与自由生成状态不再匹配。ELF若始终相信计划时间，而sample实际离数据流形更远，会反复朝少数吸引域收敛。",
+    inspiration: "在同一Qwen3+IBQ embedding Flow上增加effective-t probe，并记录scheduled t与probe t的偏差、code熵和回投ID覆盖率；随后只删除显式t输入，采用EqF式sample-feedback warp，检验palette collapse是否随轨迹校准改善。",
+    experiment: "固定Qwen3、IBQ、ELF backbone、训练数据、velocity target和NFE，比较标准显式t Flow、显式t+estimated-t反馈、EqF无t+固定warp、EqF无t+自适应warp。统一报告GenEval、OCR、ID覆盖率/熵、每图unique IDs、effective-t gap随步数/rollout horizon、吞吐和稳定性。",
+    paper: "https://arxiv.org/abs/2608.14706",
+    project: "https://equilibriumforcing.github.io/",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "odeworld-physical-time-flow",
+    index: "166",
+    title: "ODEWorld: A Continuous Predictive Architecture via Physical-Time Flow",
+    shortTitle: "ODEWorld",
+    date: "2026-07-30 · v3 2026-08-14",
+    category: "世界模型",
+    paradigm: "Physical-time Latent ODE + Dynamical Representation Decoupling",
+    state: "冻结DINOv2 patch feature压缩为单个768维dynamic latent；初始静态内容作为条件",
+    objective: "dynamics重建 + 由JVP投影得到的first-order latent velocity监督",
+    decoding: "按真实物理时间积分ODE，可任意时间分辨率、前向/后向查询；专用decoder可恢复RGB",
+    sharing: "不共享IBQ词表/head；Qwen可提供语言/goal条件，IBQ/ELF可作可选renderer或对照状态",
+    open: "论文、项目页、官方代码、推理脚本与多套checkpoint均已公开",
+    priority: "精读",
+    summary: "ODEWorld把世界动力学从离散next-step预测改为物理时间上的latent velocity field。它把静态外观留在初始状态条件中，只用一个768维token表示动态，并用JVP直接监督一阶速度；可在任意时间点积分、反向预测，并用于LIBERO长时subgoal策略。",
+    why: "它直接处理latent world model的representation collapse，且指出动态表示不应被静态纹理和背景占满。对多帧威胁检测，完整未来IBQ网格可能把大部分容量花在不变外观上，导致目标运动和风险趋势被淹没。",
+    inspiration: "把每帧IBQ/Qwen hidden分成z_static与单个z_dyn：前者保存OCR、身份和场景，后者只回归由相邻帧差分/JVP近似的物理时间velocity。渲染未来时再把z_dyn与首帧IBQ条件合成。",
+    experiment: "固定Qwen3、IBQ、视频与算力，比较未来IBQ-ID AR、ELF full-grid velocity、单token next-latent、ODEWorld式static/dynamic decoupling+physical-time velocity。报告trajectory/velocity误差、ID/embedding collapse、任意帧插值、64帧horizon drift、OCR/身份保持、闭环威胁趋势与规划成功。",
+    paper: "https://arxiv.org/abs/2607.27924",
+    project: "https://dstate.github.io/odeworld_website/",
+    code: "https://github.com/Dstate/ODEWorld",
+    action: "语言/goal与初始状态条件；可生成sequential latent subgoals指导policy",
+    rollout: "连续时间ODE多步rollout，支持任意时间分辨率、反向预测与replanning",
+    evaluation: "短/长时PSNR、LPIPS、FPS、latent smoothness、LIBERO-LONG闭环成功率",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "danceopd-on-policy-field-distillation",
+    index: "167",
+    title: "DanceOPD: On-Policy Generative Field Distillation",
+    shortTitle: "DanceOPD",
+    date: "2026-06-25 · v3 2026-08-15",
+    category: "连续 Flow",
+    paradigm: "On-policy Multi-field Distillation",
+    state: "共享连续Flow state；T2I、局部编辑、全局编辑、realism与CFG均表示为velocity field",
+    objective: "在student自己产生的低噪状态上查询单个teacher field，以velocity MSE蒸馏",
+    decoding: "沿student rollout少步采样；capability router决定每个样本吸收哪个field",
+    sharing: "共享student Transformer与Flow state；不同能力保留teacher field，不共享离散词表/head；不能直接从IBQ-AR head初始化",
+    open: "论文、项目页与官方代码仓库已公开",
+    priority: "精读",
+    summary: "DanceOPD把T2I、局部/全局编辑、realism和CFG都看成共享状态空间中的velocity field，并在student自己的rollout状态上查询teacher，而不是只在teacher/数据轨迹上拟合。这样能组合能力，同时尽量保留anchor生成质量。",
+    why: "它与URSA→ELF和当前code palette收缩高度相关：若student只见clean或teacher-induced状态，free-running时很快进入少数code吸引域，再也得不到纠正。on-policy field query正是将监督搬到真实失败分布上的办法。",
+    inspiration: "把离散AR/URSA teacher、ELF student与OCR/多样性约束写成同一Qwen hidden/embedding空间的field：在student生成状态上查询teacher velocity或clean-token posterior，并以route保持T2I、文字渲染和编辑能力互不吞噬。",
+    experiment: "固定teacher、student、IBQ、数据和总teacher-query数，比较offline velocity distill、teacher-trajectory distill、student on-policy one-step distill、DanceOPD多field routing。报告ID覆盖率/熵、per-image unique IDs、GenEval、生成文字OCR、编辑保持、teacher-query成本与free-running退化。",
+    paper: "https://arxiv.org/abs/2606.27377",
+    project: "https://danceopd.github.io/",
+    code: "https://github.com/worldbench/DanceOPD",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "dual-head-collapse-certificate",
+    index: "168",
+    title: "Making two action heads agree: coordination mechanisms and a runtime collapse certificate for flow-matching policies",
+    shortTitle: "Dual-head FM Certificate",
+    date: "2026-08-16",
+    category: "评测诊断",
+    paradigm: "Dual-representation Flow + Diversity-corrected Runtime Certificate",
+    state: "同一连续动作以joint-space与end-effector-space两种等价表示解码",
+    objective: "原Flow velocity + 可选一致性/离散partition；用Gini–Simpson diversity估计chance-corrected可达协调区间",
+    decoding: "双branch采样；比较运动学等价残差并区分真实失效、良性多模态与共同collapse",
+    sharing: "可共享source noise或训练支持的离散partition；仅加共享latent会在总体最优下被擦除",
+    open: "论文、代码、模型与逐次运行配置已公开",
+    priority: "精读",
+    summary: "该工作指出双head输出完全一致并不一定是好事：它可能意味着协调，也可能是两个分支共同塌缩。作者用每支Gini–Simpson多样性推导chance-corrected协调界，并发现无训练支持的共享latent会被模型忽略，而显式离散partition能稳定协调。",
+    why: "当前2×2 Stage 3的四slot若一起输出少数高频IBQ ID，block exact-match或branch一致性可能看似稳定，却掩盖palette collapse。必须把‘四slot协调’与‘四slot多样性消失’分开测，不能只看CE和一致率。",
+    inspiration: "为TL/TR/BL/BR四个head计算slot-wise Gini–Simpson、pairwise agreement、chance-corrected coordination和共同collapse率；比较共享source noise、共享latent、position embedding与显式slot partition，检查哪种结构真正保留多模态。",
+    experiment: "固定Qwen3、IBQ、2×2 merge与训练预算，比较4×K独立head、共享K-way head、共享latent、训练支持slot partition与local AR。统一报告四slot CE/accuracy、block exact-match、Gini–Simpson、ID覆盖率、邻接共现、free-running GenEval/OCR和峰值显存。",
+    paper: "https://arxiv.org/abs/2608.15748",
+    code: "https://github.com/kimo423/dual-head-coordination",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "gaussiandwm-plusplus",
+    index: "169",
+    title: "GaussianDWM++: Language-Grounded 3D Gaussian Driving World Model for Unified Scene Understanding, Editing, and Multi-Modal Generation",
+    shortTitle: "GaussianDWM++",
+    date: "2026-08-17",
+    category: "世界模型",
+    paradigm: "Foundation-feature 3D Gaussian Tokenizer + Language-grounded World Tokens",
+    state: "3D Gaussian primitives承载几何、外观与Qwen/SigLIP open-vocabulary语义；Perceiver聚合为紧凑world tokens",
+    objective: "foundation-feature distillation + Gaussian/image token KL alignment + 理解、grounding、编辑与多模态生成目标",
+    decoding: "先构建可查询3D Gaussian语义场，再按文本执行天气/动态车辆编辑与4D渲染",
+    sharing: "共享3D语义场与world tokens；未与Qwen文本词表、IBQ tokenizer或输出head完全共享",
+    open: "论文已公开；作者承诺公开代码与数据，截至收录日尚未发现正式仓库",
+    priority: "精读",
+    summary: "GaussianDWM++把Qwen/SigLIP视觉语言特征蒸馏进3D Gaussian primitives，形成开放词表语义场，再以层级选择和text-conditioned Perceiver压成world tokens，并用KL把Gaussian与image token分布对齐，统一理解、grounding、规划推理、编辑与4D生成。",
+    why: "它是‘统一理解—生成—世界状态’交叉点的重要新端点：统一的不是所有输出head，而是可被语言查询、可编辑、可渲染的3D语义状态。对多帧威胁检测，这比把多帧压进单一IBQ序列更适合维护目标身份、位置和遮挡。",
+    inspiration: "在Qwen3+IBQ之上增加稀疏3D/BEV world tokens，把OCR/外观留给IBQ，把目标类别、3D位置、速度和关系蒸馏到语义场；Qwen负责问答与编辑指令，ELF/URSA只渲染被修改的观察。",
+    experiment: "固定Qwen3、视频数据、参数和训练FLOPs，比较纯IBQ多帧、IBQ+2D object tokens、IBQ+3D Gaussian world tokens、后者+KL image-token alignment。报告OCR/DocVQA、3D grounding、轨迹/遮挡、action sensitivity、4D编辑、T2I/视频质量、token数与闭环规划成功。",
+    paper: "https://arxiv.org/abs/2608.16234",
+    action: "语言编辑、天气与动态车辆操控；论文摘要未报告完整真实action闭环接口",
+    rollout: "支持4D场景编辑与多模态生成；长时闭环规划仍是待验证项",
+    evaluation: "场景理解、视觉grounding、planning-oriented reasoning与可控4D生成",
     featured: true,
     idea: true,
   },
@@ -4375,7 +4497,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.17</strong>
+        <strong>DAILY BRIEF · 2026.08.18</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -4421,9 +4543,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 036]</p>
-              <h1>2×2 merge 之后，<br />不能让一个 token 只承担一个粗标签</h1>
-              <p className="hero-copy">今日聚焦“压缩后仍保留内部结构”：FIRM显式编码merged token内的sub-cell pattern；SPARGen用结构序列与稠密几何共同塑形统一表示；Marionette与hint²则把外观渲染、显式世界状态、长时命题和短时安全动力学分层建模。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 037]</p>
+              <h1>Code palette 收缩时，<br />先审计轨迹，不要只换 head</h1>
+              <p className="hero-copy">今日聚焦“生成状态是否走在训练支持的轨迹上”：EqF用sample自身估计有效噪声并闭环调整步长；DanceOPD把teacher监督搬到student rollout；Dual-head证书把协调与共同collapse分开；ODEWorld和GaussianDWM++则把动态、静态外观与可查询世界状态拆开。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -4435,7 +4557,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>164</b><span>精选条目</span></div>
+                <div><b>169</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -4537,6 +4659,7 @@ export default function Home() {
                   <tr><th>X-Omni</th><td>离散 token ID</td><td>Next-token CE</td><td>左到右</td><td>累计误差、KV Cache、RL</td></tr>
                   <tr><th>URSA</th><td>原始 IBQ 网格的离散 token ID；无额外 merge</td><td>每位置 64K clean-token CE</td><td>全 H×W 网格并行迭代</td><td>Metric path、schedule、solver；勿与仓库中的连续 DiT 混淆</td></tr>
                   <tr><th>ELF</th><td>连续 embedding</td><td>Velocity / L2 + CE</td><td>ODE / SDE</td><td>空间几何、回投误差、CFG</td></tr>
+                  <tr><th>EqF</th><td>连续video/IBQ embedding latent；linear noisy state</td><td>与FM相同velocity，但不输入显式t/σ</td><td>effective-noise readout反馈 + adaptive fixed-point迭代</td><td>固定state/backbone/target，隔离显式schedule与sample-feedback；审计effective-t gap和palette entropy</td></tr>
                   <tr><th>Flow Map LM</th><td>Simplex / one-hot</td><td>Posterior CE + distill</td><td>联合运输 / 一步</td><td>token 相关性、少步蒸馏</td></tr>
                   <tr><th>UniAR</th><td>BSQ 离散视觉 token</td><td>Parallel bit prediction</td><td>AR context / bit 并行</td><td>真正共享 tokenizer 与上下文</td></tr>
                   <tr><th>UniDDT</th><td>连续 visual latent</td><td>理解 + diffusion</td><td>文本/图像 decoder 分离</td><td>梯度冲突与任务解耦</td></tr>
@@ -4589,6 +4712,7 @@ export default function Home() {
                   <tr><th>JoyAI-Video-Edit</th><td>causal video-VAE latent</td><td>velocity FM + on-policy forcing + source-anchored DMD</td><td>chunk间AR / chunk内2步Flow</td><td>clean/generated history差、首块sink与长时漂移</td></tr>
                   <tr><th>Physics MM Pretrain</th><td>文本 + 多种视觉表示</td><td>理解/生成联合目标</td><td>兼容AR与Flow</td><td>早期统一、attention/norm共享、FFN专属</td></tr>
                   <tr><th>STEP-OPD</th><td>连续VAE latent + block hidden</td><td>外推velocity + Δh alignment</td><td>沿student on-policy轨迹</td><td>输出目标与内部表征演化同时蒸馏</td></tr>
+                  <tr><th>DanceOPD</th><td>共享连续Flow state + 多capability teacher fields</td><td>student-induced低噪状态上的velocity MSE</td><td>student on-policy rollout + sample-level field routing</td><td>固定teacher query预算，对比offline/teacher-trajectory/on-policy监督能否缓解free-running collapse</td></tr>
                   <tr><th>ToolArtist</th><td>文本 + 离散视觉ID交错序列</td><td>next-token CE + RAD-GRPO</td><td>Reason→Search/Draw→反思重画</td><td>工具调用与native生成是否属于同一策略</td></tr>
                   <tr><th>KVAE</th><td>图像/视频Gaussian连续latent</td><td>VAE重建 + CDS diffusability筛选；下游velocity FM</td><td>tokenizer无顺序 / 下游并行Flow</td><td>必须把重建、latent几何和固定生成器质量分层比较</td></tr>
                   <tr><th>Robust-WAM</th><td>video-VAE latent + future DINO query</td><td>video/action velocity + future semantic cosine</td><td>连续Flow积分；teacher仅训练期</td><td>可渲染状态与稳健语义状态双空间协同</td></tr>
@@ -4686,6 +4810,7 @@ export default function Home() {
                   <tr><th>InSight-doc zoom</th><td>低分辨率全局2×2 + agent选择region恢复1×1/高分辨率crop</td><td>平均预算固定，按query不确定性动态追加</td><td>原Qwen/IBQ head；zoom是显式感知动作</td><td>先overview后局部证据，必要时多轮放大</td><td>让merged-token路线可逆，单独衡量触发策略、缓存和尾部延迟</td></tr>
                   <tr><th>Dual-embedding ID contract</th><td>2×2仍监督四个原始ID；E_llm[id]可训练，E_codec[id]冻结</td><td>N/4个global block + [B,M,4]原始ID目标</td><td>共享K-way ID head；decoder按ID重新查E_codec</td><td>块间/块内顺序不变，只审计ID→embedding→decoder路径</td><td>区分“共享ID”与“共享向量”；避免把E_llm漂移误判为正常codec解码损坏</td></tr>
                   <tr><th>FIRM intra-token code</th><td>2×2 merged token另预测4-bit/16-code块内结构；原始IBQ监督仍保留</td><td>N/4 global block + 4-slot结构/ID目标</td><td>structure code head + 共享4×K ID head；可选pre-merge refinement</td><td>结构code并行；原始ID可并行或local AR</td><td>检验单一hidden能否保留块内几何；不能用mask pattern代替codec ID做T2I</td></tr>
+                  <tr><th>Dual-head collapse certificate</th><td>同一block的TL/TR/BL/BR多slot离散分布</td><td>N/4 global block + 4×K原始ID；额外统计slot-wise Gini–Simpson</td><td>独立/共享head、共享latent或训练支持slot partition</td><td>并行或local AR均可；证书只做审计</td><td>把高agreement的真实协调与四slot共同palette collapse分开，避免block exact-match误导</td></tr>
                 </tbody>
               </table>
             </div>
@@ -4765,6 +4890,8 @@ export default function Home() {
                   <tr><th>ContactGuard</th><td>紧凑多视角视觉embedding</td><td>原策略计划的真实action chunk</td><td>短时post-contact next latent + failure probability</td><td>action-conditioned latent world model + probe</td><td>接触前短时rollout并闭环abort；不生成像素</td><td>Qwen3默认只输出风险/停止，URSA/ELF仅在高不确定样本渲染future</td></tr>
                   <tr><th>Marionette</th><td>276维显式3D state：多实体骨架、metric root轨迹与旋转</td><td>真实/错配游戏action stream</td><td>两阶段AR next state；固定renderer算几何/遮挡，diffusion仅画appearance</td><td>Explicit-state AR + zero-parameter graphics + video diffusion</td><td>长时state rollout可插入碰撞/分离规则后再渲染</td><td>Qwen3预测typed state，IBQ/ELF退居可选observation renderer；把动力学与画质解耦</td></tr>
                   <tr><th>hint²</th><td>高层atomic propositions + 低层即时机器人state</td><td>短时action chunk</td><td>action-induced命题转移 + 局部状态演化</td><td>Hierarchical world-model guidance + LTL automaton</td><td>闭环replan；高层保证liveness，低层约束即时安全</td><td>Qwen3负责语言→命题/LTL，IBQ/ELF或语义latent负责低层future，统一到行动而非单一状态</td></tr>
+                  <tr><th>ODEWorld</th><td>DINOv2 patch feature→单个768维dynamic latent；s₀保存static context</td><td>语言/goal与初始状态条件；无专用离散action token</td><td>dynamics重建 + JVP first-order physical-time velocity</td><td>Physical-Time Flow / latent ODE</td><td>任意时间分辨率、前后向rollout、replanning与sequential-subgoal闭环</td><td>把IBQ的OCR/外观静态状态与ELF动力学token分开，直接审计representation collapse</td></tr>
+                  <tr><th>GaussianDWM++</th><td>Qwen/SigLIP语义化3D Gaussian primitives + compact world tokens</td><td>语言编辑、天气与动态车辆控制；完整真实action闭环未报告</td><td>foundation-feature distill + Gaussian/image KL alignment + 理解/编辑/生成</td><td>3D semantic field + Perceiver aggregation + 4D renderer</td><td>支持场景查询、4D编辑和生成；长时闭环规划仍待验证</td><td>在Qwen3+IBQ之上增加可查询3D world state，统一理解—生成而不强迫共享单一词表/head</td></tr>
                 </tbody>
               </table>
             </div>
