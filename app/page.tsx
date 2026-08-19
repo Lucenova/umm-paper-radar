@@ -4326,7 +4326,7 @@ const papers: Paper[] = [
     paper: "https://arxiv.org/abs/2606.27377",
     project: "https://danceopd.github.io/",
     code: "https://github.com/worldbench/DanceOPD",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4349,7 +4349,7 @@ const papers: Paper[] = [
     experiment: "固定Qwen3、IBQ、2×2 merge与训练预算，比较4×K独立head、共享K-way head、共享latent、训练支持slot partition与local AR。统一报告四slot CE/accuracy、block exact-match、Gini–Simpson、ID覆盖率、邻接共现、free-running GenEval/OCR和峰值显存。",
     paper: "https://arxiv.org/abs/2608.15748",
     code: "https://github.com/kimo423/dual-head-coordination",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4374,6 +4374,122 @@ const papers: Paper[] = [
     action: "语言编辑、天气与动态车辆操控；论文摘要未报告完整真实action闭环接口",
     rollout: "支持4D场景编辑与多模态生成；长时闭环规划仍是待验证项",
     evaluation: "场景理解、视觉grounding、planning-oriented reasoning与可控4D生成",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "entry-point-umm",
+    index: "170",
+    title: "Where a New Concept Must Enter: Entry Point Gates Cross-Task Usability in Unified Multimodal Models",
+    shortTitle: "Entry Point UMM",
+    date: "2026-08-18",
+    category: "统一多模态",
+    paradigm: "Cross-task Causal Binding + Mid-stack Alignment",
+    state: "理解侧 semantic vision feature、生成侧视觉 latent 与共享 Transformer 中层 activation",
+    objective: "单向 concept binding；冻结权重的 activation alignment 或 mid-stack weight alignment",
+    decoding: "沿用原 UMM 理解/生成出口；只改变概念进入共享计算的层与语义格式",
+    sharing: "共享权重并不足够；跨任务导出依赖入口处是否共享 semantic format 与中层对齐窗口",
+    open: "论文、完整实验代码与评测结果已公开",
+    priority: "精读",
+    summary: "作者把新视觉概念只通过理解或生成一侧注入，再测另一侧是否获得该概念，从而消除联合数据重叠的混杂。36 组配置显示跨任务可用性由概念进入共享栈的位置决定；理解训练得到的概念更容易被生成侧主动调用，而仅共享权重并不能保证迁移。",
+    why: "它把你当前最容易含混的判断变成了可证伪实验：Qwen3、IBQ 和生成 head 共享参数，并不等于 OCR/对象概念能从理解侧流入 URSA/ELF。论文还说明错误可能不在生成范式，而在视觉表示进入 Qwen 时尚未具有可共享的语义格式。",
+    inspiration: "对文字、目标类别、颜色和威胁事件各训练一个单向概念绑定，逐层测理解→生成与生成→理解的 alignment probe；若窗口只在 semantic IBQ/TokLIP 分支出现，就应优先改入口 adapter 或中层对齐，而不是继续扩大共享 FFN。",
+    experiment: "固定 Qwen3、IBQ、训练样本和更新参数量，只比较 raw IBQ 入口、semantic adapter、TokLIP 式 encoder 与 layer 7/10/14 mid-stack alignment。分别做 OCR-understanding-only 与 text-rendering-only 注入，报告双向 concept export、OCRBench/DocVQA/TextVQA、生成文字 OCR、通用 T2I 退化和每层 probe 相关。",
+    paper: "https://arxiv.org/abs/2608.17564",
+    code: "https://github.com/Zane-ZYQiu/entry-point-umm",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "hydra-0-action-flow",
+    index: "171",
+    title: "Hydra-0: Action Flow for Generalist World Modeling and Control",
+    shortTitle: "Hydra-0",
+    date: "2026-08-18",
+    category: "世界模型",
+    paradigm: "Action-flow Conditioned Video Flow Matching",
+    state: "首帧与未来视频的 VAE latent；动作表示为带可见性的 camera-plane 轨迹集合",
+    objective: "标准 video Flow Matching velocity；action flow 作为不加噪的视觉 side condition",
+    decoding: "Cosmos/Wan 视频 latent 多步去噪或 4 步蒸馏；可反向由 desired object flow 生成 robot motion",
+    sharing: "统一的是像素运动动作接口，不共享 Qwen/IBQ 词表；可跨 embodiment、任务和 video backbone 复用",
+    open: "论文与官方项目页已公开；官方代码标记为 coming soon",
+    priority: "精读",
+    summary: "Hydra-0 把不同机器人的 joint/end-effector action 先转换为图像平面的 action flow，再让视频 Flow 模型预测后果。相同 Cosmos backbone 下，相比原生 6D action 显著降低 robot/object motion error；同一接口还可反向从人类示范的 object flow 推断可执行 robot motion。",
+    why: "它补上世界模型公平比较中最容易被忽略的变量：动作接口。若 URSA、ELF 与 AR 分别读取不同机器人坐标，性能差异不能归因于动力学范式。action flow 还与多帧威胁检测的目标轨迹、相机运动和可见性天然同坐标。",
+    inspiration: "把云台/平台命令、目标轨迹与相机 egomotion 统一投影为带可见性的 2D flow token，Qwen3 负责语义和风险解释，IBQ/ELF 预测视觉后果；对无标定视频则用 tracker 恢复同一接口，扩展到异构数据。",
+    experiment: "固定 Wan/ELF 或 Qwen3+IBQ backbone、视频数据、预测时长与 NFE，只比较 raw action token、文本 action、action flow 与 object-flow 逆接口。报告 flow EPE、目标/平台运动分离、action-shuffle 敏感性、跨平台 zero-shot、horizon drift、闭环威胁决策、FVD、延迟和 4 步蒸馏退化。",
+    paper: "https://arxiv.org/abs/2608.18077",
+    project: "https://nvidia-isaac.github.io/video_to_data/hydra-0/",
+    action: "真实 command 经控制器/仿真与标定投影为 action flow；离线视频可由 tracker 恢复；支持 desired object flow 逆控制",
+    rollout: "5 秒未来视频 rollout 与 open-loop policy replay；项目页明确完整 closed-loop policy evaluation 尚未完成",
+    evaluation: "robot/object flow EPE、FVD/FID、跨 embodiment 迁移、policy success 相关、零样本组合与控制误差",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "dynaforcing-dynamic-collapse",
+    index: "172",
+    title: "DynaForcing: Training Streaming Video Diffusion Models Without Dynamic Collapse",
+    shortTitle: "DynaForcing",
+    date: "2026-08-18 · ACM MM 2026",
+    category: "连续 Flow",
+    paradigm: "Block-AR Few-step Diffusion + Self-forcing DMD",
+    state: "连续 video latent block；KV 历史完全来自 student free-running 输出或混合 GT 锚点",
+    objective: "DMD reverse-KL + lip-sync/expressivity reward；Hybrid Forcing 与 reference perturbation",
+    decoding: "块间 AR 流式生成、块内 few-step 去噪；student 自生成历史持续写入 KV cache",
+    sharing: "视频 codec/DiT 与 Qwen/IBQ 分离；其训练分布修复可迁移到 ELF/URSA 少步 student",
+    open: "论文已公开；截至收录日未发现作者官方代码或项目页",
+    priority: "精读",
+    summary: "该工作指出 streaming self-forcing + DMD 会出现 dynamic collapse：单帧质量和身份保持仍好，但动作幅度与表情逐块衰减。根因是 reverse-KL 的 mode seeking 与无锚点自条件反馈共同放大静态模式；Hybrid Forcing、动力学奖励和 reference perturbation 能稳定长序列。",
+    why: "这与 ELF 少步蒸馏后 code palette 收缩、动态趋同高度同构：只看 FID、LPIPS 或最终 OCR 可能看不出 student 已经把时间变化压成安全静态解。它也提醒 on-policy 训练并非越纯越好，仍需要受控的真实历史锚点。",
+    inspiration: "在多帧威胁检测/生成中把 identity/OCR fidelity 与 motion energy、轨迹幅度、事件变化率分开报告；对 ELF student 按 block 随机注入带噪 GT IBQ embedding，避免自由历史误差单向积累。",
+    experiment: "固定 Qwen3、IBQ、teacher、student、数据与 NFE，比较 teacher forcing、纯 self-forcing DMD、Hybrid Forcing、Hybrid+motion reward、再加 reference perturbation。报告每 block ID entropy、光流/轨迹能量、OCR/身份、horizon drift、FVD、free-running 崩塌率与训练 GPUh。",
+    paper: "https://arxiv.org/abs/2608.17707",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "avits-dynamic-resolution-dit",
+    index: "173",
+    title: "AViTS: Accelerating Diffusion Transformers via Dynamic-Resolution Token Selection",
+    shortTitle: "AViTS",
+    date: "2026-08-18 · ECCV 2026",
+    category: "连续 Flow",
+    paradigm: "Dynamic-resolution DiT Token Selection",
+    state: "VAE latent token；按文本相关空间区域与跨 timestep 变化动态保持高/低分辨率",
+    objective: "不改变原 noise/velocity 预测；仅路由高价值 token 的分辨率与计算",
+    decoding: "每步依据 latent-text attention 与 temporal feature variation 选择性上采样，再走原 solver",
+    sharing: "保持原 DiT、VAE、text encoder 与 head；不是 Qwen/IBQ 共享方案，可作为 ELF 推理侧压缩器",
+    open: "论文与官方仓库已公开；仓库当前标注核心代码和权重待发布",
+    priority: "泛读",
+    summary: "AViTS 用 latent-text attention 找空间重要区域，用相邻去噪步特征变化找时间重要 token，只对这些位置保留高分辨率计算。论文在 FLUX、Qwen-Image-Edit 等模型上报告显著 FLOPs/延迟降低，并可叠加 distilled sampler。",
+    why: "它提供固定 2×2 folding 的推理期对照：OCR 字符、小目标与高变化区域不应被永久合并；背景和已收敛区域可以低分辨率继续走。真正收益必须按端到端延迟验证，而不是只看 token 数。",
+    inspiration: "把 IBQ block 的 Qwen cross-attention、ELF velocity norm 与相邻步 embedding 变化组合成恢复 1×1 的分数；其余位置继续 2×2/4×4，Stage 3 仍恢复原始四个 ID。",
+    experiment: "固定 Qwen3、IBQ、ELF 权重、NFE 与平均 token 预算，比较固定 2×2、文本相关静态路由、velocity-only 路由、AViTS 双信号动态路由。报告 OCRBench/TextVQA、生成文字 OCR、小目标、T2I、每模块 p50/p95、吞吐、显存和路由抖动。",
+    paper: "https://arxiv.org/abs/2608.17995",
+    code: "https://github.com/QHR69/AViTS",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "mdd-flow-acceleration",
+    index: "174",
+    title: "Magnitude-Direction Decoupling for Fast Video Generation with Flow Matching Models",
+    shortTitle: "MDD",
+    date: "2026-08-18",
+    category: "连续 Flow",
+    paradigm: "Training-free Flow Trajectory Acceleration",
+    state: "连续 VAE video latent 与原 Flow Matching 轨迹",
+    objective: "训练目标不变；推理时复用大模型 residual direction，并由小模型估计 velocity magnitude",
+    decoding: "多数步组合 cached direction + small-model magnitude，周期性回到大模型校正轨迹",
+    sharing: "复用原 video Flow backbone/solver；不涉及文本与视觉 tokenizer/head 共享",
+    open: "论文已公开；截至收录日未发现作者官方代码仓库",
+    priority: "泛读",
+    summary: "MDD 观察到相邻 Flow 步的大模型 residual 方向比幅值稳定，而小模型更擅长估计幅值，于是把 velocity 分解后跨步复用方向、以小模型更新大小，并周期性调用大模型校正。它是无需再训练的少调用加速基线。",
+    why: "URSA→ELF 的速度比较不应只在相同 NFE 下做；大模型调用次数、方向缓存和小模型辅助也会改变真实成本。MDD 还能用于诊断 palette collapse：若方向几乎固定而幅值持续衰减，可能正是状态朝少数 code 吸引域收缩。",
+    inspiration: "记录 ELF 每步 velocity direction cosine、magnitude 与 IBQ 回投 ID 变化率；在方向稳定区域缓存大模型 residual，只用小 head 更新 magnitude，并让 OCR/高频区域更频繁校正。",
+    experiment: "固定 Qwen3+IBQ/ELF checkpoint、solver 与质量预算，比较全大模型、uniform cache、MDD、MDD+OCR 区域自适应 refresh。统一报告 GenEval、OCR、ID coverage、trajectory cosine/magnitude、large-model calls、wall-clock、吞吐和峰值显存。",
+    paper: "https://arxiv.org/abs/2608.17695",
     featured: true,
     idea: true,
   },
@@ -4497,7 +4613,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.18</strong>
+        <strong>DAILY BRIEF · 2026.08.19</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -4543,9 +4659,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 037]</p>
-              <h1>Code palette 收缩时，<br />先审计轨迹，不要只换 head</h1>
-              <p className="hero-copy">今日聚焦“生成状态是否走在训练支持的轨迹上”：EqF用sample自身估计有效噪声并闭环调整步长；DanceOPD把teacher监督搬到student rollout；Dual-head证书把协调与共同collapse分开；ODEWorld和GaussianDWM++则把动态、静态外观与可查询世界状态拆开。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 038]</p>
+              <h1>统一的关键不是共用权重，<br />而是入口语义与动作接口</h1>
+              <p className="hero-copy">今日聚焦两个“接口变量”：Entry Point UMM 说明理解与生成要在正确层共享语义格式；Hydra-0 用 action flow 统一异构机器人动作。DynaForcing、AViTS 与 MDD 分别补齐少步蒸馏坍塌、动态分辨率 token 恢复和 Flow 轨迹加速。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -4557,7 +4673,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>169</b><span>精选条目</span></div>
+                <div><b>174</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -4660,6 +4776,10 @@ export default function Home() {
                   <tr><th>URSA</th><td>原始 IBQ 网格的离散 token ID；无额外 merge</td><td>每位置 64K clean-token CE</td><td>全 H×W 网格并行迭代</td><td>Metric path、schedule、solver；勿与仓库中的连续 DiT 混淆</td></tr>
                   <tr><th>ELF</th><td>连续 embedding</td><td>Velocity / L2 + CE</td><td>ODE / SDE</td><td>空间几何、回投误差、CFG</td></tr>
                   <tr><th>EqF</th><td>连续video/IBQ embedding latent；linear noisy state</td><td>与FM相同velocity，但不输入显式t/σ</td><td>effective-noise readout反馈 + adaptive fixed-point迭代</td><td>固定state/backbone/target，隔离显式schedule与sample-feedback；审计effective-t gap和palette entropy</td></tr>
+                  <tr><th>Entry Point UMM</th><td>理解 semantic feature + 生成 latent + 中层 activation</td><td>单向 concept binding + mid-stack alignment</td><td>沿用原理解/生成 decoder</td><td>共享权重不等于共享语义；固定数据与参数量扫描概念进入层和双向 export</td></tr>
+                  <tr><th>DynaForcing</th><td>连续 video latent block + student-generated KV history</td><td>DMD reverse-KL + dynamics reward + GT anchor</td><td>块间 AR / 块内 few-step diffusion</td><td>固定 teacher/student，隔离纯 self-forcing、Hybrid Forcing 与 dynamic collapse</td></tr>
+                  <tr><th>AViTS</th><td>动态高/低分辨率 VAE latent token</td><td>原 noise/velocity 不变；仅做 token 分辨率路由</td><td>每步按空间相关性与时间变化选择性上采样</td><td>固定平均 token 预算，审计 OCR/小目标保护和真实端到端延迟</td></tr>
+                  <tr><th>MDD</th><td>连续 VAE latent + Flow velocity</td><td>cached residual direction + small-model magnitude</td><td>多数步复用方向，周期性大模型校正</td><td>固定 checkpoint/solver，比较 NFE、large-model calls 与 palette trajectory</td></tr>
                   <tr><th>Flow Map LM</th><td>Simplex / one-hot</td><td>Posterior CE + distill</td><td>联合运输 / 一步</td><td>token 相关性、少步蒸馏</td></tr>
                   <tr><th>UniAR</th><td>BSQ 离散视觉 token</td><td>Parallel bit prediction</td><td>AR context / bit 并行</td><td>真正共享 tokenizer 与上下文</td></tr>
                   <tr><th>UniDDT</th><td>连续 visual latent</td><td>理解 + diffusion</td><td>文本/图像 decoder 分离</td><td>梯度冲突与任务解耦</td></tr>
@@ -4890,6 +5010,7 @@ export default function Home() {
                   <tr><th>ContactGuard</th><td>紧凑多视角视觉embedding</td><td>原策略计划的真实action chunk</td><td>短时post-contact next latent + failure probability</td><td>action-conditioned latent world model + probe</td><td>接触前短时rollout并闭环abort；不生成像素</td><td>Qwen3默认只输出风险/停止，URSA/ELF仅在高不确定样本渲染future</td></tr>
                   <tr><th>Marionette</th><td>276维显式3D state：多实体骨架、metric root轨迹与旋转</td><td>真实/错配游戏action stream</td><td>两阶段AR next state；固定renderer算几何/遮挡，diffusion仅画appearance</td><td>Explicit-state AR + zero-parameter graphics + video diffusion</td><td>长时state rollout可插入碰撞/分离规则后再渲染</td><td>Qwen3预测typed state，IBQ/ELF退居可选observation renderer；把动力学与画质解耦</td></tr>
                   <tr><th>hint²</th><td>高层atomic propositions + 低层即时机器人state</td><td>短时action chunk</td><td>action-induced命题转移 + 局部状态演化</td><td>Hierarchical world-model guidance + LTL automaton</td><td>闭环replan；高层保证liveness，低层约束即时安全</td><td>Qwen3负责语言→命题/LTL，IBQ/ELF或语义latent负责低层future，统一到行动而非单一状态</td></tr>
+                  <tr><th>Hydra-0</th><td>首帧/未来 VAE latent + camera-plane action-flow tracks</td><td>真实 command 投影或视频 tracker 恢复的 flow；支持 desired object flow</td><td>未来 video velocity；action flow side condition 不加噪</td><td>Action-flow conditioned video Flow Matching</td><td>5 秒 rollout 与 open-loop replay；4 步蒸馏；完整 closed-loop 仍待验证</td><td>先统一动作视觉接口再比 AR/URSA/ELF；Qwen 解释风险，IBQ/ELF 预测后果</td></tr>
                   <tr><th>ODEWorld</th><td>DINOv2 patch feature→单个768维dynamic latent；s₀保存static context</td><td>语言/goal与初始状态条件；无专用离散action token</td><td>dynamics重建 + JVP first-order physical-time velocity</td><td>Physical-Time Flow / latent ODE</td><td>任意时间分辨率、前后向rollout、replanning与sequential-subgoal闭环</td><td>把IBQ的OCR/外观静态状态与ELF动力学token分开，直接审计representation collapse</td></tr>
                   <tr><th>GaussianDWM++</th><td>Qwen/SigLIP语义化3D Gaussian primitives + compact world tokens</td><td>语言编辑、天气与动态车辆控制；完整真实action闭环未报告</td><td>foundation-feature distill + Gaussian/image KL alignment + 理解/编辑/生成</td><td>3D semantic field + Perceiver aggregation + 4D renderer</td><td>支持场景查询、4D编辑和生成；长时闭环规划仍待验证</td><td>在Qwen3+IBQ之上增加可查询3D world state，统一理解—生成而不强迫共享单一词表/head</td></tr>
                 </tbody>
