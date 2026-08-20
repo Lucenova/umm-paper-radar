@@ -4275,7 +4275,7 @@ const papers: Paper[] = [
     experiment: "固定Qwen3、IBQ、ELF backbone、训练数据、velocity target和NFE，比较标准显式t Flow、显式t+estimated-t反馈、EqF无t+固定warp、EqF无t+自适应warp。统一报告GenEval、OCR、ID覆盖率/熵、每图unique IDs、effective-t gap随步数/rollout horizon、吞吐和稳定性。",
     paper: "https://arxiv.org/abs/2608.14706",
     project: "https://equilibriumforcing.github.io/",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4302,7 +4302,7 @@ const papers: Paper[] = [
     action: "语言/goal与初始状态条件；可生成sequential latent subgoals指导policy",
     rollout: "连续时间ODE多步rollout，支持任意时间分辨率、反向预测与replanning",
     evaluation: "短/长时PSNR、LPIPS、FPS、latent smoothness、LIBERO-LONG闭环成功率",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4397,7 +4397,7 @@ const papers: Paper[] = [
     experiment: "固定 Qwen3、IBQ、训练样本和更新参数量，只比较 raw IBQ 入口、semantic adapter、TokLIP 式 encoder 与 layer 7/10/14 mid-stack alignment。分别做 OCR-understanding-only 与 text-rendering-only 注入，报告双向 concept export、OCRBench/DocVQA/TextVQA、生成文字 OCR、通用 T2I 退化和每层 probe 相关。",
     paper: "https://arxiv.org/abs/2608.17564",
     code: "https://github.com/Zane-ZYQiu/entry-point-umm",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4423,7 +4423,7 @@ const papers: Paper[] = [
     action: "真实 command 经控制器/仿真与标定投影为 action flow；离线视频可由 tracker 恢复；支持 desired object flow 逆控制",
     rollout: "5 秒未来视频 rollout 与 open-loop policy replay；项目页明确完整 closed-loop policy evaluation 尚未完成",
     evaluation: "robot/object flow EPE、FVD/FID、跨 embodiment 迁移、policy success 相关、零样本组合与控制误差",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4445,7 +4445,7 @@ const papers: Paper[] = [
     inspiration: "在多帧威胁检测/生成中把 identity/OCR fidelity 与 motion energy、轨迹幅度、事件变化率分开报告；对 ELF student 按 block 随机注入带噪 GT IBQ embedding，避免自由历史误差单向积累。",
     experiment: "固定 Qwen3、IBQ、teacher、student、数据与 NFE，比较 teacher forcing、纯 self-forcing DMD、Hybrid Forcing、Hybrid+motion reward、再加 reference perturbation。报告每 block ID entropy、光流/轨迹能量、OCR/身份、horizon drift、FVD、free-running 崩塌率与训练 GPUh。",
     paper: "https://arxiv.org/abs/2608.17707",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4468,7 +4468,7 @@ const papers: Paper[] = [
     experiment: "固定 Qwen3、IBQ、ELF 权重、NFE 与平均 token 预算，比较固定 2×2、文本相关静态路由、velocity-only 路由、AViTS 双信号动态路由。报告 OCRBench/TextVQA、生成文字 OCR、小目标、T2I、每模块 p50/p95、吞吐、显存和路由抖动。",
     paper: "https://arxiv.org/abs/2608.17995",
     code: "https://github.com/QHR69/AViTS",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4490,6 +4490,130 @@ const papers: Paper[] = [
     inspiration: "记录 ELF 每步 velocity direction cosine、magnitude 与 IBQ 回投 ID 变化率；在方向稳定区域缓存大模型 residual，只用小 head 更新 magnitude，并让 OCR/高频区域更频繁校正。",
     experiment: "固定 Qwen3+IBQ/ELF checkpoint、solver 与质量预算，比较全大模型、uniform cache、MDD、MDD+OCR 区域自适应 refresh。统一报告 GenEval、OCR、ID coverage、trajectory cosine/magnitude、large-model calls、wall-clock、吞吐和峰值显存。",
     paper: "https://arxiv.org/abs/2608.17695",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "dav4-riemannian-flow",
+    index: "175",
+    title: "Depth Anything V4: Dynamic 4D Scene Reconstruction via Riemannian Flow Matching on 4D Gaussian Splatting",
+    shortTitle: "DAV4",
+    date: "2026-08-18",
+    category: "连续 Flow",
+    paradigm: "Riemannian Flow Matching on 4D Gaussian Manifolds",
+    state: "4D Gaussian 的位置、尺度、旋转与不透明度；各参数位于欧氏、正值、旋转等不同流形",
+    objective: "沿参数流形切空间预测 velocity；中间状态始终满足尺度、旋转和不透明度约束",
+    decoding: "从基础分布沿 Riemannian probability path 积分，再以 4D Gaussian renderer 合成动态视图",
+    sharing: "不共享 Qwen/IBQ tokenizer、词表或 head；可作为 ELF 欧氏 embedding path 的几何对照",
+    open: "论文已公开；截至收录日未发现作者官方代码或项目页",
+    priority: "精读",
+    summary: "DAV4 不是把所有 4D Gaussian 参数拼成欧氏向量后直线输运，而是在各自非欧流形上定义 Flow Matching。作者用相同数据、架构和测试时优化做受控实验：确定性 MLP 的 F-score 为 0.762，RFM 为 0.806，把 +0.044 增益单独归因于路径几何。",
+    why: "它是今天最贴近 URSA→ELF 改造的方法证据：连续化本身不保证合理，若 IBQ code embedding、归一化 hidden 或 decoder-valid latent 实际位于球面/曲面，直线插值会经过不可解码区域。DAV4 也示范了如何固定其余变量，只测试 Flow 的状态几何。",
+    inspiration: "先审计 IBQ embedding 的 norm、角度、近邻连通性与插值中点重建；若存在明显球面或 decoder-valid manifold，再比较欧氏 ELF、归一化/球面 Flow 与学习到的局部 Riemannian metric，而不是把所有收益归因于 velocity objective。",
+    experiment: "固定 Qwen3、IBQ tokenizer/decoder、数据、Transformer、参数量、训练 FLOPs 与 NFE，只替换 Euclidean LERP、SLERP、decoder-valid geodesic/RFM 三条 probability path。报告中间态可解码率、最近 ID 回投准确率、code coverage、OCRBench/DocVQA/TextVQA、生成文字 OCR、GenEval、稳定性、吞吐与显存。",
+    paper: "https://arxiv.org/abs/2608.18388",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "worldpack-spatial-memory",
+    index: "176",
+    title: "WorldPack: Dynamic Frame Compression for Long-context Video World Modeling",
+    shortTitle: "WorldPack",
+    date: "v3 · 2026-08-19 · TMLR 2026",
+    category: "世界模型",
+    paradigm: "Spatially-aware Compressed Memory + Video Diffusion",
+    state: "历史 RGB/视频 latent 的分层压缩帧；相机位姿和视场重叠决定每帧保真度",
+    objective: "沿用 action-conditioned future video diffusion；额外优化固定 context 内的历史帧 packing 与 geometric selection",
+    decoding: "将 4 帧有效历史扩展到 22 帧；按当前视角检索低压缩关键帧，其余历史高压缩保留",
+    sharing: "不共享 Qwen/IBQ 词表；可把同一空间选择器用于 IBQ 帧/块 memory，并保持动力学 head 不变",
+    open: "论文 v3 与 TMLR 接收信息已公开；截至收录日未发现作者官方代码仓库",
+    priority: "精读",
+    summary: "WorldPack 把长历史压缩从按时间统一衰减改成按 3D 空间相关性分配：trajectory packing 在固定窗口中装入更多历史，geometric selection 根据 camera pose 与 FoV overlap 为相关帧保留更高分辨率。有效上下文由 4 帧增至 22 帧，packing 令 diffusion 推理时间增加约 16%。",
+    why: "多帧威胁检测中的远期关键帧可能比最近背景帧更重要；固定时间窗或统一 2×2 folding 会恰好删掉重访目标、遮挡前身份和轨迹转折。WorldPack把 memory selection、token compression 与动力学方式拆成了可单独控制的变量。",
+    inspiration: "为每个历史帧和 IBQ block 存相机姿态、目标轨迹/框与可见性；当前 query 到来时，以视场重叠、目标重识别和威胁相关性联合分配 1×1、2×2、4×4 或摘要 token，而不是只按 recency 截断。",
+    experiment: "固定 Qwen3、IBQ、未来预测 head、平均 memory token 数与视频数据，只比较最近 N 帧、uniform compression、attention retrieval、WorldPack 几何 packing、再加 query/目标相关性。报告远期目标 recall、OCR/身份保持、horizon drift、闭环威胁判断、Loop revisit 成功率、FVD、p50/p95 延迟、吞吐与显存。",
+    paper: "https://arxiv.org/abs/2512.02473",
+    action: "导航/相机动作条件；camera pose 与 FoV overlap 同时作为历史记忆选择信号",
+    rollout: "面向长时视频 rollout 与场景重访；固定 context 下保留 22 帧有效历史，未新增独立 planner",
+    evaluation: "LoopNav/RECON 空间推理、远期观察召回、视频一致性、扩散推理额外成本与 horizon drift",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "gigabrain-behavior-world-model",
+    index: "177",
+    title: "GigaBrain-WBC-0.5: A Behavior World Model for Robust Whole-Body Control with Environment Interaction",
+    shortTitle: "GigaBrain-WBC-0.5",
+    date: "2026-08-18 · Technical Report",
+    category: "世界模型",
+    paradigm: "Causal Behavior World Model + Feasibility Projection",
+    state: "机器人 proprioceptive state、地形/接触几何与连续 latent behavior command；不是像素或 IBQ 状态",
+    objective: "联合 next action、next proprioceptive state 与 next latent-command distribution",
+    decoding: "因果 Transformer 逐步闭环执行；用预测 command distribution 检测并回缩不可行动作",
+    sharing: "同一 causal policy 同时承担行动与动力学；与 Qwen/IBQ 不共享 tokenizer，但可作为上层意图到可行动作的安全接口",
+    open: "论文与官方项目页已公开；官方代码标记为 coming soon",
+    priority: "精读",
+    summary: "GigaBrain-WBC-0.5 让执行策略同时预测下一动作、下一状态和下一潜在行为命令分布；部署时利用该分布识别不可能命令，并投影到环境中可行的近邻行为。项目页报告地形交互成功率 81.3%、不合理命令下 83.1%、跌倒恢复 99.3%。",
+    why: "它把“统一理解—生成—预测—行动”落实为闭环接口：模型不只生成看似合理的未来，还必须知道当前环境允许什么。对多帧威胁系统，同样需要把风险语言结论、未来状态预测与可执行响应分开，并在动作不可行时给出可验证的 best-effort 退路。",
+    inspiration: "让 Qwen3 输出高层威胁意图与置信度，IBQ/ELF 负责视觉后果，另设低维 behavior/action feasibility head 预测 next state 与可行动作分布；不要让视频生成器直接承担安全控制。",
+    experiment: "固定观察、Qwen3 上层策略、数据与控制预算，比较 reactive policy、action+state joint model、再加 command-distribution feasibility projection。报告 action-shuffle 敏感性、同状态多动作可分性、零动作漂移、预测 state error、不可行命令拒绝/回缩、闭环任务成功率、恢复率与控制延迟。",
+    paper: "https://arxiv.org/abs/2608.18234",
+    project: "https://shepherd1226.github.io/gigabrain-wbc-0.5/",
+    action: "实时 latent behavior command；模型预测其条件分布并把 OOD/不可行命令回缩到可行行为",
+    rollout: "因果 Transformer 在线闭环；真实机器人支持环境接触、扰动恢复和跨 embodiment 微调",
+    evaluation: "地形/物体交互成功率、OOD 命令生存率、跌倒恢复、MPKPE、jerk、真实硬件与迁移",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "low-rank-latent-carriers",
+    index: "178",
+    title: "Low-Rank Dynamics-Effective Latent Carriers for Counterfactual Rollout in Learned World Models",
+    shortTitle: "Low-Rank Carriers",
+    date: "v2 · 2026-08-19",
+    category: "可解释性",
+    paradigm: "Mechanistic Latent Intervention for World Models",
+    state: "循环世界模型的 192 维 hidden state；从事实—反事实差分学习 rank-4 carrier",
+    objective: "从当前 factual state 与请求的 velocity edit 预测 carrier 系数；不重训原动力学模型",
+    decoding: "仅在 anchor 时刻注入一次低秩 patch，随后自主 rollout 12 步，无 teacher forcing 或重复纠正",
+    sharing: "不涉及视觉 tokenizer/词表共享；提供可插入 Qwen/IBQ 时序 hidden 的因果干预与审计接口",
+    open: "论文 v2 已公开；截至收录日未发现作者官方代码仓库",
+    priority: "精读",
+    summary: "该工作从 world-model hidden 的事实—反事实差分中寻找低秩 carrier。一次 rank-4 patch 就能把 12 步自主 rollout 导向指定速度反事实；等范数随机、错对象和错时刻干预均失败。作者同时给出负例：能改变 rollout 不等于干预具有目标特异性。",
+    why: "这是世界模型可解释性很稀缺的“干预而非相关”证据。对 Qwen3 多帧威胁判断或 ELF 动力学，attention、SAE feature 和 probe 只有在单次干预能持续改变正确对象的未来、且通过错时/错对象控制后，才可称为真正的 dynamics carrier。",
+    inspiration: "从正常/威胁轨迹、静止/加速目标、OCR 正确/错误对中提取 Qwen/ELF hidden 差分，学习低秩 carrier；在关键帧只干预一次，检查其是否持续改变同一目标的轨迹、风险评分或生成未来，而不破坏背景与文字。",
+    experiment: "固定 Qwen3+IBQ/ELF checkpoint 与 12/24 帧 rollout，扫描 rank 1/2/4/8/16，并加入等范数随机、错对象、错层、错时刻、no-patch 控制。报告目标轨迹/威胁结论改变、非目标保持、horizon persistence、OCR/身份副作用、跨 checkpoint 复现与闭环决策增益。",
+    paper: "https://arxiv.org/abs/2608.15156",
+    action: "请求的局部 velocity edit；通过一次 hidden carrier 注入实现，不直接改原 action token",
+    rollout: "单次 anchor patch 后 12 步自主 rollout；无需未来观察、teacher forcing 或反复修正",
+    evaluation: "目标特异性、错对象/错时间/随机控制、跨 checkpoint 复现、时间复用与 horizon persistence",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "mask2real-world-model",
+    index: "179",
+    title: "Mask2Real-WM: Segmentation Masks as a Sim-to-Real Bridge for Controllable Dexterous World Models",
+    shortTitle: "Mask2Real-WM",
+    date: "v2 · 2026-08-18",
+    category: "世界模型",
+    paradigm: "Mask-space Dynamics Diffusion + RGB Renderer",
+    state: "手/物体 segmentation mask 作为动力学状态；RGB 仅由第二阶段 SVD renderer 生成",
+    objective: "WM1 预测 action-conditioned future masks；WM2 在 mask 条件下预测 photorealistic RGB video",
+    decoding: "两阶段自回归 rollout：先 denoise future masks，再以 ControlNet-SVD 渲染双视角 RGB",
+    sharing: "动力学与外观不共享状态/目标；可让 Qwen 读 semantic mask，IBQ/ELF 仅承担可选 RGB 渲染",
+    open: "论文、官方项目页与交互演示已公开；代码标记为 coming soon",
+    priority: "精读",
+    summary: "Mask2Real-WM 将 23-DoF 灵巧操作拆成 mask dynamics 与 RGB rendering。动力学分支先用超过 50 小时仿真训练，再用约 2.5 小时真实示范微调；项目页报告完整模型的 action controllability 约 0.95 ID / 0.87 OOD，而单体像素基线在 OOD 低于 0.5。",
+    why: "它直接支持把 tokenizer 质量、静态渲染和时序动力学分开：未来 RGB 更清晰不代表动作更可控，反之高质量 mask dynamics 可以先服务规划，再按需渲染。对小目标威胁检测，目标 mask/box/track 也比完整未来帧更接近因果状态。",
+    inspiration: "保留 IBQ 作为输入证据与 RGB renderer，同时增加轻量对象 mask/box/track 动力学流；Qwen3 用语义状态做预测和风险判断，只有需要人工复核时才由 ELF/IBQ 渲染未来画面。",
+    experiment: "固定 23-DoF/威胁动作、视频、参数量与训练 FLOPs，比较 monolithic RGB-ELF、IBQ-ID dynamics、mask dynamics、mask dynamics+IBQ renderer。分别报告 mask IoU/track error、per-action controllability、action-shuffle、OCR/身份、FVD/LPIPS、sim-to-real 样本效率、horizon drift、闭环成功率和渲染延迟。",
+    paper: "https://arxiv.org/abs/2607.04546",
+    project: "https://srl-ethz.github.io/Mask2Real-WM/",
+    action: "6D end-effector pose + 17 hand-joint positions，共 23 维连续 action sequence",
+    rollout: "两阶段 autoregressive rollout；项目页展示 pick-and-place 长时预测，支持规划/数据增强但未报告独立 MPC",
+    evaluation: "23 维逐 DoF command-response controllability、ID/OOD、mask/RGB perceptual quality、sim-to-real 样本效率与长时漂移",
     featured: true,
     idea: true,
   },
@@ -4613,7 +4737,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.19</strong>
+        <strong>DAILY BRIEF · 2026.08.20</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -4659,9 +4783,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 038]</p>
-              <h1>统一的关键不是共用权重，<br />而是入口语义与动作接口</h1>
-              <p className="hero-copy">今日聚焦两个“接口变量”：Entry Point UMM 说明理解与生成要在正确层共享语义格式；Hydra-0 用 action flow 统一异构机器人动作。DynaForcing、AViTS 与 MDD 分别补齐少步蒸馏坍塌、动态分辨率 token 恢复和 Flow 轨迹加速。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 039]</p>
+              <h1>先选对世界状态，<br />再比较动力学范式</h1>
+              <p className="hero-copy">DAV4 说明连续 Flow 必须尊重状态流形；WorldPack 按 3D 空间相关性分配长历史 token。GigaBrain、Low-Rank Carriers 与 Mask2Real-WM 分别补齐可行动作边界、可干预动力学表示和“动力学—渲染”解耦。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -4673,7 +4797,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>174</b><span>精选条目</span></div>
+                <div><b>179</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -4775,6 +4899,7 @@ export default function Home() {
                   <tr><th>X-Omni</th><td>离散 token ID</td><td>Next-token CE</td><td>左到右</td><td>累计误差、KV Cache、RL</td></tr>
                   <tr><th>URSA</th><td>原始 IBQ 网格的离散 token ID；无额外 merge</td><td>每位置 64K clean-token CE</td><td>全 H×W 网格并行迭代</td><td>Metric path、schedule、solver；勿与仓库中的连续 DiT 混淆</td></tr>
                   <tr><th>ELF</th><td>连续 embedding</td><td>Velocity / L2 + CE</td><td>ODE / SDE</td><td>空间几何、回投误差、CFG</td></tr>
+                  <tr><th>DAV4 / RFM</th><td>受约束的4D Gaussian连续参数流形</td><td>Riemannian tangent velocity</td><td>沿合法manifold probability path积分</td><td>固定数据/架构/TTO，隔离Euclidean与Riemannian路径；迁移到IBQ前先审计embedding几何</td></tr>
                   <tr><th>EqF</th><td>连续video/IBQ embedding latent；linear noisy state</td><td>与FM相同velocity，但不输入显式t/σ</td><td>effective-noise readout反馈 + adaptive fixed-point迭代</td><td>固定state/backbone/target，隔离显式schedule与sample-feedback；审计effective-t gap和palette entropy</td></tr>
                   <tr><th>Entry Point UMM</th><td>理解 semantic feature + 生成 latent + 中层 activation</td><td>单向 concept binding + mid-stack alignment</td><td>沿用原理解/生成 decoder</td><td>共享权重不等于共享语义；固定数据与参数量扫描概念进入层和双向 export</td></tr>
                   <tr><th>DynaForcing</th><td>连续 video latent block + student-generated KV history</td><td>DMD reverse-KL + dynamics reward + GT anchor</td><td>块间 AR / 块内 few-step diffusion</td><td>固定 teacher/student，隔离纯 self-forcing、Hybrid Forcing 与 dynamic collapse</td></tr>
@@ -4928,6 +5053,7 @@ export default function Home() {
                   <tr><th>Consequence-sensitive allocation</th><td>内容选择器决定位置，任务后果曲线决定每请求总预算</td><td>保持全局平均N/4；高风险可1×1，低风险可2×2/4×4</td><td>不改Stage3 head；只改变token/resolution allocation</td><td>先离线校准cost–error–budget，再按query风险分配</td><td>同图不同问题必须获得不同预算；报告cost-weighted error而非仅平均分</td></tr>
                   <tr><th>SIEVE cross-modal residual</th><td>每层把视觉hidden投影到文本token子空间，按不可解释残差保留token</td><td>逐层可变；固定平均N/4或同FLOPs</td><td>不改Stage3 head；CMR只决定何时压缩或重新激活</td><td>文本尚未吸收的高CMR视觉证据必须保留</td><td>把“压缩位置”从输入前固定merge升级为可测量的跨层控制变量</td></tr>
                   <tr><th>InSight-doc zoom</th><td>低分辨率全局2×2 + agent选择region恢复1×1/高分辨率crop</td><td>平均预算固定，按query不确定性动态追加</td><td>原Qwen/IBQ head；zoom是显式感知动作</td><td>先overview后局部证据，必要时多轮放大</td><td>让merged-token路线可逆，单独衡量触发策略、缓存和尾部延迟</td></tr>
+                  <tr><th>WorldPack memory</th><td>历史帧按相机位姿、FoV与空间相关性分层压缩</td><td>固定总memory token；有效历史由4帧扩展到22帧</td><td>不改Qwen3/IBQ动力学head，只改变历史证据packing</td><td>空间相关帧低压缩、无关帧高压缩，而非统一按recency丢弃</td><td>隔离memory selection、token compression与时序动力学三类收益</td></tr>
                   <tr><th>Dual-embedding ID contract</th><td>2×2仍监督四个原始ID；E_llm[id]可训练，E_codec[id]冻结</td><td>N/4个global block + [B,M,4]原始ID目标</td><td>共享K-way ID head；decoder按ID重新查E_codec</td><td>块间/块内顺序不变，只审计ID→embedding→decoder路径</td><td>区分“共享ID”与“共享向量”；避免把E_llm漂移误判为正常codec解码损坏</td></tr>
                   <tr><th>FIRM intra-token code</th><td>2×2 merged token另预测4-bit/16-code块内结构；原始IBQ监督仍保留</td><td>N/4 global block + 4-slot结构/ID目标</td><td>structure code head + 共享4×K ID head；可选pre-merge refinement</td><td>结构code并行；原始ID可并行或local AR</td><td>检验单一hidden能否保留块内几何；不能用mask pattern代替codec ID做T2I</td></tr>
                   <tr><th>Dual-head collapse certificate</th><td>同一block的TL/TR/BL/BR多slot离散分布</td><td>N/4 global block + 4×K原始ID；额外统计slot-wise Gini–Simpson</td><td>独立/共享head、共享latent或训练支持slot partition</td><td>并行或local AR均可；证书只做审计</td><td>把高agreement的真实协调与四slot共同palette collapse分开，避免block exact-match误导</td></tr>
@@ -5011,6 +5137,10 @@ export default function Home() {
                   <tr><th>Marionette</th><td>276维显式3D state：多实体骨架、metric root轨迹与旋转</td><td>真实/错配游戏action stream</td><td>两阶段AR next state；固定renderer算几何/遮挡，diffusion仅画appearance</td><td>Explicit-state AR + zero-parameter graphics + video diffusion</td><td>长时state rollout可插入碰撞/分离规则后再渲染</td><td>Qwen3预测typed state，IBQ/ELF退居可选observation renderer；把动力学与画质解耦</td></tr>
                   <tr><th>hint²</th><td>高层atomic propositions + 低层即时机器人state</td><td>短时action chunk</td><td>action-induced命题转移 + 局部状态演化</td><td>Hierarchical world-model guidance + LTL automaton</td><td>闭环replan；高层保证liveness，低层约束即时安全</td><td>Qwen3负责语言→命题/LTL，IBQ/ELF或语义latent负责低层future，统一到行动而非单一状态</td></tr>
                   <tr><th>Hydra-0</th><td>首帧/未来 VAE latent + camera-plane action-flow tracks</td><td>真实 command 投影或视频 tracker 恢复的 flow；支持 desired object flow</td><td>未来 video velocity；action flow side condition 不加噪</td><td>Action-flow conditioned video Flow Matching</td><td>5 秒 rollout 与 open-loop replay；4 步蒸馏；完整 closed-loop 仍待验证</td><td>先统一动作视觉接口再比 AR/URSA/ELF；Qwen 解释风险，IBQ/ELF 预测后果</td></tr>
+                  <tr><th>WorldPack</th><td>分层压缩历史帧/视频latent + camera pose/FoV</td><td>导航与相机action；几何信息同时控制memory选择</td><td>原action-conditioned future video diffusion目标</td><td>Spatially-aware compressed memory + video diffusion</td><td>长时rollout与场景重访；固定窗口保留22帧有效历史</td><td>可复用IBQ帧/块，只改memory分配，不混淆URSA/ELF动力学收益</td></tr>
+                  <tr><th>GigaBrain-WBC-0.5</th><td>proprioception + 接触/地形 + latent behavior command</td><td>实时behavior command；不可行命令投影到可行分布</td><td>next action + next state + next-command distribution</td><td>Causal Transformer Behavior World Model</td><td>真实机器人在线闭环、环境接触、扰动/跌倒恢复</td><td>Qwen给意图、IBQ/ELF预测视觉后果，独立feasibility head守住行动边界</td></tr>
+                  <tr><th>Low-Rank Carriers</th><td>192维recurrent hidden + rank-4反事实carrier</td><td>一次性局部velocity edit，不直接替换action token</td><td>保持原动力学；学习factual→counterfactual低秩干预系数</td><td>Mechanistic hidden intervention</td><td>单次anchor patch后12步自主rollout</td><td>用于验证Qwen/ELF feature是否真正持续驱动目标未来，而非仅相关probe</td></tr>
+                  <tr><th>Mask2Real-WM</th><td>segmentation mask动力学状态 + 独立RGB renderer</td><td>6D末端位姿 + 17手指关节，共23维连续action</td><td>future mask denoising + mask-conditioned RGB video</td><td>两阶段video diffusion / ControlNet-SVD</td><td>两阶段AR rollout；可用于规划和数据增强</td><td>Qwen读语义mask，IBQ/ELF按需渲染；分开测动力学、tokenizer和外观</td></tr>
                   <tr><th>ODEWorld</th><td>DINOv2 patch feature→单个768维dynamic latent；s₀保存static context</td><td>语言/goal与初始状态条件；无专用离散action token</td><td>dynamics重建 + JVP first-order physical-time velocity</td><td>Physical-Time Flow / latent ODE</td><td>任意时间分辨率、前后向rollout、replanning与sequential-subgoal闭环</td><td>把IBQ的OCR/外观静态状态与ELF动力学token分开，直接审计representation collapse</td></tr>
                   <tr><th>GaussianDWM++</th><td>Qwen/SigLIP语义化3D Gaussian primitives + compact world tokens</td><td>语言编辑、天气与动态车辆控制；完整真实action闭环未报告</td><td>foundation-feature distill + Gaussian/image KL alignment + 理解/编辑/生成</td><td>3D semantic field + Perceiver aggregation + 4D renderer</td><td>支持场景查询、4D编辑和生成；长时闭环规划仍待验证</td><td>在Qwen3+IBQ之上增加可查询3D world state，统一理解—生成而不强迫共享单一词表/head</td></tr>
                 </tbody>
