@@ -4512,7 +4512,7 @@ const papers: Paper[] = [
     inspiration: "先审计 IBQ embedding 的 norm、角度、近邻连通性与插值中点重建；若存在明显球面或 decoder-valid manifold，再比较欧氏 ELF、归一化/球面 Flow 与学习到的局部 Riemannian metric，而不是把所有收益归因于 velocity objective。",
     experiment: "固定 Qwen3、IBQ tokenizer/decoder、数据、Transformer、参数量、训练 FLOPs 与 NFE，只替换 Euclidean LERP、SLERP、decoder-valid geodesic/RFM 三条 probability path。报告中间态可解码率、最近 ID 回投准确率、code coverage、OCRBench/DocVQA/TextVQA、生成文字 OCR、GenEval、稳定性、吞吐与显存。",
     paper: "https://arxiv.org/abs/2608.18388",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4537,7 +4537,7 @@ const papers: Paper[] = [
     action: "导航/相机动作条件；camera pose 与 FoV overlap 同时作为历史记忆选择信号",
     rollout: "面向长时视频 rollout 与场景重访；固定 context 下保留 22 帧有效历史，未新增独立 planner",
     evaluation: "LoopNav/RECON 空间推理、远期观察召回、视频一致性、扩散推理额外成本与 horizon drift",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4563,7 +4563,7 @@ const papers: Paper[] = [
     action: "实时 latent behavior command；模型预测其条件分布并把 OOD/不可行命令回缩到可行行为",
     rollout: "因果 Transformer 在线闭环；真实机器人支持环境接触、扰动恢复和跨 embodiment 微调",
     evaluation: "地形/物体交互成功率、OOD 命令生存率、跌倒恢复、MPKPE、jerk、真实硬件与迁移",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4588,7 +4588,7 @@ const papers: Paper[] = [
     action: "请求的局部 velocity edit；通过一次 hidden carrier 注入实现，不直接改原 action token",
     rollout: "单次 anchor patch 后 12 步自主 rollout；无需未来观察、teacher forcing 或反复修正",
     evaluation: "目标特异性、错对象/错时间/随机控制、跨 checkpoint 复现、时间复用与 horizon persistence",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4614,6 +4614,125 @@ const papers: Paper[] = [
     action: "6D end-effector pose + 17 hand-joint positions，共 23 维连续 action sequence",
     rollout: "两阶段 autoregressive rollout；项目页展示 pick-and-place 长时预测，支持规划/数据增强但未报告独立 MPC",
     evaluation: "23 维逐 DoF command-response controllability、ID/OOD、mask/RGB perceptual quality、sim-to-real 样本效率与长时漂移",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "block3d-block-wise-diffusion",
+    index: "180",
+    title: "Block3D: Efficient Text-to-3D Generation via Block-Wise Diffusion",
+    shortTitle: "Block3D",
+    date: "2026-08-20",
+    category: "离散 Diffusion",
+    paradigm: "Block-causal AR + Intra-block Masked Diffusion",
+    state: "冻结 3D tokenizer 的离散 shape-token ID；序列切成连续 block",
+    objective: "mask-to-token clean-ID CE + token-to-token residual correction",
+    decoding: "block 间从左到右 AR；当前 block 内双向并行去掩码，并按置信度重写低置信 token",
+    sharing: "固定 tokenizer/mesh decoder，微调既有 AR generator；可从 AR 权重初始化，不共享 Qwen/IBQ 词表",
+    open: "论文与官方项目页已公开；代码和权重标记为 coming soon",
+    priority: "精读",
+    summary: "Block3D 把逐 token 因果依赖提升到 block：历史 block 只作为 causal prefix，当前 block 的全部离散 token 用双向注意联合恢复，并在提交前纠正低置信预测。相对单独微调的 AR 基线，端到端生成由 25.71 秒降至 4.99 秒，几何质量未下降。",
+    why: "它恰好补上当前 2×2 Stage 3 的范式空缺：并行 4×K head 忽略 TL/TR/BL/BR 相关性，local AR 又引入四步串行；Block3D 允许四个原始 IBQ ID 并行但相关地迭代修正。它与 URSA 都预测 clean ID，差别是 URSA 反复更新全图，Block3D 只更新当前小块。",
+    inspiration: "保持 merged Qwen hidden 只负责 block 级条件，不造 merged ID；把四个 slot 初始化为 mask，在块内使用共享 K-way head、双向局部注意和置信度提交。这样可从现有 Qwen3/AR 权重初始化，又避免全网格 URSA 每步的显存开销。",
+    experiment: "固定 Qwen3、IBQ、2×2 folding、数据、参数量与训练 FLOPs，比较并行4×K、2层 local causal Transformer、URSA四slot metric path、Block3D式块内masked diffusion。扫描2/4/8次局部调用，报告slot accuracy、block exact match、邻接共现、free-running gap、code coverage、OCRBench/TextVQA、GenEval、延迟与显存。",
+    paper: "https://arxiv.org/abs/2608.19567",
+    project: "https://alexandertsui.github.io/block3d/",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "stream4d-dynamic-reward",
+    index: "181",
+    title: "Stream4D: 4D-Consistency for Streaming Autoregressive Diffusion Video Models",
+    shortTitle: "Stream4D",
+    date: "2026-08-20",
+    category: "世界模型",
+    paradigm: "Streaming AR Diffusion + 4D Reconstruction RL",
+    state: "连续视频 latent rollout；4D Gaussian canonical scene、时变 deformation 与 3D scene flow 仅作为 critic 状态",
+    objective: "原 diffusion velocity + 4D reconstruction、自然运动、平滑/局部刚性与感知 reward",
+    decoding: "块间 AR、块内少步去噪，rolling KV；以 DiffusionNFT 在生成轨迹上优化",
+    sharing: "兼容 Self-Forcing/Causal-Forcing/LongLive；不共享 Qwen/IBQ tokenizer，但 reward 可直接审计 URSA/ELF 视频 rollout",
+    open: "论文与官方项目页已公开；官方代码标记为 coming soon",
+    priority: "精读",
+    summary: "Stream4D 发现静态 3D 重建 critic 会把真实物体运动当成几何误差，最容易通过冻结视频获得高分。方法改用 feed-forward 4D Gaussian 重建、自适应 scene-flow 运动先验与轻量感知锚点，在多种流式 AR diffusion 主干和不同 horizon 上同时改善一致性与运动保持。",
+    why: "这与 DynaForcing 的 dynamic collapse 和 ELF 的 palette 收缩形成关键闭环：低 FVD、稳定身份或高 3D consistency 仍可能只是静态捷径。世界模型奖励必须同时惩罚零运动、过强运动、抖动与局部撕裂，不能把‘冻结’误报成‘长时一致’。",
+    inspiration: "对多帧威胁未来增加目标中心 2D/3D scene-flow、轨迹幅度和事件变化 reward；IBQ 保持身份/OCR，动力学分支必须对动作与目标运动敏感。若每个 block 的 unique IDs、motion energy 同步衰减，应优先修 reward/forcing 而不是继续换 Stage 3 head。",
+    experiment: "固定 Qwen3+IBQ/ELF 世界模型、student、NFE、数据与总预算，比较无RL、静态3D consistency、4D reconstruction、4D+motion gate、再加perceptual anchor。报告action-shuffle、motion energy、静止率、轨迹/身份/OCR、1/8/32步drift、FVD、闭环威胁成功率和RL显存。",
+    paper: "https://arxiv.org/abs/2608.19556",
+    project: "https://banyuanhao.github.io/Stream4D/",
+    action: "沿用底层视频世界模型的文本/相机/交互条件；reward 显式要求动作与真实动态不被静态一致性抹去",
+    rollout: "面向实时流式长 horizon；块间自回归、rolling KV，评测 Self-Forcing、Causal-Forcing 与 LongLive",
+    evaluation: "4D-PSNR、scene-flow magnitude/平滑/局部刚性、人类偏好、静态坍塌率与不同 horizon 漂移",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "clustrs-token-denoising",
+    index: "182",
+    title: "Clustering and Token Denoising for Faster and More Robust VLMs",
+    shortTitle: "ClustRS",
+    date: "2026-08-19",
+    category: "统一多模态",
+    paradigm: "Training-free Semantic Clustering + Residual Shrinkage",
+    state: "视觉 encoder 连续 token；attention 加权语义簇的代表 token",
+    objective: "不改训练目标；一次 residual-shrinkage 对选中 token 去噪",
+    decoding: "LLM 解码不变；在进入主干前聚类选代表并一次去噪",
+    sharing: "保持原 VLM/LLM、vision encoder 与输出 head；可作为 Qwen3 输入侧 token 压缩器",
+    open: "论文已公开；截至收录日未发现作者官方代码或项目页",
+    priority: "泛读",
+    summary: "ClustRS 用 attention-weighted clustering 同时保留相关性与多样性，再对代表 token 做一次 Residual Shrinkage。论文在 ScienceQA-IMG/MM-VET 的噪声设置中最高削减 97% token 到 16 个，并在轻度噪声下以不足三分之一 token 匹配 LLaVA-OneVision 基线。",
+    why: "固定2×2 folding把空间邻近当成语义冗余，也会把噪声平均进 merged embedding。ClustRS给出一个训练免费对照：先按语义簇选代表，再去掉不稳定 residual；这样能测试当前性能问题究竟来自压缩位置还是输入表示噪声。",
+    inspiration: "对IBQ/Qwen输入按 code embedding、局部OCR saliency 与 attention 聚类；每簇保留代表和必要的1×1文字/小目标 token，再用低成本 shrinkage 抑制传感噪声。生成监督仍是四个原始ID，不能让聚类代表替代codec目标。",
+    experiment: "固定Qwen3、IBQ、平均N/4视觉预算与Stage3 head，比较固定2×2、attention Top-K、diversity-only、ClustRS、ClustRS+OCR保护。加入blur/noise/compression与多帧抖动，报告OCRBench/DocVQA/TextVQA、小目标召回、clean/noisy gap、p50/p95和额外路由成本。",
+    paper: "https://arxiv.org/abs/2608.19285",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "caviar-causal-accident-reasoning",
+    index: "183",
+    title: "CAViAR: A Causal Video Dataset for Fine-Grained Accident Reasoning in Real-World Scenarios",
+    shortTitle: "CAViAR",
+    date: "2026-08-19 · ECCV 2026 Workshop DriveX",
+    category: "多帧推理",
+    paradigm: "Causal Video Benchmark + Structured Responsibility Ontology",
+    state: "2,249段真实行车事故视频；环境、事故类型、因果解释、责任/受影响主体与规则违反标签",
+    objective: "无生成目标；约20,108个结构化QA与balanced causal reasoning evaluation",
+    decoding: "VLM观察多帧并输出感知、事故类型、责任与规则类别",
+    sharing: "模型无关；已测试Qwen3-VL、Cosmos-Reason2、InternVL3，可直接接Qwen3+IBQ",
+    open: "评测代码、prompt、配置、schema与示例已公开；完整标注/划分仍待机构批准后发布",
+    priority: "精读",
+    summary: "CAViAR 不只问‘发生了什么’，而是把事故视频拆成环境感知、事故类型、表面责任主体、受影响主体、规则违反与因果解释。控制类别不平衡后，主流VLM在事故类型与责任推理上大幅退化，暴露 perception–reasoning gap。",
+    why: "它非常适合把多帧威胁检测从目标识别推进到因果处置：看见车辆/人员不等于能把动作映射到风险、责任与规则。balanced accuracy 和随机/多数类基线还能防止系统被‘无威胁’长尾分布掩盖。",
+    inspiration: "把内部数据标成环境→可见动作→状态变化→风险事件→责任/规则的结构链；比较Qwen3是否先在低层感知失败，还是已看到关键帧却不能完成规则归因。可用IBQ未来预测提供反事实后果，但责任结论必须回链到可见证据。",
+    experiment: "固定Qwen3+IBQ、帧/token预算与SFT数据，比较单帧、均匀多帧、关键帧路由、加未来语义head、再加结构化因果CoT。报告每层任务balanced accuracy/AUPRC、证据帧删除KL、责任混淆、预警提前量、漏警率、延迟和完整链一致性。",
+    paper: "https://arxiv.org/abs/2608.19380",
+    code: "https://github.com/nec-labs-ma/CAViAR",
+    action: "无真实控制action；标签描述可见agent动作、事故后果与表面规则责任",
+    rollout: "评测真实已发生视频，不提供生成式rollout或闭环规划；适合作为威胁推理上层验收",
+    evaluation: "balanced accuracy、macro-F1、感知→事故类型→责任/规则逐级差距与类不平衡基线",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "textrefine-ocr-reward",
+    index: "184",
+    title: "TextRefine: Improving Textual Fidelity, Spatial Placement, and Glyph Rendering for Text Editing in Product Posters",
+    shortTitle: "TextRefine",
+    date: "2026-08-20",
+    category: "评测诊断",
+    paradigm: "SFT + Operation-specific Reward Optimization",
+    state: "图像编辑模型的连续视觉 latent；文字span、glyph CTC posterior、商品/text mask作为reward证据",
+    objective: "插入：语义/覆盖/空间冲突/非文字保持；替换：目标字符CTC posterior的细粒度glyph reward",
+    decoding: "沿用底层图像编辑 diffusion/Flow 采样；只改变后训练reward",
+    sharing: "不要求共享Qwen/IBQ tokenizer；reward可用于AR、URSA、ELF同数据后训练",
+    open: "论文与OpenTextEdit 100K说明已公开；截至收录日未发现作者官方代码/数据仓库",
+    priority: "精读",
+    summary: "TextRefine 将海报文字编辑拆成插入与替换：span-level reward联合评估目标文字覆盖、语义、布局冲突与非文字区域保持；glyph-level reward使用CTC字符后验给缺笔、形变和近形字错误提供连续反馈，并构建100K OpenTextEdit。",
+    why: "生成文字OCR低分不能只靠整句OCR exact match优化。TextRefine把缺字、位置冲突、笔画结构和背景破坏拆开，特别适合判断Qwen3+IBQ的错误来自离散token容量、2×2 folding、生成范式还是reward过粗。",
+    inspiration: "为AR/URSA/ELF共享同一文字后训练数据和四类reward；对中文/小字额外记录字符CTC posterior与stroke coverage。IBQ tokenizer-only重建必须作为上限，否则reward优化无法恢复codec已经丢失的笔画。",
+    experiment: "固定Qwen3、IBQ、训练图像与GRPO采样预算，建立{AR,URSA,ELF}×{exact OCR,span reward,glyph CTC,span+glyph+preservation}。统一报告字符NED、低频字/小字号、位置IoU、背景LPIPS、GenEval、code coverage、NFE、吞吐与训练稳定性。",
+    paper: "https://arxiv.org/abs/2608.19637",
     featured: true,
     idea: true,
   },
@@ -4737,7 +4856,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.20</strong>
+        <strong>DAILY BRIEF · 2026.08.21</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -4783,9 +4902,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 039]</p>
-              <h1>先选对世界状态，<br />再比较动力学范式</h1>
-              <p className="hero-copy">DAV4 说明连续 Flow 必须尊重状态流形；WorldPack 按 3D 空间相关性分配长历史 token。GigaBrain、Low-Rank Carriers 与 Mask2Real-WM 分别补齐可行动作边界、可干预动力学表示和“动力学—渲染”解耦。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 040]</p>
+              <h1>块间保持因果，<br />块内允许纠错</h1>
+              <p className="hero-copy">Block3D 为 2×2 Stage 3 补上“块间 AR、块内 masked diffusion”的离散对照；Stream4D 揭示静态一致性奖励会主动鼓励视频冻结。ClustRS、CAViAR 与 TextRefine 分别补齐鲁棒 token 压缩、威胁因果推理和 glyph 级 OCR 奖励。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -4797,7 +4916,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>179</b><span>精选条目</span></div>
+                <div><b>184</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -4903,6 +5022,9 @@ export default function Home() {
                   <tr><th>EqF</th><td>连续video/IBQ embedding latent；linear noisy state</td><td>与FM相同velocity，但不输入显式t/σ</td><td>effective-noise readout反馈 + adaptive fixed-point迭代</td><td>固定state/backbone/target，隔离显式schedule与sample-feedback；审计effective-t gap和palette entropy</td></tr>
                   <tr><th>Entry Point UMM</th><td>理解 semantic feature + 生成 latent + 中层 activation</td><td>单向 concept binding + mid-stack alignment</td><td>沿用原理解/生成 decoder</td><td>共享权重不等于共享语义；固定数据与参数量扫描概念进入层和双向 export</td></tr>
                   <tr><th>DynaForcing</th><td>连续 video latent block + student-generated KV history</td><td>DMD reverse-KL + dynamics reward + GT anchor</td><td>块间 AR / 块内 few-step diffusion</td><td>固定 teacher/student，隔离纯 self-forcing、Hybrid Forcing 与 dynamic collapse</td></tr>
+                  <tr><th>Block3D</th><td>离散 shape/IBQ token ID；当前block以mask/已填ID表示</td><td>clean-token CE + 低置信token residual correction</td><td>block间AR / block内双向masked diffusion</td><td>固定tokenizer、block size与调用数；隔离全局URSA、local AR和块内并行纠错</td></tr>
+                  <tr><th>ClustRS</th><td>attention加权语义簇的连续视觉代表token</td><td>训练目标不变；一次Residual Shrinkage去噪</td><td>输入侧聚类/去噪，LLM解码不变</td><td>固定平均token预算；比较空间merge、相关性、diversity与噪声鲁棒性</td></tr>
+                  <tr><th>TextRefine</th><td>连续编辑latent + span/glyph/mask reward证据</td><td>文字覆盖/位置/保持reward + CTC字符后验</td><td>沿用底层Diffusion/Flow采样</td><td>固定生成器与数据，隔离tokenizer上限、生成范式和OCR reward粒度</td></tr>
                   <tr><th>AViTS</th><td>动态高/低分辨率 VAE latent token</td><td>原 noise/velocity 不变；仅做 token 分辨率路由</td><td>每步按空间相关性与时间变化选择性上采样</td><td>固定平均 token 预算，审计 OCR/小目标保护和真实端到端延迟</td></tr>
                   <tr><th>MDD</th><td>连续 VAE latent + Flow velocity</td><td>cached residual direction + small-model magnitude</td><td>多数步复用方向，周期性大模型校正</td><td>固定 checkpoint/solver，比较 NFE、large-model calls 与 palette trajectory</td></tr>
                   <tr><th>Flow Map LM</th><td>Simplex / one-hot</td><td>Posterior CE + distill</td><td>联合运输 / 一步</td><td>token 相关性、少步蒸馏</td></tr>
@@ -5028,11 +5150,13 @@ export default function Home() {
                   <tr><th>DPAR</th><td>按 next-token entropy 动态合并连续 token</td><td>M，逐图可变且 M&lt;N</td><td>patch state 复制到 token state，local causal decoder + K-way head</td><td>global patch AR；local token AR</td><td>高信息区域保细粒度，但不易直接套入动态 diffusion step</td></tr>
                   <tr><th>ImageFolder</th><td>同一空间位置折叠 semantic/detail 两个 code</td><td>空间位置数 N</td><td>2K logits reshape 为两组 K-way softmax</td><td>位置间 AR；同位置两路并行</td><td>不牺牲空间分辨率，适合语义—重建双 codebook</td></tr>
                   <tr><th>Block Transformer</th><td>固定4-token block压缩成context embedding</td><td>N/4</td><td>context投影为prefix；local causal Transformer + 共享K-way head</td><td>block间AR；块内原始ID AR</td><td>最直接支持2×2 Stage3 local Transformer head</td></tr>
+                  <tr><th>Block3D-style head</th><td>2×2 merge只作为block context；四个原始ID初始化为mask</td><td>N/4 global block + 4个local离散状态</td><td>共享K-way clean-ID head + token-to-token纠错</td><td>block间AR；块内2/4/8轮双向去mask与低置信重写</td><td>介于并行4×K、local AR与全图URSA之间的公平离散对照</td></tr>
                   <tr><th>MEGABYTE</th><td>固定长度patch，由global/local两级模型处理</td><td>N/q</td><td>local submodel预测原始符号</td><td>patch间AR；patch内AR</td><td>证明不需要构造K⁴联合merged ID</td></tr>
                   <tr><th>BLT</th><td>按局部entropy形成动态长度patch</td><td>M，取决于信息密度</td><td>cross-attention local decoder + 原始ID head</td><td>patch间AR；patch内AR</td><td>为OCR-aware / boundary-aware动态merge提供基础</td></tr>
                   <tr><th>SSD</th><td>不改变主序列；额外预测二维邻居hidden</td><td>保持N，但减少串行主干调用</td><td>轻量draft heads + 原AR head验证</td><td>水平/垂直并行draft与验证</td><td>适合把2×2 head改成加速器而非最终生成器</td></tr>
                   <tr><th>Tree-DLM</th><td>不做空间merge；对视觉词表层次聚类</td><td>位置数不变</td><td>小K children classifier逐层定位leaf ID</td><td>词表内coarse-to-fine</td><td>解决64K/128K视觉head与logits显存瓶颈</td></tr>
                   <tr><th>MedARC</th><td>attention、query relevance与结构独特性联合决定merge</td><td>预算可固定为N/4</td><td>不改原head；合并后的token送入既有主干</td><td>无新增生成顺序</td><td>为固定2×2 folding提供OCR-aware动态对照</td></tr>
+                  <tr><th>ClustRS</th><td>attention-weighted semantic clustering选代表，再做一次Residual Shrinkage</td><td>固定平均N/4或极限16 token</td><td>不改Stage3生成head；只压缩/去噪输入证据</td><td>聚类代表并行进入Qwen；原解码顺序不变</td><td>把空间邻近merge与语义冗余、传感噪声分开控制</td></tr>
                   <tr><th>Trend-aware Pruning</th><td>按跨层重要性趋势暂存或恢复token</td><td>逐层变化；固定平均FLOPs</td><td>不改原head；late-blooming token可重新激活</td><td>层间动态路由</td><td>补足输入前merge不可逆的缺陷</td></tr>
                   <tr><th>LKF-style Block Head</th><td>2×2 merge保持不变；用共享latent耦合四个slot</td><td>N/4</td><td>M组4×K logits + M-way mixture权重</td><td>先选component，再并行预测TL/TR/BL/BR</td><td>介于独立Linear与local AR之间的“并行但相关”对照</td></tr>
                   <tr><th>Infinity bit head</th><td>不负责空间merge；把每个整数ID换成d-bit code</td><td>由scale schedule决定，与N/4独立</td><td>每位置d个binary logits；2×2时为4d logits</td><td>尺度间AR；尺度内bit与位置并行</td><td>分离词表/head压缩与空间token merge，降低K-way logits成本</td></tr>
@@ -5085,6 +5209,8 @@ export default function Home() {
                   <tr><th>Qwen-RobotWorld</th><td>Qwen2.5-VL 语义流 + Video-VAE latent</td><td>自然语言动作</td><td>未来视频 latent</td><td>Double-stream MMDiT diffusion</td><td>视频轨迹；用于数据、评测与规划信号</td><td>统一语义接口，不共享 tokenizer / vocabulary</td></tr>
                   <tr><th>Being-H0.7</th><td>V-JEPA future embedding + latent query</td><td>连续动作 Flow</td><td>future-informed hidden alignment</td><td>Latent world-action + privileged target</td><td>无像素 rollout；低延迟闭环</td><td>共享上下文与主干，把预测性压入语义 latent</td></tr>
                   <tr><th>Self Gradient Forcing</th><td>Video-VAE latent + causal KV</td><td>文本 / 自生成历史</td><td>未来 latent denoising + context gradient</td><td>分块 AR + diffusion + two-pass</td><td>分钟级开放环视频 rollout</td><td>可迁移到 IBQ 时序 cache，解决历史记忆 stop-grad</td></tr>
+                  <tr><th>Stream4D</th><td>连续视频latent；4D-GS与3D scene flow仅作critic状态</td><td>沿用底层文本/相机/交互条件</td><td>原velocity + 4D重建/自然运动/平滑/刚性reward</td><td>Streaming AR diffusion + DiffusionNFT RL</td><td>rolling-KV长horizon；审计静态坍塌与几何漂移</td><td>可直接给IBQ-URSA/ELF加动态一致性奖励，避免静态3D critic鼓励冻结</td></tr>
+                  <tr><th>CAViAR</th><td>2,249段真实事故视频 + 环境/事件/责任/规则schema</td><td>无控制action；标注可见agent动作与事故后果</td><td>无生成目标；结构化因果视频QA评测</td><td>模型无关benchmark</td><td>无生成rollout；验收多帧威胁识别到规则归因链</td><td>直接接Qwen3+IBQ，分离低层感知、事故分类、责任与规则推理</td></tr>
                   <tr><th>PerceptDrive</th><td>VLM 先验 + 稠密视频 latent</td><td>连续 ego trajectory</td><td>next latent L2 + action velocity</td><td>专家路由 + Rectified Flow</td><td>短期预见条件化闭环规划</td><td>语义/像素/动力学分工，不强求统一 token</td></tr>
                   <tr><th>KineBench</th><td>生成 RGB → 6D pose</td><td>恢复的末端执行器轨迹</td><td>无生成训练目标；运动学审计</td><td>视觉 grounding + 物理执行</td><td>模拟器闭环执行评价</td><td>区分画质、动力学与任务成功，适合所有 UMM 世界模型</td></tr>
                   <tr><th>WorldWeaver</th><td>视频 latent + world / agent registers</td><td>当前动作 + 个体/全局状态</td><td>下一视频块 + 可监督世界状态</td><td>Streaming AR diffusion + MoT</td><td>双智能体长时同步 rollout</td><td>在 UMM 生成器之外增加可持续、可检查的状态记忆</td></tr>
