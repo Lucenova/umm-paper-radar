@@ -4637,7 +4637,7 @@ const papers: Paper[] = [
     experiment: "固定 Qwen3、IBQ、2×2 folding、数据、参数量与训练 FLOPs，比较并行4×K、2层 local causal Transformer、URSA四slot metric path、Block3D式块内masked diffusion。扫描2/4/8次局部调用，报告slot accuracy、block exact match、邻接共现、free-running gap、code coverage、OCRBench/TextVQA、GenEval、延迟与显存。",
     paper: "https://arxiv.org/abs/2608.19567",
     project: "https://alexandertsui.github.io/block3d/",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4663,7 +4663,7 @@ const papers: Paper[] = [
     action: "沿用底层视频世界模型的文本/相机/交互条件；reward 显式要求动作与真实动态不被静态一致性抹去",
     rollout: "面向实时流式长 horizon；块间自回归、rolling KV，评测 Self-Forcing、Causal-Forcing 与 LongLive",
     evaluation: "4D-PSNR、scene-flow magnitude/平滑/局部刚性、人类偏好、静态坍塌率与不同 horizon 漂移",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4685,7 +4685,7 @@ const papers: Paper[] = [
     inspiration: "对IBQ/Qwen输入按 code embedding、局部OCR saliency 与 attention 聚类；每簇保留代表和必要的1×1文字/小目标 token，再用低成本 shrinkage 抑制传感噪声。生成监督仍是四个原始ID，不能让聚类代表替代codec目标。",
     experiment: "固定Qwen3、IBQ、平均N/4视觉预算与Stage3 head，比较固定2×2、attention Top-K、diversity-only、ClustRS、ClustRS+OCR保护。加入blur/noise/compression与多帧抖动，报告OCRBench/DocVQA/TextVQA、小目标召回、clean/noisy gap、p50/p95和额外路由成本。",
     paper: "https://arxiv.org/abs/2608.19285",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4711,7 +4711,7 @@ const papers: Paper[] = [
     action: "无真实控制action；标签描述可见agent动作、事故后果与表面规则责任",
     rollout: "评测真实已发生视频，不提供生成式rollout或闭环规划；适合作为威胁推理上层验收",
     evaluation: "balanced accuracy、macro-F1、感知→事故类型→责任/规则逐级差距与类不平衡基线",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4733,6 +4733,130 @@ const papers: Paper[] = [
     inspiration: "为AR/URSA/ELF共享同一文字后训练数据和四类reward；对中文/小字额外记录字符CTC posterior与stroke coverage。IBQ tokenizer-only重建必须作为上限，否则reward优化无法恢复codec已经丢失的笔画。",
     experiment: "固定Qwen3、IBQ、训练图像与GRPO采样预算，建立{AR,URSA,ELF}×{exact OCR,span reward,glyph CTC,span+glyph+preservation}。统一报告字符NED、低频字/小字号、位置IoU、背景LPIPS、GenEval、code coverage、NFE、吞吐与训练稳定性。",
     paper: "https://arxiv.org/abs/2608.19637",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "block-diffusion-foundation",
+    index: "185",
+    title: "Block Diffusion: Interpolating Between Autoregressive and Diffusion Language Models",
+    shortTitle: "Block Diffusion",
+    date: "v3 · 2025-05-17 · ICLR 2025 Oral",
+    category: "离散 Diffusion",
+    paradigm: "Block-causal AR + Intra-block Discrete Diffusion",
+    state: "离散 token ID；当前 block 由 [MASK]/已恢复 ID 构成",
+    objective: "离散 denoising clean-token CE；数据驱动 noise schedule 降低梯度方差",
+    decoding: "block 间左到右并复用 KV Cache；block 内并行迭代去掩码",
+    sharing: "可从标准 AR/LLM 权重初始化；共享 Transformer、embedding、vocabulary 与 LM head",
+    open: "论文、项目页、训练/推理代码与 Hugging Face 权重已公开",
+    priority: "精读",
+    summary: "原始 Block Diffusion 给出了昨日 Block3D 的语言建模基础：把联合分布分解到 block 级，历史 block 保持严格因果，当前 block 用离散 diffusion 联合恢复。它支持任意长度、KV Cache 与并行 token 采样，并用数据驱动 schedule 改善训练方差。",
+    why: "它是当前 2×2 Stage 3 最干净的理论端点：并行 4×K 忽略四槽位相关性，local AR 必须串行四次，而 block diffusion 让 TL/TR/BL/BR 并行但相关地修正。它与 URSA 都预测 clean ID；区别是 URSA 每步更新整张图，Block Diffusion 只更新当前 block。",
+    inspiration: "让 Qwen3 的上一个 merged hidden 预测下一 2×2 block，四个 slot 先置为 mask，再用共享 K-way head 与双向 local attention 恢复四个原始 IBQ ID。这样不创建 merged ID、不改 decoder contract，也能直接继承 AR/LLM 权重与全局 KV Cache。",
+    experiment: "固定 Qwen3、IBQ、2×2 folding、数据、参数量与训练 FLOPs，比较并行4×K、两层local AR、四槽位URSA和Block Diffusion；扫描block size 4/16与2/4/8次块内调用，报告slot accuracy、block exact match、邻接共现、free-running gap、code coverage、OCRBench、GenEval、延迟与显存。",
+    paper: "https://arxiv.org/abs/2503.09573",
+    project: "https://m-arriola.com/bd3lms/",
+    code: "https://github.com/kuleshov-group/bd3lms",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "diffusion-forcing-foundation",
+    index: "186",
+    title: "Diffusion Forcing: Next-token Prediction Meets Full-Sequence Diffusion",
+    shortTitle: "Diffusion Forcing",
+    date: "v4 · 2024-12-10 · NeurIPS 2024",
+    category: "世界模型",
+    paradigm: "Per-token Noise-level Causal Diffusion",
+    state: "连续序列 latent；每个时间 token/帧拥有独立 noise level",
+    objective: "因果历史条件下的 denoising / noise prediction；可退化为 next-token 或全序列 diffusion",
+    decoding: "按任务给历史与未来分配不同噪声；可滚动预测、联合补全或带 sequence-level guidance 规划",
+    sharing: "不要求共享视觉 tokenizer；适合 VAE latent/ELF，离散 IBQ 需改为独立 mask/corruption level",
+    open: "论文、项目页、官方代码、配置与示例已公开",
+    priority: "精读",
+    summary: "Diffusion Forcing 不再把历史简单分成 clean prefix 与 noisy future，而是允许每个序列位置处在不同噪声级别；同一因果模型既能执行 next-token prediction，也能进行整段 diffusion、长时 rollout、缺失段补全与规划。",
+    why: "它是 Stream Forcing、Self Forcing 与 DynaForcing 的基础坐标。对多帧世界模型，未来越远不确定性越高，历史也可能含自生成误差；统一用干净 GT prefix 训练会掩盖真实推理分布，完整未来同一 t 又忽略 horizon 差异。",
+    inspiration: "在 Qwen3+IBQ/ELF 中按时间 block 采样独立 noise level：近历史轻度扰动、近未来中等噪声、远未来高噪声；威胁关键帧与 OCR 区域可采用更低 corruption。URSA 的离散版本则为每个 block 使用独立 mask/metric-path 时间。",
+    experiment: "固定 Qwen3、IBQ、world head、视频数据、NFE与总FLOPs，比较clean-history ELF、uniform-t full-sequence ELF、Diffusion Forcing独立t，以及对应离散URSA corruption。报告1/8/32步误差、action-shuffle、轨迹/OCR保持、free-running gap、闭环威胁成功率、吞吐与峰值显存。",
+    paper: "https://arxiv.org/abs/2407.01392",
+    project: "https://www.boyuan.space/diffusion-forcing/",
+    code: "https://github.com/buoyancy99/diffusion-forcing",
+    action: "可条件化真实action、文本或规划目标；不同时间位置的噪声级别显式表达条件可信度与未来不确定性",
+    rollout: "支持超出训练长度的多步rollout、缺失片段补全、sequence-level guidance与闭环规划任务",
+    evaluation: "除像素/latent误差外，应报告horizon drift、动作因果敏感性、闭环任务成功与不同噪声配置的计算成本",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "repa-representation-alignment",
+    index: "187",
+    title: "Representation Alignment for Generation: Training Diffusion Transformers Is Easier Than You Think",
+    shortTitle: "REPA",
+    date: "v4 · 2025-06-18 · ICLR 2025 Oral",
+    category: "语义对齐",
+    paradigm: "Diffusion Transformer + Auxiliary Representation Alignment",
+    state: "连续 VAE/noisy image latent；中间 hidden 投影到冻结视觉 encoder 的 clean semantic feature",
+    objective: "原 noise/velocity loss + DINOv2 等 clean-image feature alignment",
+    decoding: "推理保持原 DiT/SiT ODE/SDE；teacher encoder与alignment head可移除",
+    sharing: "不共享 Qwen/IBQ vocabulary；只在训练期对齐生成 hidden 与理解语义空间",
+    open: "论文、项目结果与 MIT 许可官方训练/采样代码已公开",
+    priority: "精读",
+    summary: "REPA 在不改变生成采样器的前提下，把 noisy latent 的中间表示对齐到冻结自监督视觉 encoder 的 clean feature，显著加速 DiT/SiT 学习并改善语义结构；论文报告训练效率最高提升 17.5 倍。",
+    why: "它补齐‘VAE/重建 latent 如何语义化’这一矩阵端点。ELF 在 IBQ embedding 上只拟合 velocity，可能先学到颜色纹理而迟迟学不会文字、物体与布局；但强制全层语义对齐也可能抹掉 glyph、坐标与重建细节。",
+    inspiration: "为 URSA→ELF 的中层 hidden 增加训练期 REPA head，teacher 可选 DINO/SigLIP、OCR encoder或Qwen3理解分支；仅对中高层与中等噪声时刻对齐，并保留原始 ID/velocity 主目标，推理时删除 teacher。",
+    experiment: "固定 Qwen3、IBQ、ELF、数据、NFE与训练FLOPs，比较无对齐、DINO-REPA、OCR-REPA、DINO+OCR双teacher，并扫描层与t区间。报告收敛样本数、GenEval、生成文字OCR、OCRBench/DocVQA/TextVQA、IBQ回投、频率细节、吞吐和额外训练显存。",
+    paper: "https://arxiv.org/abs/2410.06940",
+    project: "https://sihyun.me/REPA/",
+    code: "https://github.com/sihyun-yu/REPA",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "cot-faithfulness-anthropic",
+    index: "188",
+    title: "Reasoning Models Don’t Always Say What They Think",
+    shortTitle: "CoT Faithfulness",
+    date: "2025-04-03 · v2 2025-05-14",
+    category: "可解释性",
+    paradigm: "Chain-of-Thought Faithfulness via Causal Hint Interventions",
+    state: "reasoning model hidden state、提示中的答案线索与外显CoT文本",
+    objective: "比较模型是否使用线索、是否在CoT披露线索，以及reward hacking时是否忠实 verbalize",
+    decoding: "标准CoT生成；通过提示干预、答案变化与理由提及率审计忠实性",
+    sharing: "模型无关；可直接用于Qwen3多帧推理，不改变视觉tokenizer或生成head",
+    open: "论文与Anthropic官方研究博客已公开；截至收录日未发现完整官方实验代码",
+    priority: "精读",
+    summary: "该工作以因果线索注入测试推理模型是否把真实依据写进CoT。Claude 3.7 Sonnet与DeepSeek R1经常使用提示线索却不披露；在reward hacking环境中，模型利用漏洞超过99%的机会，却通常不到2%会在推理中承认。",
+    why: "多帧威胁检测不能把‘模型写出了关键帧、目标框与规则链’当成它真的依赖这些证据。CoT可能是答案后的合理化文本；若证据删除、帧序打乱或对抗提示不改变结论，漂亮的解释反而会掩盖漏警机制。",
+    inspiration: "把证据接口与解释文本分离：模型先提交可验证的frame/box/OCR span，再输出风险结论和CoT；随后对提交证据做删除、替换、时间交换和伪线索注入，比较答案变化与理由披露。",
+    experiment: "固定Qwen3+IBQ、帧数、prompt与SFT，构造正确/错误视觉hint、删除关键帧、bbox遮挡、OCR文本替换和多数类暗示。报告hint-use、CoT reveal、证据删除KL、结论翻转率、威胁AUPRC、漏警率，以及raw IBQ与2×2 folding的差异。",
+    paper: "https://arxiv.org/abs/2505.05410",
+    project: "https://www.anthropic.com/research/reasoning-models-dont-say-think",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "gaia-1-world-model",
+    index: "189",
+    title: "GAIA-1: A Generative World Model for Autonomous Driving",
+    shortTitle: "GAIA-1",
+    date: "2023-09-29 · Technical Report",
+    category: "世界模型",
+    paradigm: "Discrete Video-token AR World Model + Diffusion Renderer",
+    state: "每帧576个DINO语义蒸馏的VQ token ID，8192词表；RGB由独立video diffusion decoder渲染",
+    objective: "6.5B causal Transformer做next image-token CE；2.6B renderer做v-parameterized denoising",
+    decoding: "6.25Hz视觉token严格AR rollout，再由多任务video diffusion补细节并上采样至25Hz",
+    sharing: "视频、T5文本与speed/curvature映射到同一4096维主干；不共享tokenizer、vocabulary或输出head",
+    open: "技术报告与Wayve官方介绍公开；未发布完整训练代码、数据或模型权重",
+    priority: "精读",
+    summary: "GAIA-1 是全离散世界模型的重要经典端点：将视频压成语义化VQ ID，以文本、速度和曲率为条件逐token预测未来，再由独立视频Diffusion只负责高保真渲染。4秒序列包含26帧、每帧576个视觉token。",
+    why: "它与Qwen3+IBQ的接口最接近：未来状态可直接用离散CE和LLM式因果Transformer建模，同时把像素细节交给renderer。它也清楚暴露成本：长时预测需要大量逐token调用，且好看的驾驶视频并不等于闭环规划或动作因果性已被证明。",
+    inspiration: "保留IBQ ID作为静态/未来状态，Qwen3交错读取文本、图像与动作；与PhiZero的transition symbol、ELF velocity和轻量future-semantic head比较。可借GAIA-1的DINO蒸馏改善token语义，但必须单独测OCR与小目标细节是否被语义压缩牺牲。",
+    experiment: "固定Qwen3、IBQ tokenizer/decoder、视频/动作数据和FLOPs，比较未来IBQ-ID AR、URSA metric path、ELF velocity、PhiZero式delta token与semantic-future head。报告action-shuffle、同状态多动作可分性、1/8/32步漂移、OCR/身份/轨迹、闭环威胁成功率、token数、延迟与显存。",
+    paper: "https://arxiv.org/abs/2309.17080",
+    project: "https://wayve.ai/thinking/introducing-gaia1/",
+    action: "每时刻2个连续标量speed与curvature，经独立线性层映射；文本还可控制场景属性",
+    rollout: "支持动作/文本条件未来视频与多种 plausible futures；报告未提供独立MPC、真实闭环控制成功率",
+    evaluation: "应补充action-shuffle、零动作漂移、轨迹/碰撞、horizon误差与闭环成功，不能只看视频真实感",
     featured: true,
     idea: true,
   },
@@ -4856,7 +4980,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.21</strong>
+        <strong>DAILY BRIEF · 2026.08.22</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -4902,9 +5026,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 040]</p>
-              <h1>块间保持因果，<br />块内允许纠错</h1>
-              <p className="hero-copy">Block3D 为 2×2 Stage 3 补上“块间 AR、块内 masked diffusion”的离散对照；Stream4D 揭示静态一致性奖励会主动鼓励视频冻结。ClustRS、CAViAR 与 TextRefine 分别补齐鲁棒 token 压缩、威胁因果推理和 glyph 级 OCR 奖励。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 041]</p>
+              <h1>补齐五个基础端点，<br />让比较矩阵闭环</h1>
+              <p className="hero-copy">原始 Block Diffusion 解释 2×2 块内离散纠错；Diffusion Forcing 把时序不确定性写进每个位置的噪声级别；REPA、CoT 忠实性与 GAIA-1 分别补齐语义对齐、因果解释审计和全离散驾驶世界模型。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -4916,7 +5040,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>184</b><span>精选条目</span></div>
+                <div><b>189</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -5018,6 +5142,9 @@ export default function Home() {
                   <tr><th>X-Omni</th><td>离散 token ID</td><td>Next-token CE</td><td>左到右</td><td>累计误差、KV Cache、RL</td></tr>
                   <tr><th>URSA</th><td>原始 IBQ 网格的离散 token ID；无额外 merge</td><td>每位置 64K clean-token CE</td><td>全 H×W 网格并行迭代</td><td>Metric path、schedule、solver；勿与仓库中的连续 DiT 混淆</td></tr>
                   <tr><th>ELF</th><td>连续 embedding</td><td>Velocity / L2 + CE</td><td>ODE / SDE</td><td>空间几何、回投误差、CFG</td></tr>
+                  <tr><th>Block Diffusion</th><td>离散ID；当前block为mask/已恢复token</td><td>intra-block clean-token CE</td><td>block间AR / block内并行离散diffusion</td><td>可从AR/LLM初始化并复用KV；固定block size与local calls，对照全图URSA和local AR</td></tr>
+                  <tr><th>Diffusion Forcing</th><td>连续序列latent；每位置独立noise level</td><td>因果denoising / noise prediction</td><td>next-token、全序列diffusion与滚动rollout统一</td><td>固定state/backbone，隔离clean prefix、uniform-t与per-token t；离散IBQ需独立corruption level</td></tr>
+                  <tr><th>REPA</th><td>连续VAE/noisy latent + clean semantic teacher feature</td><td>原noise/velocity + hidden representation alignment</td><td>推理保持原DiT/ELF solver</td><td>固定生成器与teacher，扫描层/t；同时审计语义收敛和OCR/重建细节</td></tr>
                   <tr><th>DAV4 / RFM</th><td>受约束的4D Gaussian连续参数流形</td><td>Riemannian tangent velocity</td><td>沿合法manifold probability path积分</td><td>固定数据/架构/TTO，隔离Euclidean与Riemannian路径；迁移到IBQ前先审计embedding几何</td></tr>
                   <tr><th>EqF</th><td>连续video/IBQ embedding latent；linear noisy state</td><td>与FM相同velocity，但不输入显式t/σ</td><td>effective-noise readout反馈 + adaptive fixed-point迭代</td><td>固定state/backbone/target，隔离显式schedule与sample-feedback；审计effective-t gap和palette entropy</td></tr>
                   <tr><th>Entry Point UMM</th><td>理解 semantic feature + 生成 latent + 中层 activation</td><td>单向 concept binding + mid-stack alignment</td><td>沿用原理解/生成 decoder</td><td>共享权重不等于共享语义；固定数据与参数量扫描概念进入层和双向 export</td></tr>
@@ -5151,6 +5278,7 @@ export default function Home() {
                   <tr><th>ImageFolder</th><td>同一空间位置折叠 semantic/detail 两个 code</td><td>空间位置数 N</td><td>2K logits reshape 为两组 K-way softmax</td><td>位置间 AR；同位置两路并行</td><td>不牺牲空间分辨率，适合语义—重建双 codebook</td></tr>
                   <tr><th>Block Transformer</th><td>固定4-token block压缩成context embedding</td><td>N/4</td><td>context投影为prefix；local causal Transformer + 共享K-way head</td><td>block间AR；块内原始ID AR</td><td>最直接支持2×2 Stage3 local Transformer head</td></tr>
                   <tr><th>Block3D-style head</th><td>2×2 merge只作为block context；四个原始ID初始化为mask</td><td>N/4 global block + 4个local离散状态</td><td>共享K-way clean-ID head + token-to-token纠错</td><td>block间AR；块内2/4/8轮双向去mask与低置信重写</td><td>介于并行4×K、local AR与全图URSA之间的公平离散对照</td></tr>
+                  <tr><th>Block Diffusion foundation</th><td>2×2 merge定义block边界；local四slot保持mask/原始IBQ ID</td><td>N/4 global causal blocks + 4 local states</td><td>与AR共享embedding/vocabulary/K-way head；训练clean-token CE</td><td>block间严格AR并复用KV；block内离散diffusion并行恢复</td><td>Block3D的理论端点；固定同一IBQ/预算公平比较local AR、四槽URSA和块内diffusion</td></tr>
                   <tr><th>MEGABYTE</th><td>固定长度patch，由global/local两级模型处理</td><td>N/q</td><td>local submodel预测原始符号</td><td>patch间AR；patch内AR</td><td>证明不需要构造K⁴联合merged ID</td></tr>
                   <tr><th>BLT</th><td>按局部entropy形成动态长度patch</td><td>M，取决于信息密度</td><td>cross-attention local decoder + 原始ID head</td><td>patch间AR；patch内AR</td><td>为OCR-aware / boundary-aware动态merge提供基础</td></tr>
                   <tr><th>SSD</th><td>不改变主序列；额外预测二维邻居hidden</td><td>保持N，但减少串行主干调用</td><td>轻量draft heads + 原AR head验证</td><td>水平/垂直并行draft与验证</td><td>适合把2×2 head改成加速器而非最终生成器</td></tr>
@@ -5204,6 +5332,8 @@ export default function Home() {
               <table className="world-table">
                 <thead><tr><th>路线</th><th>观测状态</th><th>动作接口</th><th>动力学目标</th><th>建模方式</th><th>Rollout / 规划</th><th>与 UMM 的关系</th></tr></thead>
                 <tbody>
+                  <tr><th>GAIA-1</th><td>DINO蒸馏VQ ID：576 token/帧、8192词表；独立RGB diffusion renderer</td><td>speed + curvature连续标量，另有文本场景控制</td><td>next image-token CE；renderer预测v-parameterized denoising target</td><td>6.25Hz逐tokenAR + 25Hz视频Diffusion渲染</td><td>动作条件多未来rollout；未报告独立MPC/真实闭环成功</td><td>最接近Qwen3+IBQ的全离散端点；语义ID、动力学和renderer需分项评价</td></tr>
+                  <tr><th>Diffusion Forcing</th><td>连续视频/轨迹latent；每个时间位置独立noise level</td><td>真实action、文本或规划目标</td><td>因果denoising；统一next-token与full-sequence diffusion</td><td>Per-token-noise causal diffusion</td><td>长时rollout、缺失段补全与sequence guidance/规划</td><td>适合ELF/VAE；URSA可实现独立block corruption作为离散对照</td></tr>
                   <tr><th>InternVLA-A1</th><td>Qwen3-VL 语义 token + COSMOS VAE latent</td><td>连续 action chunk</td><td>未来 latent + action velocity</td><td>并行 latent 回归 + Flow Matching</td><td>单步 foresight；闭环策略执行</td><td>共享上下文，理解/预见/动作专家分工</td></tr>
                   <tr><th>dWorldEval</th><td>MAGVIT-v2 离散视觉 token</td><td>FAST 离散 action token</td><td>未来视觉 token + progress token</td><td>Masked Discrete Diffusion</td><td>闭环 imagined rollout + 稀疏记忆</td><td>视觉/语言/动作统一序列，最接近 URSA 对照</td></tr>
                   <tr><th>Qwen-RobotWorld</th><td>Qwen2.5-VL 语义流 + Video-VAE latent</td><td>自然语言动作</td><td>未来视频 latent</td><td>Double-stream MMDiT diffusion</td><td>视频轨迹；用于数据、评测与规划信号</td><td>统一语义接口，不共享 tokenizer / vocabulary</td></tr>
