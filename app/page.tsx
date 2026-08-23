@@ -4757,7 +4757,7 @@ const papers: Paper[] = [
     paper: "https://arxiv.org/abs/2503.09573",
     project: "https://m-arriola.com/bd3lms/",
     code: "https://github.com/kuleshov-group/bd3lms",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4784,7 +4784,7 @@ const papers: Paper[] = [
     action: "可条件化真实action、文本或规划目标；不同时间位置的噪声级别显式表达条件可信度与未来不确定性",
     rollout: "支持超出训练长度的多步rollout、缺失片段补全、sequence-level guidance与闭环规划任务",
     evaluation: "除像素/latent误差外，应报告horizon drift、动作因果敏感性、闭环任务成功与不同噪声配置的计算成本",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4808,7 +4808,7 @@ const papers: Paper[] = [
     paper: "https://arxiv.org/abs/2410.06940",
     project: "https://sihyun.me/REPA/",
     code: "https://github.com/sihyun-yu/REPA",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4831,7 +4831,7 @@ const papers: Paper[] = [
     experiment: "固定Qwen3+IBQ、帧数、prompt与SFT，构造正确/错误视觉hint、删除关键帧、bbox遮挡、OCR文本替换和多数类暗示。报告hint-use、CoT reveal、证据删除KL、结论翻转率、威胁AUPRC、漏警率，以及raw IBQ与2×2 folding的差异。",
     paper: "https://arxiv.org/abs/2505.05410",
     project: "https://www.anthropic.com/research/reasoning-models-dont-say-think",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4857,6 +4857,120 @@ const papers: Paper[] = [
     action: "每时刻2个连续标量speed与curvature，经独立线性层映射；文本还可控制场景属性",
     rollout: "支持动作/文本条件未来视频与多种 plausible futures；报告未提供独立MPC、真实闭环控制成功率",
     evaluation: "应补充action-shuffle、零动作漂移、轨迹/碰撞、horizon误差与闭环成功，不能只看视频真实感",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "scale-rae-t2i",
+    index: "190",
+    title: "Scaling Text-to-Image Diffusion Transformers with Representation Autoencoders",
+    shortTitle: "Scale-RAE",
+    date: "2026-01-22",
+    category: "语义对齐",
+    paradigm: "Semantic Representation Autoencoder + Large-scale Rectified Flow DiT",
+    state: "冻结 SigLIP-2/WebSSL 高维连续语义 feature；训练独立像素 decoder，生成器直接建模可重建 representation latent",
+    objective: "dimension-dependent noise schedule 下的 Rectified Flow velocity；两阶段大规模预训练与高质量指令微调",
+    decoding: "连续 latent ODE/少步采样后，经 RAE decoder 重建像素；不做离散 ID 回投",
+    sharing: "理解与生成可共享 SigLIP-2 语义空间；不共享 IBQ ID、词表或 codec embedding，Qwen 文本编码与 DiT head 分离",
+    open: "论文、项目页、MIT 许可官方训练/推理代码、模型与 decoder 已公开",
+    priority: "精读",
+    summary: "Scale-RAE 在 0.5B–9.8B DiT 上受控比较 SigLIP-2 RAE 与 FLUX VAE：RAE 在预训练尺度上更稳定，VAE 长训练出现严重过拟合；论文同时指出高维 latent 需要维度相关噪声调度，而文字生成仍高度依赖定向 text-rendering 数据。",
+    why: "它把当前 Qwen3+IBQ 的关键疑问推到 tokenizer 层：重建好的离散 code 不一定形成适合 ELF 的欧氏生成空间。若换成可重建的语义 latent 后收敛、文字和布局显著改善，问题更可能在 IBQ 几何/语义，而不是 local head 容量。",
+    inspiration: "保留 IBQ 作为离散 AR/URSA 公平端点，同时增加冻结 SigLIP-2→decoder 的连续 RAE+ELF 端点；不要让 tokenizer、path、主干和数据同时变化。文字 OCR 需单独加入小字、中文 glyph 与版式数据，因为更强语义 latent 本身不会自动解决 text rendering。",
+    experiment: "先固定 decoder 容量与图像数据，分别测 IBQ 与 RAE 的 tokenizer-only 重建、OCR/glyph、语义线性 probe 和 latent 几何；再固定 Qwen/DiT 宽深、训练 FLOPs 与 NFE，对比 IBQ-ID AR、IBQ-URSA、IBQ-embedding ELF、SigLIP-2 RAE+ELF。报告 OCRBench/DocVQA/TextVQA、GenEval、生成文字 OCR、收敛样本数、延迟与显存。",
+    paper: "https://arxiv.org/abs/2601.16208",
+    project: "https://rae-dit.github.io/scale-rae/",
+    code: "https://github.com/ZitengWangNYU/Scale-RAE",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "d3pm-foundation",
+    index: "191",
+    title: "Structured Denoising Diffusion Models in Discrete State-Spaces",
+    shortTitle: "D3PM",
+    date: "v1 2021-07-07 · NeurIPS 2021",
+    category: "离散 Diffusion",
+    paradigm: "Discrete Denoising Diffusion Probabilistic Model",
+    state: "离散 token ID / one-hot categorical state；每步由转移矩阵 Qₜ 定义 corruption",
+    objective: "reverse categorical distribution 或 clean-token x₀；variational lower bound + auxiliary cross-entropy",
+    decoding: "从 uniform、absorbing MASK 或其他先验出发，按反向 Markov 链全序列迭代采样",
+    sharing: "可复用离散词表、embedding 与 Transformer；原工作不依赖 AR 初始化，attention 与采样器需改为双向迭代",
+    open: "论文与 NeurIPS 版本已公开；截至收录日未发现作者维护的官方代码仓库",
+    priority: "精读",
+    summary: "D3PM 是离散 diffusion 的核心起点：它把前向过程写成结构化 categorical transition matrix，并系统比较 uniform、absorbing mask、离散 Gaussian 与 embedding-nearest-neighbor corruption；训练使用 VLB 与辅助 CE。",
+    why: "URSA 的优势不能只归因于‘离散 diffusion’。D3PM 说明真正可控的变量是 Qₜ 的几何：uniform 会忽略 IBQ code 间距离，MASK 不引入假邻居，embedding-kNN 又依赖 code 空间是否语义/像素有效。它是检验 URSA metric path 增益来源的最干净基础。",
+    inspiration: "在同一 Qwen3+IBQ 上只替换 forward kernel：uniform、absorbing MASK、codec-embedding kNN、Qwen-embedding kNN 与 URSA metric path；所有方法都恢复原始 IBQ ID，并保持同一个 K-way head、solver 调用数与 decoder contract。",
+    experiment: "固定 IBQ、Qwen3、训练样本、参数量、NFE 与 clean-token head，对五种 Qₜ 报告 corruption 后最近邻语义/像素一致性、slot accuracy、block exact match、code coverage、OCRBench、TextVQA、GenEval、吞吐、显存和梯度方差；先判断 path，再判断 head。",
+    paper: "https://arxiv.org/abs/2107.03006",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "sedd-score-entropy",
+    index: "192",
+    title: "Discrete Diffusion Modeling by Estimating the Ratios of the Data Distribution",
+    shortTitle: "SEDD",
+    date: "v3 2024-06-06 · ICML 2024 Oral",
+    category: "离散 Diffusion",
+    paradigm: "Score-Entropy Discrete Diffusion / CTMC",
+    state: "离散 token ID 的连续时间 Markov chain；支持 uniform 或 absorbing corruption",
+    objective: "估计数据分布的 concrete score ratios，以 score-entropy loss 训练正值 ratio field",
+    decoding: "根据 learned ratios 构造 reverse CTMC jump rates，全序列并行迭代采样",
+    sharing: "可共享 tokenizer、embedding 与 Transformer；ratio parameterization 不等同标准 LM logits/CE，输出约束与 sampler 需专门实现",
+    open: "论文、ICML Oral、MIT 许可官方代码与预训练 checkpoints 已公开",
+    priority: "精读",
+    summary: "SEDD 不直接预测 clean token，而是学习离散分布之间的概率比，用 score-entropy 把连续 score model 的思想推广到 categorical CTMC。论文在语言建模上显著缩小与 AR 的差距，并展示相近质量下更少的函数调用。",
+    why: "它提供了一个常被遗漏的控制轴：URSA、D3PM/MDLM 多使用 clean-token CE，而 SEDD 学的是 ratio field。若相同 IBQ path 下 SEDD 改善稀有 code 与自由生成覆盖率，palette collapse 可能来自目标参数化，而不只是 schedule 或 local decoder。",
+    inspiration: "为 64K IBQ 先做小词表/高频簇实验，避免 ratio head 的 K 维开销直接淹没结论；比较共享 softmax logits 转 ratio、独立正值 ratio head与 URSA clean-token head，并审计低频 OCR/glyph code 的梯度和校准。",
+    experiment: "固定 Qwen3、IBQ、uniform/absorbing path、数据、NFE 与参数预算，只比较 clean-token CE、reverse posterior KL 和 score-entropy ratio。报告 token-frequency 分桶准确率、ratio calibration、code coverage、top-code concentration、OCRBench、生成文字 OCR、GenEval、训练稳定性、logits 显存与真实延迟。",
+    paper: "https://arxiv.org/abs/2310.16834",
+    code: "https://github.com/louaaron/Score-Entropy-Discrete-Diffusion",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "discrete-flow-matching-foundation",
+    index: "193",
+    title: "Discrete Flow Matching",
+    shortTitle: "Discrete Flow Matching",
+    date: "v2 2024-11-05 · NeurIPS 2024",
+    category: "离散 Diffusion",
+    paradigm: "Categorical Probability Path + Continuous-time Jump Rates",
+    state: "离散 token ID / categorical simplex；source 与 data 之间定义一般概率路径",
+    objective: "learned posterior 可采用 clean-token x-prediction 或 noise ε-prediction，再转换为离散 transition velocity/jump rate",
+    decoding: "非 AR 全序列 CTMC 迭代；scheduler 控制 source→target 的概率运输速度与提交顺序",
+    sharing: "x-pred 可复用 LLM vocabulary、embedding 与 K-way head并从 AR 权重初始化；需切换双向 attention 与离散 flow sampler",
+    open: "论文与 NeurIPS 版本已公开；截至收录日未发现论文作者提供的专用官方实现",
+    priority: "精读",
+    summary: "Discrete Flow Matching 将离散 diffusion 统一为 source-to-data 的 categorical probability path，并给出从 x-prediction 或 ε-prediction posterior 构造 jump rate 的通用公式；不同 scheduler 可在不改变状态与主干时显著影响质量。",
+    why: "它解释了 URSA 与 ELF 中‘Flow’一词的本质差别：DFM 的速度是类别间概率跳转率，ELF 的 velocity 位于连续 embedding 欧氏空间；URSA 则可视为对 IBQ 几何定制的离散 path。三者不能仅按 NFE 或模型名字比较。",
+    inspiration: "把 URSA 重写成 DFM 坐标：明确 source、probability path、posterior parameterization、scheduler 与 solver。随后在同一 IBQ ID、同一 Qwen3、同一 x-pred head 上比较 generic DFM 与 URSA metric path，避免把 tokenizer 或目标函数同时换掉。",
+    experiment: "固定 Qwen3、IBQ、双向 attention、x-pred head、训练数据与 NFE，比较 linear/cosine DFM、absorbing DFM、URSA metric path；再在最佳 path 上切换 x-pred 与 ε-pred。报告 ELBO/CE、code coverage、OCR/细粒度理解、GenEval、采样步数、吞吐、峰值显存和 AR 初始化后的收敛速度。",
+    paper: "https://arxiv.org/abs/2407.15595",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "mage-masked-generative-encoder",
+    index: "194",
+    title: "MAGE: MAsked Generative Encoder to Unify Representation Learning and Image Synthesis",
+    shortTitle: "MAGE",
+    date: "2022-11-16 · CVPR 2023",
+    category: "统一视觉 Token",
+    paradigm: "Variable-ratio Masked Image Modeling + Representation Learning",
+    state: "VQGAN 离散 image token ID + [MASK]；同一序列在不同 mask ratio 下承担理解与生成",
+    objective: "masked clean-token CE + 可选对比表征损失；无需连续 noise/velocity",
+    decoding: "高 mask ratio/全 mask 时迭代生成；低 mask ratio 时作为编码器抽取全局表征",
+    sharing: "共享图像 tokenizer、ViT、embedding 与 image head；不共享文本词表，也不是完整 LLM/UMM",
+    open: "论文、CVPR 版本、Apache-2.0 官方训练/评测代码与 checkpoints 已公开",
+    priority: "精读",
+    summary: "MAGE 用一个可变 mask ratio 的 ViT 同时学习图像表征与生成：mask 少时可从可见 token 提取语义，mask 多时必须从极少条件恢复整图；附加 contrastive loss 后进一步改善线性探测，同时保留生成能力。",
+    why: "它是‘统一理解—生成’最小可控原型：共享主干是否有效，关键不只在共享权重，还在 corruption 强度如何分配任务。对 Qwen3+IBQ，理解 batch 与生成 batch 可以共享 token/head，却采用不同 mask 分布，而不必马上引入 ELF 连续流。",
+    inspiration: "让 OCR/DocVQA 使用低到中 mask ratio，并保护文字/小目标 1×1 token；T2I 使用高 ratio 或全 mask。比较单一 ratio、task-conditioned ratio 与 MAGE 式宽分布，检查生成训练是否提升视觉语义，还是破坏 glyph 和位置证据。",
+    experiment: "固定 Qwen3、IBQ、共享 K-way head、数据与总 FLOPs，比较纯理解 CE、纯高-mask 生成、MAGE 可变 ratio、MAGE+contrastive/OCR alignment。报告 OCRBench/DocVQA/TextVQA、linear probe、GenEval、生成文字 OCR、code coverage、双向 concept export、NFE、吞吐与显存。",
+    paper: "https://arxiv.org/abs/2211.09117",
+    code: "https://github.com/LTH14/mage",
     featured: true,
     idea: true,
   },
@@ -4980,7 +5094,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.22</strong>
+        <strong>DAILY BRIEF · 2026.08.23</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -5026,9 +5140,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 041]</p>
-              <h1>补齐五个基础端点，<br />让比较矩阵闭环</h1>
-              <p className="hero-copy">原始 Block Diffusion 解释 2×2 块内离散纠错；Diffusion Forcing 把时序不确定性写进每个位置的噪声级别；REPA、CoT 忠实性与 GAIA-1 分别补齐语义对齐、因果解释审计和全离散驾驶世界模型。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 042]</p>
+              <h1>从视觉 latent 到离散概率路径，<br />把生成瓶颈拆成两个变量</h1>
+              <p className="hero-copy">周末没有新的 arXiv 批次。今日补齐 Scale-RAE 与 D3PM→SEDD→Discrete Flow Matching 谱系，并用 MAGE 回看共享理解—生成的最小原型：先区分 tokenizer/latent 是否可生成，再比较 path、预测目标与 sampler。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -5040,7 +5154,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>189</b><span>精选条目</span></div>
+                <div><b>194</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -5142,6 +5256,11 @@ export default function Home() {
                   <tr><th>X-Omni</th><td>离散 token ID</td><td>Next-token CE</td><td>左到右</td><td>累计误差、KV Cache、RL</td></tr>
                   <tr><th>URSA</th><td>原始 IBQ 网格的离散 token ID；无额外 merge</td><td>每位置 64K clean-token CE</td><td>全 H×W 网格并行迭代</td><td>Metric path、schedule、solver；勿与仓库中的连续 DiT 混淆</td></tr>
                   <tr><th>ELF</th><td>连续 embedding</td><td>Velocity / L2 + CE</td><td>ODE / SDE</td><td>空间几何、回投误差、CFG</td></tr>
+                  <tr><th>Scale-RAE</th><td>冻结SigLIP-2/WebSSL高维连续semantic latent</td><td>dimension-aware Rectified Flow velocity</td><td>连续ODE后经训练decoder重建像素</td><td>先固定生成器比较IBQ与RAE tokenizer-only上限；不与path/head同时变化</td></tr>
+                  <tr><th>D3PM</th><td>离散ID / one-hot；Qₜ结构化categorical kernel</td><td>reverse posterior或clean-token x₀；VLB + CE</td><td>全序列反向Markov链</td><td>固定IBQ/Qwen/head/NFE，仅比较uniform、MASK、embedding-kNN与URSA metric kernel</td></tr>
+                  <tr><th>SEDD</th><td>离散ID连续时间Markov chain</td><td>score-entropy probability-ratio field</td><td>reverse CTMC jump sampling</td><td>与URSA clean-token CE分离目标参数化；必须核算64K ratio head显存</td></tr>
+                  <tr><th>Discrete Flow Matching</th><td>离散ID / categorical simplex probability path</td><td>x-pred或ε-pred posterior→jump rate</td><td>非AR全序列CTMC迭代</td><td>其flow是类别跳转率而非ELF embedding velocity；可复用AR词表/head初始化</td></tr>
+                  <tr><th>MAGE</th><td>VQ token ID + [MASK]</td><td>variable-ratio masked clean-token CE + optional contrastive</td><td>低mask做表征；高mask/全mask迭代生成</td><td>共享图像tokenizer/ViT/head；固定ratio分布检验理解—生成迁移</td></tr>
                   <tr><th>Block Diffusion</th><td>离散ID；当前block为mask/已恢复token</td><td>intra-block clean-token CE</td><td>block间AR / block内并行离散diffusion</td><td>可从AR/LLM初始化并复用KV；固定block size与local calls，对照全图URSA和local AR</td></tr>
                   <tr><th>Diffusion Forcing</th><td>连续序列latent；每位置独立noise level</td><td>因果denoising / noise prediction</td><td>next-token、全序列diffusion与滚动rollout统一</td><td>固定state/backbone，隔离clean prefix、uniform-t与per-token t；离散IBQ需独立corruption level</td></tr>
                   <tr><th>REPA</th><td>连续VAE/noisy latent + clean semantic teacher feature</td><td>原noise/velocity + hidden representation alignment</td><td>推理保持原DiT/ELF solver</td><td>固定生成器与teacher，扫描层/t；同时审计语义收敛和OCR/重建细节</td></tr>
@@ -5279,6 +5398,7 @@ export default function Home() {
                   <tr><th>Block Transformer</th><td>固定4-token block压缩成context embedding</td><td>N/4</td><td>context投影为prefix；local causal Transformer + 共享K-way head</td><td>block间AR；块内原始ID AR</td><td>最直接支持2×2 Stage3 local Transformer head</td></tr>
                   <tr><th>Block3D-style head</th><td>2×2 merge只作为block context；四个原始ID初始化为mask</td><td>N/4 global block + 4个local离散状态</td><td>共享K-way clean-ID head + token-to-token纠错</td><td>block间AR；块内2/4/8轮双向去mask与低置信重写</td><td>介于并行4×K、local AR与全图URSA之间的公平离散对照</td></tr>
                   <tr><th>Block Diffusion foundation</th><td>2×2 merge定义block边界；local四slot保持mask/原始IBQ ID</td><td>N/4 global causal blocks + 4 local states</td><td>与AR共享embedding/vocabulary/K-way head；训练clean-token CE</td><td>block间严格AR并复用KV；block内离散diffusion并行恢复</td><td>Block3D的理论端点；固定同一IBQ/预算公平比较local AR、四槽URSA和块内diffusion</td></tr>
+                  <tr><th>D3PM/SEDD/DFM four-slot audit</th><td>2×2 merge不变；四个local slot始终是原始IBQ ID或corrupted state</td><td>N/4 global block + 4个categorical local states</td><td>同一K-way容量分别实现x₀ logits、ratio field或jump-rate posterior</td><td>块间AR不变；块内固定NFE比较Markov、CTMC与URSA metric path</td><td>把块内相关性、forward kernel、预测目标和额外计算拆成独立控制变量</td></tr>
                   <tr><th>MEGABYTE</th><td>固定长度patch，由global/local两级模型处理</td><td>N/q</td><td>local submodel预测原始符号</td><td>patch间AR；patch内AR</td><td>证明不需要构造K⁴联合merged ID</td></tr>
                   <tr><th>BLT</th><td>按局部entropy形成动态长度patch</td><td>M，取决于信息密度</td><td>cross-attention local decoder + 原始ID head</td><td>patch间AR；patch内AR</td><td>为OCR-aware / boundary-aware动态merge提供基础</td></tr>
                   <tr><th>SSD</th><td>不改变主序列；额外预测二维邻居hidden</td><td>保持N，但减少串行主干调用</td><td>轻量draft heads + 原AR head验证</td><td>水平/垂直并行draft与验证</td><td>适合把2×2 head改成加速器而非最终生成器</td></tr>
@@ -5333,6 +5453,7 @@ export default function Home() {
                 <thead><tr><th>路线</th><th>观测状态</th><th>动作接口</th><th>动力学目标</th><th>建模方式</th><th>Rollout / 规划</th><th>与 UMM 的关系</th></tr></thead>
                 <tbody>
                   <tr><th>GAIA-1</th><td>DINO蒸馏VQ ID：576 token/帧、8192词表；独立RGB diffusion renderer</td><td>speed + curvature连续标量，另有文本场景控制</td><td>next image-token CE；renderer预测v-parameterized denoising target</td><td>6.25Hz逐tokenAR + 25Hz视频Diffusion渲染</td><td>动作条件多未来rollout；未报告独立MPC/真实闭环成功</td><td>最接近Qwen3+IBQ的全离散端点；语义ID、动力学和renderer需分项评价</td></tr>
+                  <tr><th>D3PM→SEDD→DFM token dynamics</th><td>未来帧IBQ/视频离散ID；静态codec与renderer固定</td><td>真实action token/连续action经同一adapter条件化</td><td>next clean ID、probability ratio或categorical jump rate</td><td>离散Markov/CTMC/metric-path并行动力学</td><td>支持多步token rollout；必须报action-shuffle、同状态多动作可分性与horizon累积</td><td>同一Qwen3、IBQ和动作接口下公平比较AR、URSA与离散flow，不让画质替代因果控制</td></tr>
                   <tr><th>Diffusion Forcing</th><td>连续视频/轨迹latent；每个时间位置独立noise level</td><td>真实action、文本或规划目标</td><td>因果denoising；统一next-token与full-sequence diffusion</td><td>Per-token-noise causal diffusion</td><td>长时rollout、缺失段补全与sequence guidance/规划</td><td>适合ELF/VAE；URSA可实现独立block corruption作为离散对照</td></tr>
                   <tr><th>InternVLA-A1</th><td>Qwen3-VL 语义 token + COSMOS VAE latent</td><td>连续 action chunk</td><td>未来 latent + action velocity</td><td>并行 latent 回归 + Flow Matching</td><td>单步 foresight；闭环策略执行</td><td>共享上下文，理解/预见/动作专家分工</td></tr>
                   <tr><th>dWorldEval</th><td>MAGVIT-v2 离散视觉 token</td><td>FAST 离散 action token</td><td>未来视觉 token + progress token</td><td>Masked Discrete Diffusion</td><td>闭环 imagined rollout + 稀疏记忆</td><td>视觉/语言/动作统一序列，最接近 URSA 对照</td></tr>
