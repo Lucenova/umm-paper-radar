@@ -4881,7 +4881,7 @@ const papers: Paper[] = [
     paper: "https://arxiv.org/abs/2601.16208",
     project: "https://rae-dit.github.io/scale-rae/",
     code: "https://github.com/ZitengWangNYU/Scale-RAE",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4903,7 +4903,7 @@ const papers: Paper[] = [
     inspiration: "在同一 Qwen3+IBQ 上只替换 forward kernel：uniform、absorbing MASK、codec-embedding kNN、Qwen-embedding kNN 与 URSA metric path；所有方法都恢复原始 IBQ ID，并保持同一个 K-way head、solver 调用数与 decoder contract。",
     experiment: "固定 IBQ、Qwen3、训练样本、参数量、NFE 与 clean-token head，对五种 Qₜ 报告 corruption 后最近邻语义/像素一致性、slot accuracy、block exact match、code coverage、OCRBench、TextVQA、GenEval、吞吐、显存和梯度方差；先判断 path，再判断 head。",
     paper: "https://arxiv.org/abs/2107.03006",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4926,7 +4926,7 @@ const papers: Paper[] = [
     experiment: "固定 Qwen3、IBQ、uniform/absorbing path、数据、NFE 与参数预算，只比较 clean-token CE、reverse posterior KL 和 score-entropy ratio。报告 token-frequency 分桶准确率、ratio calibration、code coverage、top-code concentration、OCRBench、生成文字 OCR、GenEval、训练稳定性、logits 显存与真实延迟。",
     paper: "https://arxiv.org/abs/2310.16834",
     code: "https://github.com/louaaron/Score-Entropy-Discrete-Diffusion",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4948,7 +4948,7 @@ const papers: Paper[] = [
     inspiration: "把 URSA 重写成 DFM 坐标：明确 source、probability path、posterior parameterization、scheduler 与 solver。随后在同一 IBQ ID、同一 Qwen3、同一 x-pred head 上比较 generic DFM 与 URSA metric path，避免把 tokenizer 或目标函数同时换掉。",
     experiment: "固定 Qwen3、IBQ、双向 attention、x-pred head、训练数据与 NFE，比较 linear/cosine DFM、absorbing DFM、URSA metric path；再在最佳 path 上切换 x-pred 与 ε-pred。报告 ELBO/CE、code coverage、OCR/细粒度理解、GenEval、采样步数、吞吐、峰值显存和 AR 初始化后的收敛速度。",
     paper: "https://arxiv.org/abs/2407.15595",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -4971,6 +4971,125 @@ const papers: Paper[] = [
     experiment: "固定 Qwen3、IBQ、共享 K-way head、数据与总 FLOPs，比较纯理解 CE、纯高-mask 生成、MAGE 可变 ratio、MAGE+contrastive/OCR alignment。报告 OCRBench/DocVQA/TextVQA、linear probe、GenEval、生成文字 OCR、code coverage、双向 concept export、NFE、吞吐与显存。",
     paper: "https://arxiv.org/abs/2211.09117",
     code: "https://github.com/LTH14/mage",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "libra-decoupled-umm",
+    index: "195",
+    title: "Decoupled Vision-Language System for Multimodal Understanding and Generation",
+    shortTitle: "Libra-2",
+    date: "2026-06-29 · 2026-08-24 cs.CV cross-list",
+    category: "统一多模态",
+    paradigm: "Decoupled Vision/Language Systems + Continuous Masked Image Generation",
+    state: "文本离散ID；视觉为16×下采样VAE连续latent，理解时以SigLIP cross-attention语义增强，生成时保持可解码VAE latent",
+    objective: "文本next-token CE；视觉位置先随机MASK，再由轻量token-level diffusion head预测连续clean latent/denoising target",
+    decoding: "文本因果AR；图像外层迭代提交masked positions，内层逐token diffusion，最终VAE decoder并可选SDXL refiner",
+    sharing: "视觉系统与语言系统各自self-modal attention/FFN；switch attention与cross-modal bridge逐层交互，switch FFN区分理解和生成；不共享词表、tokenizer或输出head",
+    open: "论文与作者官方仓库已公开；仓库当前主要是ICML 2024 Libra-1实现，论文注明Libra-2代码将发布",
+    priority: "精读",
+    summary: "Libra-2不把统一等同于全部绑权：视觉与语言各自保存自模态计算路径，只在每层用cross-modal bridge交互；理解和生成又通过Switch-FFN分流。它以同一连续视觉空间承担I2T与T2I，联合训练相较单任务同时改善VQA/MMB与GenEval，并明确暴露生成文字、细节和空间关系仍是弱项。",
+    why: "这直接对应Qwen3+IBQ的共享边界选择。当前若强迫IBQ embedding、Qwen self-attention、FFN与Stage3生成head全部共用，OCR证据与像素生成梯度可能互相拉扯；Libra提供了比完全共享或完全级联更可控的中间点。",
+    inspiration: "保留Qwen3语言主干和IBQ codec contract，为视觉self-modal路径增加轻量专家，仅让跨模态bridge共享概念；再把理解FFN、生成FFN和cross-modal FFN分开。可检验URSA→ELF收益究竟来自连续状态，还是来自减少了理解/生成梯度冲突。",
+    experiment: "固定Qwen3、IBQ、数据、总参数量与FLOPs，比较全共享、仅FFN专家、Libra式switch attention+FFN、完全双塔四种边界；每种再固定同一AR/URSA或ELF生成目标。报告OCRBench/DocVQA/TextVQA、GenEval、生成文字OCR、双向concept export、逐层CKA/梯度夹角、吞吐、显存与训练稳定性。",
+    paper: "https://arxiv.org/abs/2608.20382",
+    code: "https://github.com/YifanXu74/Libra",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "wa-jepa-world-action",
+    index: "196",
+    title: "WA-JEPA: Rethinking the Video JEPA Paradigm for World-Action Modeling in Autonomous Driving",
+    shortTitle: "WA-JEPA",
+    date: "2026-08-21",
+    category: "世界模型",
+    paradigm: "Future-masked JEPA + Joint Latent/Action Flow Matching",
+    state: "V-JEPA连续语义future tokens与连续ego trajectory组成统一时空latent；无需像素重建作为决策接口",
+    objective: "hybrid future-mask预训练；conditional Flow Matching联合预测future scene-token velocity与ego-trajectory velocity",
+    decoding: "从观测context并行去噪未来语义token和动作轨迹；不按IBQ ID逐tokenAR，也不要求先渲染RGB未来",
+    sharing: "共享V-JEPA语义空间与joint future-action predictor；不共享IBQ tokenizer、文本词表或像素decoder，可把Qwen作为上层语义/指令接口",
+    open: "论文与官方仓库已公开；仓库当前标注完整代码即将发布",
+    priority: "精读",
+    summary: "WA-JEPA把V-JEPA从随机mask回归改成面向未来的hybrid masking，并用条件Flow表达多模态future；同一predictor联合去噪未来场景token与ego轨迹，让动作监督直接塑造预测表征。其NAVSIM-v2 EPDMS为91.7，并在未做HUGSIM专门微调时取得0.4462 HD-Score。",
+    why: "它为‘统一理解—生成—预测—行动’提供了比完整未来视频更直接的JEPA端点：动作和未来语义在同一连续空间耦合，评测又包含闭环。对多帧威胁检测，这比用FVD证明世界模型有效更接近真正的风险决策。",
+    inspiration: "让IBQ继续保存OCR、身份与可审计外观，另设少量WA-JEPA future tokens承载运动、占用与风险趋势；Qwen3读取二者，ELF只在需要可视解释时渲染未来。这样把静态codec质量与动态预测能力解耦。",
+    experiment: "固定Qwen3、历史帧、动作接口、训练数据与FLOPs，比较未来IBQ-ID AR、URSA、ELF像素latent、WA-JEPA语义latent+action Flow。统一报告action-shuffle、同状态多动作可分性、1/8/32步语义漂移、威胁AUPRC、预警提前量、NAVSIM/HUGSIM式闭环成功、NFE、p95延迟与显存。",
+    paper: "https://arxiv.org/abs/2608.20974",
+    code: "https://github.com/AFARI-Research/WA-JEPA",
+    action: "连续ego trajectory，与未来场景token在同一Flow predictor中联合去噪",
+    rollout: "支持未来latent/action联合预测与闭环规划；公开结果覆盖NAVSIM及HUGSIM闭环协议",
+    evaluation: "除EPDMS/HD-Score外，应补action-shuffle、反事实动作可分性、horizon误差与风险提前量",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "rise-adaptive-imagination",
+    index: "197",
+    title: "RISE: Adaptive Imagination for World Action Models",
+    shortTitle: "RISE",
+    date: "2026-08-20",
+    category: "世界模型",
+    paradigm: "Risk-aware Sequential Roll/Stop Imagination",
+    state: "任意底层WAM的未来prefix/latent rollout，加上Latent Evaluator输出的当前风险与继续想象收益",
+    objective: "学习prefix已揭示风险、继续rollout可带来的规划增益；Rollout Gate以增益减计算成本做Roll/Stop决策",
+    decoding: "逐段生成未来并在每段后决定继续或停止；不是固定0/2/4/8步，也不绑定AR、Diffusion或Flow底模",
+    sharing: "系统级插件；可读取Qwen3/IBQ、URSA或ELF rollout hidden，不要求共享tokenizer、Transformer或head",
+    open: "论文已公开；CounterDrive包含专家验证的轨迹有效性、事故起点与因果类别，代码/数据截至收录日未见官方发布",
+    priority: "精读",
+    summary: "RISE指出现有WAM给所有场景固定想象预算并不合理。它在每个rollout前缀后估计当前风险和继续想象对规划的边际收益，再与额外算力成本比较；同时用CounterDrive补足真实日志只有单一事实未来、缺少反事实风险分支的问题。",
+    why: "多帧威胁检测的简单背景与临界碰撞不应都跑相同ELF/URSA步数。RISE把‘世界模型需要多少未来’变成可学习控制变量，并把风险、因果类别、事故起点和计算成本放进同一闭环评价。",
+    inspiration: "Qwen3先用当前IBQ/history输出风险与不确定性；只有边际收益高的样本才调用更多URSA/ELF future blocks，高置信安全或已确定危险样本提前停止。必须用反事实动作和事故起点监督，避免gate只学场景难度。",
+    experiment: "固定Qwen3、IBQ、底层world head、数据与最大8步预算，比较固定0/2/4/8步、entropy gate、risk-only gate与RISE benefit-cost gate；保持平均NFE一致，报告AUPRC、事故提前量、漏警、action-shuffle、闭环成功、horizon error、p50/p95延迟及每风险分桶的rollout长度。",
+    paper: "https://arxiv.org/abs/2608.20430",
+    action: "沿用底层WAM真实action/规划候选；CounterDrive提供多结果反事实轨迹与因果风险标注",
+    rollout: "顺序Roll/Stop，自适应分配想象长度；NAVSIM与nuScenes验证规划—计算权衡",
+    evaluation: "必须按风险分桶报告停止位置、规划增益与漏警，并防止平均计算量掩盖尾部延迟",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "difficulty-calibrated-flow-path",
+    index: "198",
+    title: "Difficulty-Calibrated Interpolation Paths for Conditional Flow Matching",
+    shortTitle: "Difficulty-Calibrated FM",
+    date: "2026-08-21",
+    category: "连续 Flow",
+    paradigm: "Model-adaptive Interpolation Schedule for Conditional Flow Matching",
+    state: "连续noise-to-data state；论文在图像像素/latent上验证，可直接迁移到IBQ embedding ELF",
+    objective: "保持原velocity regression不变；短pilot记录per-time loss，以难度分布quantile构造新的interpolation schedule",
+    decoding: "沿校准path做原有ODE/solver采样；与CFG兼容，训练额外开销约2%",
+    sharing: "不改变tokenizer、embedding、Transformer、velocity head或LLM初始化，只改path时间参数化",
+    open: "论文与实验细节已公开；截至收录日未发现作者官方代码仓库",
+    priority: "精读",
+    summary: "该方法先用线性path做短pilot，测出哪些t区间的velocity最难学，再让正式轨迹在这些区间停留更久。它保持目标与梯度等价，仅改变样本在path上的分配，在CIFAR-10全预算及大batch少更新设置中优于固定schedule。",
+    why: "当前ELF loss缓慢下降与palette collapse未必需要换head或换tokenizer：若某些t区间对64K IBQ embedding特别困难，均匀采样会把预算浪费在容易区间。它是几乎不引入架构混杂的path级诊断。",
+    inspiration: "直接在现有Qwen3+IBQ ELF checkpoint上统计per-t velocity loss、最近ID回投、decoder-valid率与code entropy，构造difficulty CDF；观察困难区是否对应code吸引域边界、文字/glyph或free-running有效t偏移。",
+    experiment: "固定Qwen3、IBQ、ELF backbone/head、数据、target、NFE与总训练FLOPs，比较linear、cosine、手工t-shift和difficulty-calibrated path。报告per-t loss/回投误差、code coverage、top-code concentration、GenEval、生成文字OCR、收敛样本数、CFG敏感性、吞吐、显存和有效t偏差。",
+    paper: "https://arxiv.org/abs/2608.21286",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "aviot-video-token-compression",
+    index: "199",
+    title: "Aggregating Visual Information with Optimal Transport for VideoLM Token Compression",
+    shortTitle: "AVIOT",
+    date: "2026-08-20",
+    category: "多帧推理",
+    paradigm: "Question-conditioned Optimal-Transport Video Token Compression",
+    state: "稠密多帧连续视觉observations被运输为少量compact supports；每个support是源帧/区域的OT耦合聚合",
+    objective: "下游VideoLM理解目标不变；question-conditioned transport cost、分段support配额与多尺度区域transport共同学习",
+    decoding: "输入侧一次压缩后走原语言AR；推理时可直接改变压缩率，默认确定性回答",
+    sharing: "复用视觉encoder、语言模型与文本tokenizer；新增compressor/projector，不创建IBQ merged ID或修改生成head",
+    open: "论文、Apache-2.0官方训练/推理/评测代码已公开；模型权重仍列为待发布",
+    priority: "精读",
+    summary: "AVIOT把视频token压缩写成从稠密帧经验分布到紧凑support分布的最优运输。问题条件同时改变transport cost和各时间段support数量，多尺度空间plan允许同一紧凑表示的不同区域从不同时刻取证；在多档压缩率下可匹配或超过未压缩基线。",
+    why: "它比固定逐帧2×2 folding更适合OCR与多帧威胁：同一目标、文字或轨迹证据可跨帧聚合到一个support，而背景冗余不会按空间邻近硬平均。它也提供了压缩率可在推理时变化的干净接口。",
+    inspiration: "把IBQ/Qwen projector前的多帧token视为source measure，以问题、OCR query和风险hidden定义cost；文字/小目标区域用细尺度transport，背景用粗尺度。Stage3仍预测原始IBQ ID，AVIOT只决定理解context如何聚合。",
+    experiment: "固定Qwen3、IBQ、采样帧、平均token预算与训练FLOPs，比较逐帧2×2、attention pooling、ClustRS、AVIOT与AVIOT+风险/OCR cost。报告OCRBench/VideoQA、关键帧召回、轨迹/威胁AUPRC、证据删除KL、compression ratio、端到端延迟、峰值显存及每support的时间/空间熵。",
+    paper: "https://arxiv.org/abs/2608.20473",
+    code: "https://github.com/ernie-research/AVIOT",
     featured: true,
     idea: true,
   },
@@ -5094,7 +5213,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.23</strong>
+        <strong>DAILY BRIEF · 2026.08.24</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -5140,9 +5259,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 042]</p>
-              <h1>从视觉 latent 到离散概率路径，<br />把生成瓶颈拆成两个变量</h1>
-              <p className="hero-copy">周末没有新的 arXiv 批次。今日补齐 Scale-RAE 与 D3PM→SEDD→Discrete Flow Matching 谱系，并用 MAGE 回看共享理解—生成的最小原型：先区分 tokenizer/latent 是否可生成，再比较 path、预测目标与 sampler。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 043]</p>
+              <h1>把共享边界、Flow 路径与想象预算，<br />变成可控变量</h1>
+              <p className="hero-copy">今日从82篇cs.CV新投稿中精选Libra、WA-JEPA、RISE、Difficulty-Calibrated Flow与AVIOT：分别回答理解—生成应共享什么、世界状态如何与动作耦合、何时值得继续rollout，以及多帧证据怎样压缩而不丢OCR与威胁线索。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -5154,7 +5273,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>194</b><span>精选条目</span></div>
+                <div><b>199</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -5256,6 +5375,11 @@ export default function Home() {
                   <tr><th>X-Omni</th><td>离散 token ID</td><td>Next-token CE</td><td>左到右</td><td>累计误差、KV Cache、RL</td></tr>
                   <tr><th>URSA</th><td>原始 IBQ 网格的离散 token ID；无额外 merge</td><td>每位置 64K clean-token CE</td><td>全 H×W 网格并行迭代</td><td>Metric path、schedule、solver；勿与仓库中的连续 DiT 混淆</td></tr>
                   <tr><th>ELF</th><td>连续 embedding</td><td>Velocity / L2 + CE</td><td>ODE / SDE</td><td>空间几何、回投误差、CFG</td></tr>
+                  <tr><th>Libra-2</th><td>文本离散ID + 语义增强VAE连续visual latent</td><td>文本next-token CE + masked position轻量diffusion</td><td>文本AR；图像外层迭代提交、内层token diffusion</td><td>视觉/语言self-modal分支解耦，仅cross-modal bridge交互；Switch-FFN分开理解与生成</td></tr>
+                  <tr><th>Difficulty-Calibrated FM</th><td>连续noise-to-data state；可直接使用IBQ embedding</td><td>原velocity regression不变；按pilot per-t loss重参数化path</td><td>沿difficulty-quantile schedule做原ODE采样</td><td>固定tokenizer/backbone/head/NFE，只改变困难区间的训练停留时间；约2%额外开销</td></tr>
+                  <tr><th>WA-JEPA</th><td>V-JEPA连续future token + ego trajectory</td><td>future scene与action联合conditional Flow velocity</td><td>future-masked预训练；语义未来与动作并行去噪</td><td>把JEPA确定性回归改成多模态Flow，并以动作监督塑造规划相关状态</td></tr>
+                  <tr><th>RISE</th><td>任意WAM future prefix + risk/benefit latent</td><td>继续想象的规划边际收益 − 计算成本</td><td>每个future block后顺序Roll/Stop</td><td>固定底层AR/URSA/ELF，只比较自适应rollout预算与风险校准</td></tr>
+                  <tr><th>AVIOT</th><td>稠密多帧visual observation→compact OT supports</td><td>下游理解目标 + question/region-conditioned transport allocation</td><td>输入侧一次压缩；语言解码顺序不变</td><td>固定平均token预算，分离空间邻近merge与跨帧问题相关证据聚合</td></tr>
                   <tr><th>Scale-RAE</th><td>冻结SigLIP-2/WebSSL高维连续semantic latent</td><td>dimension-aware Rectified Flow velocity</td><td>连续ODE后经训练decoder重建像素</td><td>先固定生成器比较IBQ与RAE tokenizer-only上限；不与path/head同时变化</td></tr>
                   <tr><th>D3PM</th><td>离散ID / one-hot；Qₜ结构化categorical kernel</td><td>reverse posterior或clean-token x₀；VLB + CE</td><td>全序列反向Markov链</td><td>固定IBQ/Qwen/head/NFE，仅比较uniform、MASK、embedding-kNN与URSA metric kernel</td></tr>
                   <tr><th>SEDD</th><td>离散ID连续时间Markov chain</td><td>score-entropy probability-ratio field</td><td>reverse CTMC jump sampling</td><td>与URSA clean-token CE分离目标参数化；必须核算64K ratio head显存</td></tr>
@@ -5405,6 +5529,7 @@ export default function Home() {
                   <tr><th>Tree-DLM</th><td>不做空间merge；对视觉词表层次聚类</td><td>位置数不变</td><td>小K children classifier逐层定位leaf ID</td><td>词表内coarse-to-fine</td><td>解决64K/128K视觉head与logits显存瓶颈</td></tr>
                   <tr><th>MedARC</th><td>attention、query relevance与结构独特性联合决定merge</td><td>预算可固定为N/4</td><td>不改原head；合并后的token送入既有主干</td><td>无新增生成顺序</td><td>为固定2×2 folding提供OCR-aware动态对照</td></tr>
                   <tr><th>ClustRS</th><td>attention-weighted semantic clustering选代表，再做一次Residual Shrinkage</td><td>固定平均N/4或极限16 token</td><td>不改Stage3生成head；只压缩/去噪输入证据</td><td>聚类代表并行进入Qwen；原解码顺序不变</td><td>把空间邻近merge与语义冗余、传感噪声分开控制</td></tr>
+                  <tr><th>AVIOT</th><td>将稠密帧/区域视为source measure，以问题条件OT耦合到compact supports</td><td>推理可调M；默认把224 observations压成28 supports示例</td><td>不改Qwen/Stage3 head；support由跨帧多尺度区域加权聚合</td><td>输入侧并行运输；下游语言AR/视觉生成顺序不变</td><td>让OCR、目标与轨迹跨帧取证，作为固定逐帧2×2 merge的时空对照</td></tr>
                   <tr><th>Trend-aware Pruning</th><td>按跨层重要性趋势暂存或恢复token</td><td>逐层变化；固定平均FLOPs</td><td>不改原head；late-blooming token可重新激活</td><td>层间动态路由</td><td>补足输入前merge不可逆的缺陷</td></tr>
                   <tr><th>LKF-style Block Head</th><td>2×2 merge保持不变；用共享latent耦合四个slot</td><td>N/4</td><td>M组4×K logits + M-way mixture权重</td><td>先选component，再并行预测TL/TR/BL/BR</td><td>介于独立Linear与local AR之间的“并行但相关”对照</td></tr>
                   <tr><th>Infinity bit head</th><td>不负责空间merge；把每个整数ID换成d-bit code</td><td>由scale schedule决定，与N/4独立</td><td>每位置d个binary logits；2×2时为4d logits</td><td>尺度间AR；尺度内bit与位置并行</td><td>分离词表/head压缩与空间token merge，降低K-way logits成本</td></tr>
@@ -5453,6 +5578,8 @@ export default function Home() {
                 <thead><tr><th>路线</th><th>观测状态</th><th>动作接口</th><th>动力学目标</th><th>建模方式</th><th>Rollout / 规划</th><th>与 UMM 的关系</th></tr></thead>
                 <tbody>
                   <tr><th>GAIA-1</th><td>DINO蒸馏VQ ID：576 token/帧、8192词表；独立RGB diffusion renderer</td><td>speed + curvature连续标量，另有文本场景控制</td><td>next image-token CE；renderer预测v-parameterized denoising target</td><td>6.25Hz逐tokenAR + 25Hz视频Diffusion渲染</td><td>动作条件多未来rollout；未报告独立MPC/真实闭环成功</td><td>最接近Qwen3+IBQ的全离散端点；语义ID、动力学和renderer需分项评价</td></tr>
+                  <tr><th>WA-JEPA</th><td>V-JEPA连续语义future tokens + ego trajectory；无需RGB renderer</td><td>连续ego trajectory，与future scene在同一predictor联合去噪</td><td>future latent velocity + action trajectory velocity</td><td>Hybrid future-mask JEPA + conditional Flow Matching</td><td>NAVSIM规划与HUGSIM闭环；需补action-shuffle与horizon漂移</td><td>IBQ保存OCR/身份，JEPA token保存动力学；Qwen读取共享语义而不强迫同词表</td></tr>
+                  <tr><th>RISE</th><td>底层WAM的未来prefix/latent + risk与planning-gain evaluator</td><td>沿用底层真实action或规划候选；CounterDrive提供反事实结果</td><td>Roll/Stop decision：继续想象收益与额外计算成本</td><td>架构无关adaptive rollout gate，可包裹AR/Diffusion/Flow/JEPA</td><td>逐段自适应horizon；NAVSIM/nuScenes规划—计算权衡</td><td>Qwen3先判风险，URSA/ELF只在边际价值高时追加future blocks</td></tr>
                   <tr><th>D3PM→SEDD→DFM token dynamics</th><td>未来帧IBQ/视频离散ID；静态codec与renderer固定</td><td>真实action token/连续action经同一adapter条件化</td><td>next clean ID、probability ratio或categorical jump rate</td><td>离散Markov/CTMC/metric-path并行动力学</td><td>支持多步token rollout；必须报action-shuffle、同状态多动作可分性与horizon累积</td><td>同一Qwen3、IBQ和动作接口下公平比较AR、URSA与离散flow，不让画质替代因果控制</td></tr>
                   <tr><th>Diffusion Forcing</th><td>连续视频/轨迹latent；每个时间位置独立noise level</td><td>真实action、文本或规划目标</td><td>因果denoising；统一next-token与full-sequence diffusion</td><td>Per-token-noise causal diffusion</td><td>长时rollout、缺失段补全与sequence guidance/规划</td><td>适合ELF/VAE；URSA可实现独立block corruption作为离散对照</td></tr>
                   <tr><th>InternVLA-A1</th><td>Qwen3-VL 语义 token + COSMOS VAE latent</td><td>连续 action chunk</td><td>未来 latent + action velocity</td><td>并行 latent 回归 + Flow Matching</td><td>单步 foresight；闭环策略执行</td><td>共享上下文，理解/预见/动作专家分工</td></tr>
