@@ -4994,7 +4994,7 @@ const papers: Paper[] = [
     experiment: "固定Qwen3、IBQ、数据、总参数量与FLOPs，比较全共享、仅FFN专家、Libra式switch attention+FFN、完全双塔四种边界；每种再固定同一AR/URSA或ELF生成目标。报告OCRBench/DocVQA/TextVQA、GenEval、生成文字OCR、双向concept export、逐层CKA/梯度夹角、吞吐、显存与训练稳定性。",
     paper: "https://arxiv.org/abs/2608.20382",
     code: "https://github.com/YifanXu74/Libra",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -5020,7 +5020,7 @@ const papers: Paper[] = [
     action: "连续ego trajectory，与未来场景token在同一Flow predictor中联合去噪",
     rollout: "支持未来latent/action联合预测与闭环规划；公开结果覆盖NAVSIM及HUGSIM闭环协议",
     evaluation: "除EPDMS/HD-Score外，应补action-shuffle、反事实动作可分性、horizon误差与风险提前量",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -5045,7 +5045,7 @@ const papers: Paper[] = [
     action: "沿用底层WAM真实action/规划候选；CounterDrive提供多结果反事实轨迹与因果风险标注",
     rollout: "顺序Roll/Stop，自适应分配想象长度；NAVSIM与nuScenes验证规划—计算权衡",
     evaluation: "必须按风险分桶报告停止位置、规划增益与漏警，并防止平均计算量掩盖尾部延迟",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -5067,7 +5067,7 @@ const papers: Paper[] = [
     inspiration: "直接在现有Qwen3+IBQ ELF checkpoint上统计per-t velocity loss、最近ID回投、decoder-valid率与code entropy，构造difficulty CDF；观察困难区是否对应code吸引域边界、文字/glyph或free-running有效t偏移。",
     experiment: "固定Qwen3、IBQ、ELF backbone/head、数据、target、NFE与总训练FLOPs，比较linear、cosine、手工t-shift和difficulty-calibrated path。报告per-t loss/回投误差、code coverage、top-code concentration、GenEval、生成文字OCR、收敛样本数、CFG敏感性、吞吐、显存和有效t偏差。",
     paper: "https://arxiv.org/abs/2608.21286",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -5090,6 +5090,131 @@ const papers: Paper[] = [
     experiment: "固定Qwen3、IBQ、采样帧、平均token预算与训练FLOPs，比较逐帧2×2、attention pooling、ClustRS、AVIOT与AVIOT+风险/OCR cost。报告OCRBench/VideoQA、关键帧召回、轨迹/威胁AUPRC、证据删除KL、compression ratio、端到端延迟、峰值显存及每support的时间/空间熵。",
     paper: "https://arxiv.org/abs/2608.20473",
     code: "https://github.com/ernie-research/AVIOT",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "vgau-generation-assisted-understanding",
+    index: "200",
+    title: "When Does Visual Generation Help Visual Understanding in Unified Multimodal Models?",
+    shortTitle: "VGAU-Diag",
+    date: "2026-08-23 · EMNLP 2026",
+    category: "评测诊断",
+    paradigm: "Generation-Assisted Understanding Diagnosis + Oracle Visual Aids",
+    state: "原始输入、模型自生成视觉辅助与oracle视觉辅助；底层可为离散IBQ ID或连续latent，不绑定生成器",
+    objective: "不新增统一训练目标；按难度、reasoning范式与视觉辅助忠实度评估理解模型是否真正利用生成证据",
+    decoding: "先生成/提供视觉辅助，再用同一UMM回答；通过oracle、无关与误导辅助拆分生成质量和证据使用能力",
+    sharing: "兼容共享Transformer或级联系统；专门检验共享权重是否带来可调用的理解—生成迁移，而非假定共享即统一",
+    open: "论文与官方评测仓库已公开；仓库当前提供协议说明，作者标注完整代码将于EMNLP前后补齐",
+    priority: "精读",
+    summary: "VGAU-Diag系统研究UMM何时能靠视觉生成改善理解：模型生成的辅助图在简单样本上可能有益，但难度上升后会从无关噪声演化为貌似合理却误导的证据；更关键的是，许多模型甚至无法利用忠实的oracle视觉辅助，瓶颈落在理解侧而非生成侧。",
+    why: "它直接挑战当前项目中一个默认前提：提高Qwen3+IBQ/ELF生成质量不一定会自动提升OCRBench、DocVQA或TextVQA。如果正确视觉辅助也不改善答案，继续修Stage3、Flow path或图像质量并不能解决证据调用问题。",
+    inspiration: "把文字放大图、布局重排图、威胁轨迹图分别作为self-generated、GT/oracle和counterfactual aid；比较Qwen是否因辅助内容而改变答案，并用区域删除、token置乱和误导文字检验所谓帮助是否具有因果性。",
+    experiment: "固定Qwen3、IBQ、问题集、提示与推理预算，对同一样本比较无辅助、自生成辅助、GT/oracle辅助和误导辅助；按难度分桶报告OCRBench/DocVQA/TextVQA、oracle gap、答案变化率、证据删除KL、辅助忠实度、生成文字OCR和额外延迟。",
+    paper: "https://arxiv.org/abs/2608.22174",
+    code: "https://github.com/zyb1029/VGAU-Diag",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "dele-w05-future-latent-action",
+    index: "201",
+    title: "Inferring Action from Future Latent State for Robotic Manipulation",
+    shortTitle: "DELE-w0.5",
+    date: "2026-08-22",
+    category: "世界模型",
+    paradigm: "Compact Future-State and Action Flow Matching",
+    state: "三视角RGB经冻结DINOv3编码为连续patch feature；只预测最终action-relevant future latent，不生成中间视频",
+    objective: "对60步连续action chunk和future DINO latent分别做Gaussian-to-data Flow velocity regression，联合损失共享双流attention",
+    decoding: "条件流与噪声流联合去噪future state和action；省去高维中间帧的逐块视频采样",
+    sharing: "Qwen3只编码语言指令；DINOv3、1024维condition Transformer与Flow action/future heads协作，不共享IBQ词表或像素decoder",
+    open: "论文与DeepLeap官方研究页已公开；截至收录日未发现训练代码或权重公开",
+    priority: "精读",
+    summary: "DELE-w0.5把世界动作模型从‘生成完整视觉轨迹再提取动作’改成‘预测动作执行后的紧凑未来状态并由其推断动作’。480次真实机器人测试中，四个长时任务完整成功率62.5%，有序阶段进度81.3%，并显著领先最强对照。",
+    why: "它是当前多帧威胁与机器人方向的关键效率端点：完整IBQ/ELF未来可能把大量容量浪费在背景、纹理和中间过渡上，而风险判断真正需要的是接触结果、目标位姿与任务进度。",
+    inspiration: "保留IBQ表示OCR、身份与可审计外观，另用少量future-state queries预测目标轨迹、接触和威胁结果；仅在解释或数据生成时调用URSA/ELF渲染完整未来，控制环默认读取紧凑状态。",
+    experiment: "固定Qwen3、历史帧、动作接口、数据、future-token数与总FLOPs，比较无未来、DELE式DINO future latent、URSA未来IBQ网格、ELF未来embedding；报告action-shuffle、未来状态probe、1/8/32步误差、威胁AUPRC、闭环成功、NFE、p95延迟和显存。",
+    paper: "https://arxiv.org/abs/2608.22067",
+    project: "https://deepleap-x.com/research/dele",
+    action: "60步连续action chunk；单臂7-DoF或双臂14-DoF，与future latent在同一Flow中联合去噪",
+    rollout: "真实机器人闭环执行四个长时操作任务；不生成中间视频，主要预测单个未来结果状态",
+    evaluation: "除成功率与阶段进度外，应补action-shuffle、future-state干预、horizon误差、控制频率与尾部延迟",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "editstream-vmm-forcing",
+    index: "202",
+    title: "EditStream: A Unified Autoregressive Framework for Interactive Video Generation and Editing",
+    shortTitle: "EditStream",
+    date: "2026-08-16",
+    category: "连续 Flow",
+    paradigm: "Block-autoregressive Few-step Flow + Velocity Moment Matching Forcing",
+    state: "连续video-VAE latent block与因果KV历史；pixel-aligned控制按channel堆叠，非对齐条件作为token",
+    objective: "四步student在自身到达的中间状态上匹配teacher velocity moments，并通过AR unrolling暴露free-running历史",
+    decoding: "块间AR、块内4步Flow；统一T2V/I2V/V2V/编辑与相机控制，guidance-free 720p 16fps单GPU",
+    sharing: "单一DiT与统一条件接口；由25–50步双向teacher初始化，不能直接等同于从AR LLM权重初始化",
+    open: "论文与官方项目页已公开；代码、数据和模型截至收录日标注为即将发布",
+    priority: "精读",
+    summary: "EditStream把视频生成与交互编辑统一到一个因果DiT，并以VMM-Forcing修复少步蒸馏的暴露偏差：student先用自身KV完成AR rollout，teacher再在student真正访问的状态上提供velocity-moment校正。四步模型相对teacher约14倍加速。",
+    why: "它与当前URSA→ELF的palette collapse和teacher-forcing/free-running差距高度对应。若离线velocity回归只覆盖teacher路径，换Linear、GRU或local head都可能无法修复student偏离后的吸引域坍塌。",
+    inspiration: "把AR/URSA teacher查询搬到ELF student自己的IBQ embedding轨迹上；不仅拟合点速度，还匹配局部velocity moment，并让每个2×2或视频block使用自身已生成历史作为条件。",
+    experiment: "固定Qwen3、IBQ、ELF teacher/student、数据、参数量、NFE与总FLOPs，比较离线point velocity、teacher-state VMM、student-state VMM、student-state VMM+AR unroll；报告GenEval、生成文字OCR、code coverage、top-code concentration、free-running gap、运动幅度、horizon drift、吞吐与显存。",
+    paper: "https://arxiv.org/abs/2608.21424",
+    project: "https://real-time-video-research.github.io/editstream/",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "echowm-omnimodal-world",
+    index: "203",
+    title: "EchoWM: Open and Enterable Omnimodal World Models",
+    shortTitle: "EchoWM",
+    date: "2026-08-24",
+    category: "世界模型",
+    paradigm: "Trajectory-conditioned Joint Audio-Visual Flow + Streaming AR",
+    state: "连续视频latent与音频latent同步分块；sink+FIFO因果记忆保存长时场景状态",
+    objective: "联合预测audio/video Flow velocity；teacher forcing后用Self-Gradient Forcing和DMD适配self-generated历史与四步采样",
+    decoding: "块间因果AR、块内少步Flow；每块同步生成720p视频、环境声、音乐与语音",
+    sharing: "音视频共享时空生成主干和trajectory接口，但保留各自codec/loss权重；不要求与Qwen文本词表或IBQ embedding绑权",
+    open: "论文、官方项目页与GitHub仓库已公开；仓库包含Echo系列代码与模型入口，EchoWM具体发布范围以仓库版本为准",
+    priority: "精读",
+    summary: "EchoWM以camera intent组织可进入的全模态世界：离散按键和连续pose都映射为统一、经尺度标定的相对6-DoF轨迹，再用联合audio-video Flow与自生成历史后训练实现长时交互。WBench Navigation平均81.7，四步Flash版为81.0。",
+    why: "它提醒Omni统一的关键可能是可校准的动作几何和同步时间轴，而不是把声音、图像、文字都量化进同一词表。对多帧威胁场景，刹车、碰撞与警报声必须在同一因果时间上对齐。",
+    inspiration: "Qwen3负责指令、语义与风险说明，IBQ/ELF承担视觉future，独立audio codec承担声音；三者只共享metric 6-DoF/action timeline和world-state memory。这样可避免单一视觉codebook同时承担纹理、语义、动作与声音。",
+    experiment: "固定视频world backbone、数据、rollout长度与采样步数，比较未标定action token、dataset-local pose与统一metric 6-DoF；再比较video-only和audio-video联合。报告轨迹误差、action-shuffle、AV sync、重访一致性、1/8/32块漂移、物理响应、p95延迟与显存。",
+    paper: "https://arxiv.org/abs/2608.23189",
+    project: "https://echo-team-joy-future-academy-jd.github.io/Echo-1.5-Page/wm",
+    code: "https://github.com/jd-opensource/JoyAI-Echo",
+    action: "离散导航命令和连续pose统一映射为metric-scale相对6-DoF camera trajectory",
+    rollout: "四步音视频chunk采样、因果KV与sink+FIFO记忆支持长时可进入式交互；未展示独立任务planner",
+    evaluation: "除WBench画质/控制外，应补轨迹尺度误差、AV因果同步、视野外状态、重访和长horizon漂移",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "worldmind-decoupled-state-npc",
+    index: "204",
+    title: "WorldMind: Decoupled Game World Model for State-Aware NPC Behavior",
+    shortTitle: "WorldMind",
+    date: "2026-08-18",
+    category: "世界模型",
+    paradigm: "Understanding–Decision–Control–Generation Closed Loop",
+    state: "由生成帧重建的compact game state；BOSS-140K同时提供丰富内部游戏状态监督",
+    objective: "理解层重建状态、决策层规划NPC动作、控制层形成时序条件、生成层渲染结果；模块目标与接口显式解耦",
+    decoding: "状态→动作→时间对齐控制→视频结果，生成结果重新进入理解层形成闭环",
+    sharing: "共享compact state与control interface，而非强迫tokenizer、Transformer、词表和renderer全部共享",
+    open: "论文与官方项目页已公开；截至收录日未发现官方代码、数据或模型下载",
+    priority: "精读",
+    summary: "WorldMind把交互世界拆成理解、决策、控制和生成四层，并在每轮用生成帧重建compact state后再次决策。BOSS-140K提供视频与内部状态配对，WorldMind在约70%的成对比较中因更符合游戏机制、更连贯的NPC行为而获偏好。",
+    why: "它几乎就是‘统一理解—生成—预测—行动’的可执行架构图：统一发生在显式状态和控制接口，渲染质量不再替代状态推理。对多帧威胁检测，这比让一个Qwen hidden隐式承担所有职责更容易审计。",
+    inspiration: "让Qwen3从IBQ历史输出可解析的目标、位置、威胁和任务进度state；decision head选择动作，control adapter条件化URSA/ELF，生成future再回到理解层。必须禁止policy绕过state接口，并做state field干预验证。",
+    experiment: "固定Qwen3、IBQ、renderer、数据、参数量与FLOPs，比较端到端隐式、仅加compact state、state监督、四层闭环四种系统；报告state重建、field intervention、counterfactual action、威胁AUPRC、闭环成功、horizon drift、生成质量、延迟与显存。",
+    paper: "https://arxiv.org/abs/2608.21439",
+    project: "https://teawhite.cn/worldmind_projectpage/",
+    action: "Decision Layer基于compact state规划NPC下一动作，Control Layer转成与视频时间对齐的条件",
+    rollout: "生成结果重新输入Understanding Layer，形成状态感知NPC闭环；公开结果以BOSS-140K和人类成对偏好为主",
+    evaluation: "除视觉一致性外，应报告state accuracy、state intervention、动作机制正确性、目标完成率与horizon累积错误",
     featured: true,
     idea: true,
   },
@@ -5213,7 +5338,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.24</strong>
+        <strong>DAILY BRIEF · 2026.08.25</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -5259,9 +5384,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 043]</p>
-              <h1>把共享边界、Flow 路径与想象预算，<br />变成可控变量</h1>
-              <p className="hero-copy">今日从82篇cs.CV新投稿中精选Libra、WA-JEPA、RISE、Difficulty-Calibrated Flow与AVIOT：分别回答理解—生成应共享什么、世界状态如何与动作耦合、何时值得继续rollout，以及多帧证据怎样压缩而不丢OCR与威胁线索。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 044]</p>
+              <h1>生成能否帮助理解，<br />先看模型是否会使用正确证据</h1>
+              <p className="hero-copy">今日从185篇cs.CV新投稿中精选VGAU-Diag、DELE-w0.5、EditStream、EchoWM与WorldMind：把生成质量与证据使用、紧凑未来状态与完整视频、teacher轨迹与student真实轨迹，以及理解—决策—控制—渲染四层接口分别拆开。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -5273,7 +5398,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>199</b><span>精选条目</span></div>
+                <div><b>204</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -5375,6 +5500,11 @@ export default function Home() {
                   <tr><th>X-Omni</th><td>离散 token ID</td><td>Next-token CE</td><td>左到右</td><td>累计误差、KV Cache、RL</td></tr>
                   <tr><th>URSA</th><td>原始 IBQ 网格的离散 token ID；无额外 merge</td><td>每位置 64K clean-token CE</td><td>全 H×W 网格并行迭代</td><td>Metric path、schedule、solver；勿与仓库中的连续 DiT 混淆</td></tr>
                   <tr><th>ELF</th><td>连续 embedding</td><td>Velocity / L2 + CE</td><td>ODE / SDE</td><td>空间几何、回投误差、CFG</td></tr>
+                  <tr><th>VGAU-Diag</th><td>原始输入 + self-generated/oracle/counterfactual视觉辅助</td><td>不改底模目标；测辅助忠实度与理解侧证据利用</td><td>生成辅助→同一UMM回答→干预审计</td><td>先以oracle aid测理解上限，再判断AR/URSA/ELF生成质量是否值得优化</td></tr>
+                  <tr><th>DELE-w0.5</th><td>DINOv3 current/future连续latent + action chunk</td><td>future-state velocity + action velocity</td><td>联合Flow；不生成中间视频帧</td><td>固定动作接口与预算，隔离紧凑因果结果状态和完整future渲染</td></tr>
+                  <tr><th>EditStream</th><td>连续video-VAE block + self-generated causal KV</td><td>student-reached state上的velocity moments</td><td>块间AR / 块内4步Flow</td><td>固定teacher/student与NFE，隔离offline、teacher-state和student-state蒸馏</td></tr>
+                  <tr><th>EchoWM</th><td>同步audio/video连续latent + metric 6-DoF trajectory</td><td>双模态Flow velocity + SGF/DMD</td><td>块间AR / 块内少步Flow</td><td>共享时间/动作接口而非词表；审计AV同步、尺度标定与长时漂移</td></tr>
+                  <tr><th>WorldMind</th><td>compact game state + visual observation</td><td>state reconstruction、NPC decision、control与render分层目标</td><td>理解→决策→控制→生成闭环</td><td>共享显式state/interface，不强迫tokenizer、主干与head全部绑权</td></tr>
                   <tr><th>Libra-2</th><td>文本离散ID + 语义增强VAE连续visual latent</td><td>文本next-token CE + masked position轻量diffusion</td><td>文本AR；图像外层迭代提交、内层token diffusion</td><td>视觉/语言self-modal分支解耦，仅cross-modal bridge交互；Switch-FFN分开理解与生成</td></tr>
                   <tr><th>Difficulty-Calibrated FM</th><td>连续noise-to-data state；可直接使用IBQ embedding</td><td>原velocity regression不变；按pilot per-t loss重参数化path</td><td>沿difficulty-quantile schedule做原ODE采样</td><td>固定tokenizer/backbone/head/NFE，只改变困难区间的训练停留时间；约2%额外开销</td></tr>
                   <tr><th>WA-JEPA</th><td>V-JEPA连续future token + ego trajectory</td><td>future scene与action联合conditional Flow velocity</td><td>future-masked预训练；语义未来与动作并行去噪</td><td>把JEPA确定性回归改成多模态Flow，并以动作监督塑造规划相关状态</td></tr>
@@ -5514,6 +5644,7 @@ export default function Home() {
               <table className="folding-table">
                 <thead><tr><th>路线</th><th>如何压缩</th><th>全局 Transformer 长度</th><th>输出 head</th><th>块内预测顺序</th><th>对 URSA 的意义</th></tr></thead>
                 <tbody>
+                  <tr><th>VGAU oracle evidence audit</th><td>不改变2×2 merge；另提供self-generated、GT/oracle与误导局部证据</td><td>保持N/4全局token与相同上下文预算</td><td>Stage3与Qwen head均不变；只测证据是否被调用</td><td>生成辅助后走原理解解码；用删除/置乱测因果影响</td><td>若oracle crop/文字图仍无帮助，瓶颈在Qwen证据路由而非folding或生成head</td></tr>
                   <tr><th>原始 URSA</th><td>仅 IBQ/VAE 空间下采样；无额外 merge</td><td>N = H<sub>z</sub>×W<sub>z</sub></td><td>每位置共享 K-way visual head</td><td>每个 diffusion step 全局并行 refinement</td><td>公平 no-merge 基线</td></tr>
                   <tr><th>Token-Shuffle</th><td>固定相邻 s×s embedding 沿通道拼接</td><td>N/s²</td><td>unshuffle 成 s² 个槽位，再共享 K-way head</td><td>组间 AR；组内 s² 个 ID 并行</td><td>最小改动、最快；重点检查 OCR/小目标</td></tr>
                   <tr><th>SynerGen-VL</th><td>固定局部 token folding</td><td>N/q</td><td>浅层 causal visual head 预测原始 K-way IDs</td><td>组间 AR；块内按原 raster 顺序 AR</td><td>保留局部依赖，最适合 Qwen3+IBQ 统一模型</td></tr>
@@ -5577,6 +5708,10 @@ export default function Home() {
               <table className="world-table">
                 <thead><tr><th>路线</th><th>观测状态</th><th>动作接口</th><th>动力学目标</th><th>建模方式</th><th>Rollout / 规划</th><th>与 UMM 的关系</th></tr></thead>
                 <tbody>
+                  <tr><th>DELE-w0.5</th><td>三视角RGB→DINOv3连续patch latent；只保留action-relevant future state</td><td>60步连续action chunk；单臂7-DoF/双臂14-DoF</td><td>future latent velocity + action velocity</td><td>双流联合Flow Matching；无中间视频生成</td><td>真实机器人四项长时任务闭环；单个future outcome接口</td><td>IBQ保留OCR/外观，紧凑latent承担接触、轨迹与任务进度；ELF渲染变为可选</td></tr>
+                  <tr><th>EchoWM</th><td>同步audio/video连续latent + sink/FIFO长期记忆</td><td>统一metric-scale相对6-DoF camera trajectory</td><td>audio/video joint velocity；self-history DMD</td><td>trajectory-conditioned Flow + chunk AR + Self-Gradient Forcing</td><td>四步可进入式长时rollout与场景重访；未含独立planner</td><td>Qwen语义、IBQ/ELF视觉和audio codec只共享动作时间轴与world memory</td></tr>
+                  <tr><th>WorldMind</th><td>生成帧→compact game state；BOSS-140K提供内部状态监督</td><td>state-conditioned NPC action→temporal control condition</td><td>state reconstruction、action planning与visual outcome分层</td><td>Understanding–Decision–Control–Generation闭环</td><td>每轮回读生成帧并重建状态；评估机制合理的NPC行为</td><td>显式state成为Qwen3+IBQ/URSA/ELF之间的共享接口，可做field intervention</td></tr>
+                  <tr><th>EditStream</th><td>连续video-VAE chunk + causal KV history</td><td>文字、像素对齐编辑与相机条件；非机器人action</td><td>student访问状态上的velocity moments</td><td>块间AR + 块内4步Flow + VMM-Forcing</td><td>长视频自由生成/编辑rollout；重点处理self-history漂移</td><td>为ELF世界流提供on-policy蒸馏模板，但闭环任务成功需另接action/policy评价</td></tr>
                   <tr><th>GAIA-1</th><td>DINO蒸馏VQ ID：576 token/帧、8192词表；独立RGB diffusion renderer</td><td>speed + curvature连续标量，另有文本场景控制</td><td>next image-token CE；renderer预测v-parameterized denoising target</td><td>6.25Hz逐tokenAR + 25Hz视频Diffusion渲染</td><td>动作条件多未来rollout；未报告独立MPC/真实闭环成功</td><td>最接近Qwen3+IBQ的全离散端点；语义ID、动力学和renderer需分项评价</td></tr>
                   <tr><th>WA-JEPA</th><td>V-JEPA连续语义future tokens + ego trajectory；无需RGB renderer</td><td>连续ego trajectory，与future scene在同一predictor联合去噪</td><td>future latent velocity + action trajectory velocity</td><td>Hybrid future-mask JEPA + conditional Flow Matching</td><td>NAVSIM规划与HUGSIM闭环；需补action-shuffle与horizon漂移</td><td>IBQ保存OCR/身份，JEPA token保存动力学；Qwen读取共享语义而不强迫同词表</td></tr>
                   <tr><th>RISE</th><td>底层WAM的未来prefix/latent + risk与planning-gain evaluator</td><td>沿用底层真实action或规划候选；CounterDrive提供反事实结果</td><td>Roll/Stop decision：继续想象收益与额外计算成本</td><td>架构无关adaptive rollout gate，可包裹AR/Diffusion/Flow/JEPA</td><td>逐段自适应horizon；NAVSIM/nuScenes规划—计算权衡</td><td>Qwen3先判风险，URSA/ELF只在边际价值高时追加future blocks</td></tr>
