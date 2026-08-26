@@ -5113,7 +5113,7 @@ const papers: Paper[] = [
     experiment: "固定Qwen3、IBQ、问题集、提示与推理预算，对同一样本比较无辅助、自生成辅助、GT/oracle辅助和误导辅助；按难度分桶报告OCRBench/DocVQA/TextVQA、oracle gap、答案变化率、证据删除KL、辅助忠实度、生成文字OCR和额外延迟。",
     paper: "https://arxiv.org/abs/2608.22174",
     code: "https://github.com/zyb1029/VGAU-Diag",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -5139,7 +5139,7 @@ const papers: Paper[] = [
     action: "60步连续action chunk；单臂7-DoF或双臂14-DoF，与future latent在同一Flow中联合去噪",
     rollout: "真实机器人闭环执行四个长时操作任务；不生成中间视频，主要预测单个未来结果状态",
     evaluation: "除成功率与阶段进度外，应补action-shuffle、future-state干预、horizon误差、控制频率与尾部延迟",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -5162,7 +5162,7 @@ const papers: Paper[] = [
     experiment: "固定Qwen3、IBQ、ELF teacher/student、数据、参数量、NFE与总FLOPs，比较离线point velocity、teacher-state VMM、student-state VMM、student-state VMM+AR unroll；报告GenEval、生成文字OCR、code coverage、top-code concentration、free-running gap、运动幅度、horizon drift、吞吐与显存。",
     paper: "https://arxiv.org/abs/2608.21424",
     project: "https://real-time-video-research.github.io/editstream/",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -5189,7 +5189,7 @@ const papers: Paper[] = [
     action: "离散导航命令和连续pose统一映射为metric-scale相对6-DoF camera trajectory",
     rollout: "四步音视频chunk采样、因果KV与sink+FIFO记忆支持长时可进入式交互；未展示独立任务planner",
     evaluation: "除WBench画质/控制外，应补轨迹尺度误差、AV因果同步、视野外状态、重访和长horizon漂移",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -5215,6 +5215,124 @@ const papers: Paper[] = [
     action: "Decision Layer基于compact state规划NPC下一动作，Control Layer转成与视频时间对齐的条件",
     rollout: "生成结果重新输入Understanding Layer，形成状态感知NPC闭环；公开结果以BOSS-140K和人类成对偏好为主",
     evaluation: "除视觉一致性外，应报告state accuracy、state intervention、动作机制正确性、目标完成率与horizon累积错误",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "affinetok-semantic-affine-consistency",
+    index: "205",
+    title: "AffineTok: Semantic Affine Consistency for Diffusion-Friendly Visual Tokenizer",
+    shortTitle: "AffineTok",
+    date: "2026-08-24",
+    category: "语义对齐",
+    paradigm: "SAC-guided Continuous Tokenizer + Rectified Flow",
+    state: "连续VAE patch latent；VFM语义由GSCT协调，PMSA在加噪状态监督posterior-mean latent语义",
+    objective: "tokenizer阶段重建/GAN/KL + Semantic Affine Consistency；下游保持Gaussian-to-data velocity regression",
+    decoding: "连续ODE并行生成latent后由VAE decoder重建；GSCT与PMSA仅用于tokenizer训练，推理移除",
+    sharing: "可把Qwen语义teacher接入tokenizer训练，但不共享IBQ ID、Qwen词表或生成head；与ELF共享连续velocity建模坐标",
+    open: "论文与官方项目页已公开；截至收录日项目页未提供代码、权重或训练配置下载",
+    priority: "精读",
+    summary: "AffineTok指出‘latent有语义’仍不足以保证好生成：从noisy latent直接回归的平均语义，必须与posterior-mean clean latent解码后的语义一致。其tokenizer侧M_SAC在14种tokenizer上与SiT-XL gFID的Pearson相关达到0.960；GSCT与PMSA只改tokenizer训练，最终在ImageNet 256达到1.21无CFG gFID、1.10带CFG。",
+    why: "这比只看IBQ重建、code usage或DINO probe更接近URSA→ELF的真实接口。若IBQ embedding的局部平均、加噪状态和最近ID回投之间语义不保持仿射一致，ELF即使学到较低L2 velocity，也可能在中间轨迹丢失文字、目标身份并坠入少数code吸引域。",
+    inspiration: "先把M_SAC移植为IBQ诊断：在codec embedding、Qwen visual embedding和2×2 merged hidden上分别插值邻近clean codes，比较‘平均语义’与‘平均latent的语义’。无需先重训tokenizer，就能定位palette collapse来自codec几何、Qwen映射还是ELF path。",
+    experiment: "固定IBQ tokenizer/decoder、Qwen3、ELF head、数据与NFE，先只做M_SAC、最近ID回投、decoder-valid率和glyph/OCR probe；再比较原IBQ、GSCT式全局语义协调、PMSA式noisy-state语义监督。报告tokenizer-only重建、OCRBench/DocVQA/TextVQA、GenEval、生成文字OCR、code coverage、per-t SAC与训练稳定性。",
+    paper: "https://arxiv.org/abs/2608.23864",
+    project: "https://michaelyu781.github.io/AffineTok-site/",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "rvm-reward-velocity-matching",
+    index: "206",
+    title: "Scaling Reinforcement Learning for Diffusion Models via Velocity Matching",
+    shortTitle: "RVM",
+    date: "2026-08-24",
+    category: "连续 Flow",
+    paradigm: "Trajectory-free Reward-based Velocity Matching",
+    state: "连续image/video latent或IBQ embedding Flow state；clean sample与Gaussian noise沿原线性path插值",
+    objective: "reward-weighted velocity regression + reference-velocity anchor；不构造denoising trajectory likelihood或endpoint ELBO ratio",
+    decoding: "推理仍沿原ODE/SDE与原NFE采样；奖励只改变fine-tuned velocity field，不增加在线reward搜索",
+    sharing: "从预训练Diffusion/Flow checkpoint继续训练；可直接接ELF velocity head，但不等同AR/LLM token-level GRPO",
+    open: "论文与完整方法/实验细节已公开；截至收录日未发现作者官方代码仓库",
+    priority: "精读",
+    summary: "RVM把Diffusion/Flow奖励微调还原为原生velocity regression：高奖励样本强化相应方向，低奖励样本抑制，并用anchor限制相对reference drift。它以更低训练成本匹配或超过trajectory-based policy gradient；视频实验还揭示通用画质奖励会鼓励几乎静止的输出，需加入dynamic-tracking reward。",
+    why: "它为ELF后训练提供了比照搬LLM GRPO更自然的端点。当前若只用GenEval或美学/OCR reward，模型可能通过少数高频IBQ code获得干净但低多样性的图；RVM同时提醒真正决定结果的是reward与anchor设计，而不是更复杂的policy-ratio近似。",
+    inspiration: "把reward拆成语义、glyph、code多样性、decoder-valid与运动/威胁动态五路，并在velocity方向和幅值上分别记录变化。reference anchor可约束ELF不偏离现有可解码轨迹，dynamic reward则防止生成质量提升掩盖视频冻结。",
+    experiment: "固定Qwen3、IBQ、ELF checkpoint、数据、NFE与训练FLOPs，比较监督ELF、trajectory/endpoint reward优化、RVM-quality、RVM+OCR、RVM+code-diversity/dynamics，并扫描anchor权重。报告GenEval、生成文字OCR、code coverage、每图unique IDs、top-code concentration、运动幅度、decoder-valid率、velocity夹角/范数、显存与稳定性。",
+    paper: "https://arxiv.org/abs/2608.23664",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "leflow-latent-flow-planning",
+    index: "207",
+    title: "LeFlow: Generative Latent Flow Planning for World Models",
+    shortTitle: "LeFlow",
+    date: "2026-08-25",
+    category: "世界模型",
+    paradigm: "Rectified-Flow Latent Trajectory Prior + AR Verification",
+    state: "冻结LeWorldModel编码的连续JEPA latent；Flow生成current-to-goal的整段latent path interiors",
+    objective: "latent-path velocity + inverse-dynamics action MSE + 0.1权重的world-model one-step consistency",
+    decoding: "默认采样64条候选、16个Flow steps；inverse dynamics转为action chunks，再由冻结world model AR rollout按goal distance重排",
+    sharing: "不共享IBQ tokenizer或Qwen词表；可将Qwen3/IBQ世界状态映射到规划latent，ELF作为trajectory-prior而非像素renderer",
+    open: "论文、MIT许可官方代码、训练/评测配置已公开；仓库提供TwoRoom、PushT、Reacher与OGBench Cube流程",
+    priority: "精读",
+    summary: "LeFlow不再对每个state-goal从头优化action，而是在世界模型latent dynamics空间摊销学习可复用轨迹先验。Rectified Flow先想象latent path，inverse dynamics解码动作，冻结世界模型再验证候选；四个像素控制benchmark上成功率一致提高，规划时间降低一个数量级。",
+    why: "它把ELF的continuous Flow从‘生成未来画面’改成‘生成可行动的状态路径’，并保留AR世界模型做因果验收。对统一理解—生成—预测—行动，这比让Qwen3直接输出长action串或让ELF渲染所有候选未来更节省预算、也更易诊断。",
+    inspiration: "让IBQ保存可审计外观/OCR，另从Qwen中层抽取少量goal-aligned dynamics token；ELF仅生成这些token的候选路径，URSA/AR world head验证转移，inverse head输出动作。只有高风险候选再调用完整视频renderer。",
+    experiment: "固定world encoder、Qwen3、动作接口、数据与候选总预算，比较CEM/action search、直接action Flow、LeFlow latent path、LeFlow+URSA/ELF verifier；保持64候选或等FLOPs。报告闭环成功、goal distance、action-shuffle、1/8/32步latent误差、威胁漏警、规划时间、NFE与显存。",
+    paper: "https://arxiv.org/abs/2608.24855",
+    code: "https://github.com/hsiangwei0903/LeFlow",
+    action: "inverse dynamics根据相邻latent与state delta解码连续action chunk",
+    rollout: "Flow摊销生成候选path，冻结LeWM做AR验证与receding-horizon执行；四个goal-conditioned像素控制benchmark",
+    evaluation: "除goal success与规划时间外，应补action-shuffle、候选多样性、verifier校准、horizon累积误差与尾部延迟",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "tract-visual-track-interface",
+    index: "208",
+    title: "TrAct: Bridging Robot Control and Visual Prediction with Visual Tracks",
+    shortTitle: "TrAct",
+    date: "2026-08-25",
+    category: "世界模型",
+    paradigm: "Joint Action–Track Flow Policy + Track-conditioned Video World Model",
+    state: "多视角RGB与语言条件；中间接口为N×H×2连续2D视觉轨迹，SVD latent负责未来视频",
+    objective: "VLAT对action chunk与visual tracks联合Flow Matching；ControlNet-SVD预测track-conditioned future；VLM reward重排",
+    decoding: "采样候选action-track pairs→逐候选视频rollout→VLAC评分→执行配对action chunk",
+    sharing: "视觉track是跨embodiment共享接口；不共享IBQ/Qwen词表或SVD decoder，可由Qwen3输出风险/任务语义并读取rollout",
+    open: "论文与完整实验细节已公开；截至收录日未发现官方代码、模型或项目页",
+    priority: "精读",
+    summary: "TrAct认为原始机器人action与像素变化对齐太弱，改用visual tracks连接控制与世界预测。VLAT同时生成动作和轨迹，track-conditioned world model展开后果，VLAC选择候选；相对π0.5，LIBERO-INTEGRAL成功率由27%升至55%，真实Franka由49%升至76%。",
+    why: "这为多帧威胁检测提供了介于稀疏action token与完整未来视频之间的因果接口：目标、接触点和相机运动轨迹可以直接条件化未来。它还给出关键公平对照——同一候选与renderer下比较raw action condition和visual-track condition。",
+    inspiration: "从Qwen3+IBQ历史预测威胁目标的2D/3D tracks，并让URSA/ELF未来以track为显式条件；动作head同时输出可执行action。做track置乱、错目标、时间反转和等范数噪声干预，检验模型是否真正依赖目标运动而非背景先验。",
+    experiment: "固定Qwen3、IBQ、video world backbone、候选数、动作数据与训练FLOPs，比较action-only、track-only、action+track和latent-action condition。报告track ADE/FDE、action-shuffle、视频FVD/LPIPS、接触位置、威胁AUPRC、闭环成功、背景OOD、候选数—延迟曲线与显存。",
+    paper: "https://arxiv.org/abs/2608.24101",
+    action: "π0.5式连续action chunk与N条2D visual tracks联合Flow生成",
+    rollout: "Track-conditioned SVD展开多视角未来，VLM reward重排后执行；支持真实Franka闭环",
+    evaluation: "必须同时报告轨迹准确、action/track干预、背景OOD、闭环任务成功与候选生成成本",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "katok-adaptive-video-tokenizer",
+    index: "209",
+    title: "Keep-or-Drop? Adaptive Tokenizer for Compact Video Representation",
+    shortTitle: "KATok",
+    date: "2026-08-25",
+    category: "统一视觉 Token",
+    paradigm: "Adaptive Continuous Video VAE + Sparse Latent Flow",
+    state: "连续KL-VAE spatio-temporal tokens；Gumbel-Softmax keep/drop mask决定每段视频的可变token数",
+    objective: "tokenizer重建/KL/GAN + sparsity；下游对content与position做velocity regression，或先Flow生成binary mask prior再生成content",
+    decoding: "默认级联：8.3M mask-prior决定位置，主Flow在稀疏位置生成content；另有content/position联合双schedule对照",
+    sharing: "不共享IBQ离散词表、embedding或K-way head；可作为ELF连续tokenizer与固定2×2 folding的tokenizer级对照",
+    open: "论文与完整架构/训练/推理细节已公开；截至收录日未发现官方代码、模型或项目页",
+    priority: "精读",
+    summary: "KATok让视频token数由内容复杂度自动决定：selector以Gumbel-Softmax学习keep/drop，decoder用细网格query重建。其token数与时间熵相关约0.87，高于空间熵约0.62；在Panda-70M的256²×16视频上平均366 tokens、PSNR 31.24、rFVD 5.12，并用位置先验解决稀疏生成的content-position错位。",
+    why: "它说明固定2×2 folding与可变tokenizer不是同一控制变量：前者压缩Qwen序列但仍监督四个IBQ ID，后者直接改变可解码latent集合。对OCR和威胁检测，token selector若只按重建熵可能仍丢掉面积小但任务关键的文字/目标，因此必须加入任务条件审计。",
+    inspiration: "先把KATok当ELF连续codec端点，与IBQ 2×2 Stage3并列，而不是把其selector直接替换merger。也可借鉴级联位置先验：Qwen先预测哪些block需要1×1恢复，再由原始IBQ head生成四个ID，避免位置与内容同时学习导致错位。",
+    experiment: "固定视频数据、平均latent数、Qwen3/DiT参数量、训练FLOPs与NFE，比较固定IBQ+2×2、固定连续VAE、KATok joint position/content和KATok cascade；报告tokenizer-only重建、OCR/glyph、小目标、轨迹、GenEval/FVD、position error、每风险分桶token数、吞吐、显存与p95延迟。",
+    paper: "https://arxiv.org/abs/2608.24293",
     featured: true,
     idea: true,
   },
@@ -5338,7 +5456,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.25</strong>
+        <strong>DAILY BRIEF · 2026.08.26</strong>
         <i />
         <span>统一多模态建模研究知识库</span>
       </div>
@@ -5384,9 +5502,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 044]</p>
-              <h1>生成能否帮助理解，<br />先看模型是否会使用正确证据</h1>
-              <p className="hero-copy">今日从185篇cs.CV新投稿中精选VGAU-Diag、DELE-w0.5、EditStream、EchoWM与WorldMind：把生成质量与证据使用、紧凑未来状态与完整视频、teacher轨迹与student真实轨迹，以及理解—决策—控制—渲染四层接口分别拆开。</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 045]</p>
+              <h1>生成是否好学，<br />先看 latent 沿噪声路径能否保住语义</h1>
+              <p className="hero-copy">今日从95篇cs.CV新投稿并结合cs.RO精选AffineTok、RVM、LeFlow、TrAct与KATok：把tokenizer的语义几何、Flow原生奖励微调、latent规划先验、视觉轨迹动作接口与内容自适应token预算拆成可控实验轴。</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">查看今日精选</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
@@ -5398,7 +5516,7 @@ export default function Home() {
                 <span>标签回答“如何建模”</span>
               </div>
               <div className="stats">
-                <div><b>204</b><span>精选条目</span></div>
+                <div><b>209</b><span>精选条目</span></div>
                 <div><b>05</b><span>研究方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
@@ -5500,6 +5618,11 @@ export default function Home() {
                   <tr><th>X-Omni</th><td>离散 token ID</td><td>Next-token CE</td><td>左到右</td><td>累计误差、KV Cache、RL</td></tr>
                   <tr><th>URSA</th><td>原始 IBQ 网格的离散 token ID；无额外 merge</td><td>每位置 64K clean-token CE</td><td>全 H×W 网格并行迭代</td><td>Metric path、schedule、solver；勿与仓库中的连续 DiT 混淆</td></tr>
                   <tr><th>ELF</th><td>连续 embedding</td><td>Velocity / L2 + CE</td><td>ODE / SDE</td><td>空间几何、回投误差、CFG</td></tr>
+                  <tr><th>AffineTok</th><td>VFM语义协调的连续VAE patch latent</td><td>tokenizer SAC/GSCT/PMSA；下游velocity不变</td><td>Gaussian→latent ODE并行生成</td><td>用M_SAC隔离重建质量、clean语义与沿加噪path的可恢复语义；训练期组件推理移除</td></tr>
+                  <tr><th>RVM</th><td>预训练Flow/Diffusion连续state；可为IBQ embedding</td><td>reward-weighted velocity + reference anchor</td><td>沿用原ODE/SDE与NFE</td><td>不估计trajectory/endpoint likelihood；奖励与anchor比loss变体更关键，需防画质奖励造成静态或palette collapse</td></tr>
+                  <tr><th>KATok</th><td>keep/drop稀疏连续video-VAE latent + 位置/mask prior</td><td>content/position velocity；tokenizer sparsity/reconstruction</td><td>先生成mask/位置再Flow content，或双schedule联合Flow</td><td>tokenizer级可变长度，不等同Qwen 2×2 folding；固定平均token数比较position错位、OCR与动态区域</td></tr>
+                  <tr><th>LeFlow</th><td>冻结JEPA world model的连续latent trajectory</td><td>path velocity + inverse-action MSE + one-step consistency</td><td>16步Flow生成64候选→AR world-model验证</td><td>Flow用于规划先验而非渲染；固定候选/FLOPs与CEM、direct-action Flow公平比较</td></tr>
+                  <tr><th>TrAct</th><td>连续action chunk + N×H×2 visual tracks + video latent</td><td>action/track联合Flow；track-conditioned video denoising</td><td>候选action-track→视频rollout→VLM重排</td><td>共享track因果接口而非词表；固定renderer比较raw action与track condition</td></tr>
                   <tr><th>VGAU-Diag</th><td>原始输入 + self-generated/oracle/counterfactual视觉辅助</td><td>不改底模目标；测辅助忠实度与理解侧证据利用</td><td>生成辅助→同一UMM回答→干预审计</td><td>先以oracle aid测理解上限，再判断AR/URSA/ELF生成质量是否值得优化</td></tr>
                   <tr><th>DELE-w0.5</th><td>DINOv3 current/future连续latent + action chunk</td><td>future-state velocity + action velocity</td><td>联合Flow；不生成中间视频帧</td><td>固定动作接口与预算，隔离紧凑因果结果状态和完整future渲染</td></tr>
                   <tr><th>EditStream</th><td>连续video-VAE block + self-generated causal KV</td><td>student-reached state上的velocity moments</td><td>块间AR / 块内4步Flow</td><td>固定teacher/student与NFE，隔离offline、teacher-state和student-state蒸馏</td></tr>
@@ -5646,6 +5769,8 @@ export default function Home() {
                 <tbody>
                   <tr><th>VGAU oracle evidence audit</th><td>不改变2×2 merge；另提供self-generated、GT/oracle与误导局部证据</td><td>保持N/4全局token与相同上下文预算</td><td>Stage3与Qwen head均不变；只测证据是否被调用</td><td>生成辅助后走原理解解码；用删除/置乱测因果影响</td><td>若oracle crop/文字图仍无帮助，瓶颈在Qwen证据路由而非folding或生成head</td></tr>
                   <tr><th>原始 URSA</th><td>仅 IBQ/VAE 空间下采样；无额外 merge</td><td>N = H<sub>z</sub>×W<sub>z</sub></td><td>每位置共享 K-way visual head</td><td>每个 diffusion step 全局并行 refinement</td><td>公平 no-merge 基线</td></tr>
+                  <tr><th>KATok adaptive tokenizer</th><td>tokenizer内按内容keep/drop连续时空latent；不是合并四个IBQ ID</td><td>逐视频可变M；token数对时间熵相关约0.87</td><td>连续Flow velocity；位置由mask prior或独立position Flow给出</td><td>先位置后内容的级联，或content/position双schedule联合生成</td><td>作为tokenizer级端点；与2×2 Stage3比较时固定平均token、数据和生成预算，单报OCR/小目标与position error</td></tr>
+                  <tr><th>AffineTok geometry audit</th><td>不改变2×2结构；在codec/Qwen/merged embedding上插值邻近clean codes</td><td>N或N/4不变；仅增加M_SAC probe</td><td>原K-way/velocity head不变；测平均语义与平均latent语义差</td><td>训练前诊断，无新增解码顺序</td><td>定位ELF palette collapse来自codec几何、Qwen映射还是Flow path，而非先换local head</td></tr>
                   <tr><th>Token-Shuffle</th><td>固定相邻 s×s embedding 沿通道拼接</td><td>N/s²</td><td>unshuffle 成 s² 个槽位，再共享 K-way head</td><td>组间 AR；组内 s² 个 ID 并行</td><td>最小改动、最快；重点检查 OCR/小目标</td></tr>
                   <tr><th>SynerGen-VL</th><td>固定局部 token folding</td><td>N/q</td><td>浅层 causal visual head 预测原始 K-way IDs</td><td>组间 AR；块内按原 raster 顺序 AR</td><td>保留局部依赖，最适合 Qwen3+IBQ 统一模型</td></tr>
                   <tr><th>DPAR</th><td>按 next-token entropy 动态合并连续 token</td><td>M，逐图可变且 M&lt;N</td><td>patch state 复制到 token state，local causal decoder + K-way head</td><td>global patch AR；local token AR</td><td>高信息区域保细粒度，但不易直接套入动态 diffusion step</td></tr>
@@ -5709,6 +5834,8 @@ export default function Home() {
                 <thead><tr><th>路线</th><th>观测状态</th><th>动作接口</th><th>动力学目标</th><th>建模方式</th><th>Rollout / 规划</th><th>与 UMM 的关系</th></tr></thead>
                 <tbody>
                   <tr><th>DELE-w0.5</th><td>三视角RGB→DINOv3连续patch latent；只保留action-relevant future state</td><td>60步连续action chunk；单臂7-DoF/双臂14-DoF</td><td>future latent velocity + action velocity</td><td>双流联合Flow Matching；无中间视频生成</td><td>真实机器人四项长时任务闭环；单个future outcome接口</td><td>IBQ保留OCR/外观，紧凑latent承担接触、轨迹与任务进度；ELF渲染变为可选</td></tr>
+                  <tr><th>LeFlow</th><td>冻结LeWM编码的连续JEPA latent path</td><td>inverse dynamics把相邻latent/state delta解码为action chunk</td><td>current→goal latent trajectory + one-step consistency</td><td>Rectified Flow摊销规划 + 冻结world model AR verifier</td><td>64候选/16 Flow steps默认配置；receding-horizon执行，规划时间降低一个数量级</td><td>Qwen/IBQ提供可审计状态，ELF生成规划latent而非所有候选RGB，URSA/AR验证动力学</td></tr>
+                  <tr><th>TrAct</th><td>多视角RGB + 2D gripper/object/background visual tracks + SVD latent</td><td>连续action chunk与N×H×2 tracks联合Flow生成</td><td>track-conditioned future video；VLM reward选择结果</td><td>VLAT Flow policy + ControlNet-SVD world model + VLAC</td><td>候选rollout后闭环执行；LIBERO 27→55，真实Franka 49→76</td><td>visual tracks是Qwen3/IBQ threat state、URSA/ELF renderer与真实action之间可干预的共享接口</td></tr>
                   <tr><th>EchoWM</th><td>同步audio/video连续latent + sink/FIFO长期记忆</td><td>统一metric-scale相对6-DoF camera trajectory</td><td>audio/video joint velocity；self-history DMD</td><td>trajectory-conditioned Flow + chunk AR + Self-Gradient Forcing</td><td>四步可进入式长时rollout与场景重访；未含独立planner</td><td>Qwen语义、IBQ/ELF视觉和audio codec只共享动作时间轴与world memory</td></tr>
                   <tr><th>WorldMind</th><td>生成帧→compact game state；BOSS-140K提供内部状态监督</td><td>state-conditioned NPC action→temporal control condition</td><td>state reconstruction、action planning与visual outcome分层</td><td>Understanding–Decision–Control–Generation闭环</td><td>每轮回读生成帧并重建状态；评估机制合理的NPC行为</td><td>显式state成为Qwen3+IBQ/URSA/ELF之间的共享接口，可做field intervention</td></tr>
                   <tr><th>EditStream</th><td>连续video-VAE chunk + causal KV history</td><td>文字、像素对齐编辑与相机条件；非机器人action</td><td>student访问状态上的velocity moments</td><td>块间AR + 块内4步Flow + VMM-Forcing</td><td>长视频自由生成/编辑rollout；重点处理self-history漂移</td><td>为ELF世界流提供on-policy蒸馏模板，但闭环任务成功需另接action/policy评价</td></tr>
