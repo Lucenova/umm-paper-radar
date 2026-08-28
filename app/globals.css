@@ -132,7 +132,8 @@ a { color: inherit; text-decoration: none; }
 .tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
 .tags span, .priority { background: var(--pale); border: 1px solid #cad9d0; border-radius: 5px; color: var(--green); font-family: var(--mono); font-size: 9px; font-weight: 700; padding: 4px 7px; }
 .tags span:nth-child(2) { background: #edf2f7; border-color: #ccd8e5; color: var(--blue); }
-.tags span:nth-child(3) { background: transparent; color: var(--muted); }
+.tags span:nth-child(3) { background: #f4efe5; border-color: #ded2b8; color: #7c6331; }
+.tags span:nth-child(4) { background: transparent; color: var(--muted); }
 .priority { background: transparent; cursor: default; flex: 0 0 auto; }
 .priority.high { background: var(--green); border-color: var(--green); color: white; cursor: pointer; }
 .priority.high:hover { background: var(--green-2); }
@@ -160,7 +161,20 @@ a { color: inherit; text-decoration: none; }
 .paper-footer > div { display: flex; gap: 9px; }
 .paper-footer button, .paper-footer a { background: transparent; border: 1px solid var(--line); border-radius: 5px; color: var(--blue); cursor: pointer; font-size: 10px; padding: 7px 10px; }
 .paper-footer button:hover, .paper-footer a:hover { background: #edf2f7; border-color: #bccbd9; }
+.paper-footer a.arxiv-link { background: #9b2c2c; border-color: #9b2c2c; color: white; font-family: var(--mono); font-weight: 700; }
+.paper-footer a.arxiv-link:hover { background: #7e2424; border-color: #7e2424; }
+.paper-footer a.source-link { font-weight: 700; }
 .empty-state { background: var(--card); border: 1px dashed var(--line); color: var(--muted); padding: 50px; text-align: center; }
+
+.pagination { align-items: center; display: flex; gap: 14px; justify-content: space-between; margin-top: 22px; }
+.pagination > button, .pagination div button { background: var(--card); border: 1px solid var(--line); border-radius: 6px; color: var(--blue); cursor: pointer; min-height: 38px; padding: 8px 13px; }
+.pagination > button:disabled { color: #a2aaa6; cursor: not-allowed; opacity: .65; }
+.pagination div { align-items: center; display: flex; gap: 5px; }
+.pagination div span { align-items: center; display: flex; gap: 5px; }
+.pagination div i { color: var(--muted); font-style: normal; padding: 0 3px; }
+.pagination div button { font-family: var(--mono); min-width: 38px; padding: 8px; }
+.pagination div button.current { background: var(--green); border-color: var(--green); color: white; }
+.pagination button:not(:disabled):hover { border-color: var(--green); }
 
 .matrix-section, .folding-section, .world-section { border-top: 1px solid var(--line); }
 .scroll-hint { color: var(--blue); display: none; font-family: var(--mono); font-size: 9px; margin: -8px 0 10px; }
@@ -261,6 +275,9 @@ footer p { margin: 0; }
   .paper-footer > div { display: grid; gap: 7px; grid-template-columns: 1fr 1fr; margin-top: 12px; }
   .paper-footer button, .paper-footer a { align-items: center; display: flex; justify-content: center; min-height: 42px; text-align: center; }
   .paper-footer > div > :first-child { grid-column: 1 / -1; }
+  .pagination { align-items: stretch; display: grid; grid-template-columns: 1fr 1fr; }
+  .pagination > button { width: 100%; }
+  .pagination div { grid-column: 1 / -1; grid-row: 1; justify-content: center; }
   .scroll-hint { display: block; }
   .matrix-wrap { margin: 0 -14px; border-left: 0; border-radius: 0; border-right: 0; padding-left: 14px; }
   table { min-width: 760px; }

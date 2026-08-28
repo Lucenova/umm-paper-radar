@@ -29,6 +29,8 @@ type Paper = {
   evaluation?: string;
   featured?: boolean;
   idea?: boolean;
+  kind?: "Paper" | "Blog";
+  domain?: "UMM" | "图像生成" | "视频生成" | "World Model" | "可解释性" | "评测诊断";
 };
 
 const papers: Paper[] = [
@@ -5460,33 +5462,117 @@ const papers: Paper[] = [
     featured: true,
     idea: true,
   },
+  {
+    id: "blog-flow-matching-guide",
+    index: "215",
+    title: "Flow Matching Guide and Code",
+    shortTitle: "FM Guide",
+    date: "2024-12-10",
+    category: "连续 Flow",
+    paradigm: "官方教程 / Flow Matching",
+    state: "从 base distribution 到数据分布的连续 probability path",
+    objective: "条件 velocity field 回归；系统解释 conditional / marginal flow matching",
+    decoding: "ODE 求解；步数、solver 与 path 可独立控制",
+    sharing: "教程不绑定特定 tokenizer 或 backbone，可直接映射到 ELF、VAE latent 与连续视觉 embedding",
+    open: "Meta 官方研究指南，含配套代码与数学推导",
+    priority: "精读",
+    summary: "Meta 的自包含 Flow Matching 指南，把 probability path、conditional vector field、OT path、采样器与扩展方法放进同一套记号，是统一比较 ELF、Rectified Flow 和连续视觉 latent 路线的高质量技术入口。",
+    why: "论文往往只给出某一种 path 和目标，这篇指南更适合作为控制变量实验的共同定义，避免把 path、parameterization、solver 与 timestep sampling 混在一起。",
+    inspiration: "可据此把 Qwen3+IBQ 的 ELF 实现拆成四个正交模块：视觉状态空间、conditional path、velocity target 与 ODE solver；每次只替换一项。",
+    experiment: "固定 Qwen3、IBQ embedding、ELF head、数据和 NFE，比较 linear/OT、cosine 与 decoder-valid path；统一使用相同 solver，再单独扫描 Euler/Heun，报告回投准确率、code coverage、OCR、GenEval、吞吐和稳定性。",
+    paper: "https://ai.meta.com/research/publications/flow-matching-guide-and-code/",
+    kind: "Blog",
+    domain: "图像生成",
+  },
+  {
+    id: "blog-genie-3",
+    index: "216",
+    title: "Genie 3: A New Frontier for World Models",
+    shortTitle: "Genie 3 Blog",
+    date: "2025-08-05",
+    category: "世界模型",
+    paradigm: "官方研究 Blog / Interactive World Model",
+    state: "由文本条件生成的可实时交互视觉世界；内部表示与训练细节未完整公开",
+    objective: "官方 Blog 未披露完整训练目标；重点展示交互环境生成、事件干预与世界一致性",
+    decoding: "实时 action-conditioned rollout，可在运行中以文本事件改变环境",
+    sharing: "未公开与 LLM、视觉 tokenizer 或输出 head 的共享边界",
+    open: "Google DeepMind 官方研究 Blog；模型、代码与完整技术报告未公开",
+    priority: "精读",
+    summary: "Genie 3 官方介绍把视频生成与世界模型的边界说得很清楚：关键不是生成一段看起来合理的视频，而是环境能持续响应动作、保留视野外状态，并允许在线事件干预。",
+    why: "它为网站的 World Model 分类提供任务级上限：FVD、LPIPS 和短视频观感不能替代交互延迟、动作因果性、状态持久性与闭环成功率。",
+    inspiration: "多帧威胁检测可借鉴其评估思路：让 Qwen3 输出可干预的威胁状态，URSA/ELF 负责条件 rollout，再通过动作置换、目标消失/重现和事件插入检验真正的世界状态。",
+    experiment: "固定历史帧、Qwen3、IBQ/ELF 与 rollout 预算，比较无动作视频预测、真实 action token、latent action 与文本事件条件；报告动作可控性、遮挡后身份恢复、horizon drift、p95 延迟和闭环预警收益。",
+    paper: "https://deepmind.google/blog/genie-3-a-new-frontier-for-world-models/",
+    kind: "Blog",
+    domain: "World Model",
+  },
+  {
+    id: "blog-global-workspace",
+    index: "217",
+    title: "A Global Workspace in Language Models",
+    shortTitle: "Global Workspace",
+    date: "2026-07-06",
+    category: "可解释性",
+    paradigm: "官方研究 Blog / Causal Representation Analysis",
+    state: "由 Jacobian 方法识别的内部 J-space 概念模式",
+    objective: "读取、交换与消融内部表征，检验其对静默推理和行为的因果作用",
+    decoding: "不改变常规文本解码；通过 representation intervention 审计隐藏中间状态",
+    sharing: "可迁移到 MLLM 中检查视觉、文本与威胁概念是否进入同一可调用工作空间",
+    open: "Anthropic 官方研究 Blog；公开实验说明，完整模型内部与训练资产不开放",
+    priority: "精读",
+    summary: "Anthropic 用 Jacobian 相关方法识别一个可报告、可调节、并对多步推理具有因果作用的内部工作空间，说明模型真正使用的中间概念不一定出现在显式 Chain-of-Thought 中。",
+    why: "它把 CoT 忠实性问题从文本比较推进到内部干预：要证明某个 OCR、目标或风险概念驱动答案，必须能在 matched intervention 下改变行为。",
+    inspiration: "可在 Qwen3+IBQ 中搜索跨层稳定的 OCR、目标身份、速度与威胁概念子空间，再与 bbox 遮挡、关键帧删除和 activation swap 联合验证。",
+    experiment: "固定输入、解码与层位，比较线性 probe、JVP/Jacobian 子空间、SAE feature 与 matched random subspace；用 activation swap 检验 OCR 字符、目标身份和威胁判断的因果迁移，并报告准确率与副作用。",
+    paper: "https://www.anthropic.com/research/global-workspace",
+    kind: "Blog",
+    domain: "可解释性",
+  },
 ];
 
-const shortcuts = ["今日精选", "精读清单", "借鉴优先"];
+const shortcuts = ["今日精选", "全部内容", "Blog", "精读清单", "借鉴优先"];
 const directions = [
-  "建模方式",
-  "UMM 与视觉表征",
-  "世界模型与行动",
-  "可解释性与可靠推理",
-  "评测与实验诊断",
+  "UMM",
+  "图像生成",
+  "视频生成",
+  "World Model",
+  "可解释性",
+  "评测诊断",
 ];
-const categoryGroups: Record<string, string[]> = {
-  "建模方式": ["连续 Flow", "离散 Diffusion", "自回归建模"],
-  "UMM 与视觉表征": ["统一多模态", "统一视觉 Token", "语义对齐"],
-  "世界模型与行动": ["世界模型"],
-  "可解释性与可靠推理": ["可解释性", "多帧推理"],
-  "评测与实验诊断": ["评测诊断"],
-};
 const categoryIcons: Record<string, string> = {
   "今日精选": "★",
+  "全部内容": "▦",
+  "Blog": "B",
   "精读清单": "◆",
   "借鉴优先": "↗",
-  "建模方式": "≋",
-  "UMM 与视觉表征": "◇",
-  "世界模型与行动": "◉",
-  "可解释性与可靠推理": "⌁",
-  "评测与实验诊断": "✓",
+  "UMM": "◇",
+  "图像生成": "▧",
+  "视频生成": "▶",
+  "World Model": "◉",
+  "可解释性": "⌁",
+  "评测诊断": "✓",
 };
+
+const PAGE_SIZE = 10;
+
+function inferDomain(paper: Paper): NonNullable<Paper["domain"]> {
+  if (paper.domain) return paper.domain;
+  if (paper.category === "世界模型") return "World Model";
+  if (["统一多模态", "统一视觉 Token"].includes(paper.category)) return "UMM";
+  if (paper.category === "可解释性") return "可解释性";
+  if (paper.category === "评测诊断") return "评测诊断";
+  const text = [paper.title, paper.paradigm, paper.summary, paper.state, paper.decoding].join(" ");
+  if (/video|视频|多帧|时序|temporal|stream|4d|future frame|未来帧/i.test(text)) return "视频生成";
+  if (paper.category === "多帧推理") return "视频生成";
+  return "图像生成";
+}
+
+function sourceLabel(paper: Paper) {
+  const match = paper.paper.match(/arxiv\.org\/(?:abs|html|pdf)\/([^/?#]+)/i);
+  if (match) return `arXiv · ${match[1].replace(/v\d+$/i, "")}`;
+  if (paper.kind === "Blog") return "阅读 Blog";
+  return "阅读原文";
+}
 
 function ArrowIcon() {
   return <span aria-hidden="true">↗</span>;
@@ -5495,6 +5581,7 @@ function ArrowIcon() {
 export default function Home() {
   const [active, setActive] = useState("今日精选");
   const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
   const [saved, setSaved] = useState<string[]>([]);
   const [expanded, setExpanded] = useState<string[]>([]);
 
@@ -5522,12 +5609,18 @@ export default function Home() {
   const selectDeepReads = (paperId?: string) => {
     setActive("精读清单");
     if (paperId) {
+      const deepReadIndex = papers.filter((paper) => paper.priority === "精读").findIndex((paper) => paper.id === paperId);
+      setPage(Math.max(1, Math.floor(deepReadIndex / PAGE_SIZE) + 1));
+    } else {
+      setPage(1);
+    }
+    if (paperId) {
       setExpanded((current) => current.includes(paperId) ? current : [...current, paperId]);
     }
-    window.requestAnimationFrame(() => {
+    window.setTimeout(() => {
       const target = paperId ? document.querySelector(`#paper-${paperId}`) : document.querySelector("#papers");
       target?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
+    }, 50);
   };
 
   const toggleExpanded = (id: string) => {
@@ -5541,16 +5634,25 @@ export default function Home() {
     return papers.filter((paper) => {
       const categoryMatch =
         (active === "今日精选" && paper.featured) ||
+        active === "全部内容" ||
+        (active === "Blog" && paper.kind === "Blog") ||
         (active === "精读清单" && paper.priority === "精读") ||
         (active === "借鉴优先" && paper.idea) ||
-        (categoryGroups[active]?.includes(paper.category) ?? false);
-      const queryMatch = !q || [paper.title, paper.paradigm, paper.summary, paper.category]
+        inferDomain(paper) === active;
+      const queryMatch = !q || [paper.title, paper.paradigm, paper.summary, paper.category, inferDomain(paper)]
         .join(" ")
         .toLowerCase()
         .includes(q);
       return categoryMatch && queryMatch;
     });
   }, [active, query]);
+
+  useEffect(() => setPage(1), [query]);
+
+  const pageCount = Math.max(1, Math.ceil(visiblePapers.length / PAGE_SIZE));
+  const pagedPapers = visiblePapers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const paginationItems = Array.from({ length: pageCount }, (_, index) => index + 1)
+    .filter((value) => value === 1 || value === pageCount || Math.abs(value - page) <= 1);
 
   return (
     <main>
@@ -5563,7 +5665,7 @@ export default function Home() {
           <a className="active" href="#papers">建模范式</a>
           <a href="#folding-matrix">Token Folding</a>
           <a href="#world-matrix">世界模型</a>
-          <a href="#papers">可解释性</a>
+          <a href="#papers" onClick={() => { setActive("Blog"); setPage(1); }}>研究 Blog</a>
           <a href="#matrix">实验矩阵</a>
         </nav>
         <label className="search-box">
@@ -5595,19 +5697,19 @@ export default function Home() {
                 <button
                   className={active === category ? "selected" : ""}
                   key={category}
-                  onClick={() => setActive(category)}
+                  onClick={() => { setActive(category); setPage(1); }}
                 >
                   <span>{categoryIcons[category]}</span>{category}
                 </button>
               ))}
             </div>
             <div className="nav-group">
-              <h3>五个研究方向</h3>
+              <h3>六个独立方向</h3>
               {directions.map((category) => (
                 <button
                   className={active === category ? "selected" : ""}
                   key={category}
-                  onClick={() => setActive(category)}
+                  onClick={() => { setActive(category); setPage(1); }}
                 >
                   <span>{categoryIcons[category]}</span>{category}
                 </button>
@@ -5635,13 +5737,13 @@ export default function Home() {
               </div>
               <div className="taxonomy-note">
                 <b>新的分类逻辑</b>
-                <span>方向回答“研究什么”</span>
+                <span>UMM / 图像 / 视频 / World Model 分轨</span>
                 <i>→</i>
-                <span>标签回答“如何建模”</span>
+                <span>Blog 与论文按来源类型区分</span>
               </div>
               <div className="stats">
-                <div><b>214</b><span>精选条目</span></div>
-                <div><b>05</b><span>研究方向</span></div>
+                <div><b>217</b><span>论文与 Blog</span></div>
+                <div><b>06</b><span>独立方向</span></div>
                 <div><b>03</b><span>比较矩阵</span></div>
               </div>
             </div>
@@ -5664,17 +5766,17 @@ export default function Home() {
           <section className="papers-section" id="papers">
             <div className="section-heading">
               <div><p className="eyebrow">TODAY&apos;S SELECTION</p><h2>{active}</h2></div>
-              <p>{visiblePapers.length} 篇匹配 · 按研究相关性排序</p>
+              <p>{visiblePapers.length} 项匹配 · 第 {Math.min(page, pageCount)} / {pageCount} 页</p>
             </div>
             <div className="paper-list">
-              {visiblePapers.map((paper) => (
+              {pagedPapers.map((paper) => (
                 <article className="paper-card" id={`paper-${paper.id}`} key={paper.id}>
                   <div className="paper-number">[{paper.index}]</div>
                   <div className="paper-main">
                     <div className="paper-title-row">
                       <div>
                         <h3>{paper.title}</h3>
-                        <div className="tags"><span>{paper.paradigm}</span><span>{paper.category}</span><span>{paper.date}</span></div>
+                        <div className="tags"><span>{paper.paradigm}</span><span>{inferDomain(paper)}</span><span>{paper.kind === "Blog" ? "BLOG" : paper.category}</span><span>{paper.date}</span></div>
                       </div>
                       <button
                         className={`priority ${paper.priority === "精读" ? "high" : ""}`}
@@ -5717,7 +5819,7 @@ export default function Home() {
                       <span className="open-status"><i />{paper.open}</span>
                       <div>
                         <button onClick={() => toggleSaved(paper.id)}>{saved.includes(paper.id) ? "已加入清单" : "加入阅读清单"}</button>
-                        <a href={paper.paper} target="_blank" rel="noreferrer">论文 <ArrowIcon /></a>
+                        <a className={paper.paper.includes("arxiv.org") ? "arxiv-link" : "source-link"} href={paper.paper} target="_blank" rel="noreferrer">{sourceLabel(paper)} <ArrowIcon /></a>
                         {paper.project && <a href={paper.project} target="_blank" rel="noreferrer">项目页 <ArrowIcon /></a>}
                         {paper.code && <a href={paper.code} target="_blank" rel="noreferrer">{paper.codeLabel ?? "代码"} <ArrowIcon /></a>}
                       </div>
@@ -5725,8 +5827,25 @@ export default function Home() {
                   </div>
                 </article>
               ))}
-              {visiblePapers.length === 0 && <div className="empty-state">没有找到匹配论文，请尝试其他关键词或范式。</div>}
+              {visiblePapers.length === 0 && <div className="empty-state">没有找到匹配内容，请尝试其他关键词或研究方向。</div>}
             </div>
+            {visiblePapers.length > PAGE_SIZE && (
+              <nav className="pagination" aria-label="内容分页">
+                <button disabled={page === 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>← 上一页</button>
+                <div>
+                  {paginationItems.map((value, index) => {
+                    const previous = paginationItems[index - 1];
+                    return (
+                      <span key={value}>
+                        {previous && value - previous > 1 && <i>…</i>}
+                        <button className={page === value ? "current" : ""} aria-current={page === value ? "page" : undefined} onClick={() => setPage(value)}>{value}</button>
+                      </span>
+                    );
+                  })}
+                </div>
+                <button disabled={page === pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))}>下一页 →</button>
+              </nav>
+            )}
           </section>
 
           <section className="matrix-section" id="matrix">
