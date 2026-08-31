@@ -61,6 +61,10 @@ a { color: inherit; text-decoration: none; }
 .search-box input::placeholder { color: #8b948f; }
 .update-status { align-items: center; display: flex; font-size: 13px; font-weight: 600; gap: 9px; white-space: nowrap; }
 .update-status span { background: #1e9b5e; border-radius: 50%; height: 7px; width: 7px; }
+.top-actions { align-items: center; display: flex; gap: 12px; justify-content: flex-end; }
+.language-switch { align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 7px; display: flex; padding: 3px; }
+.language-switch button { background: transparent; border: 0; border-radius: 4px; color: var(--muted); cursor: pointer; font-family: var(--mono); font-size: 10px; font-weight: 700; min-width: 32px; padding: 6px 7px; }
+.language-switch button.selected { background: var(--green); color: white; }
 
 .issue-strip { align-items: center; border-bottom: 1px solid var(--line); color: var(--blue); display: flex; font-family: var(--mono); font-size: 12px; gap: 12px; min-height: 50px; padding: 0 34px; }
 .issue-strip i { background: var(--line); height: 22px; margin: 0 15px; width: 1px; }
@@ -200,9 +204,10 @@ footer span { color: var(--green); font-family: var(--mono); font-weight: 700; }
 footer p { margin: 0; }
 
 @media (max-width: 1120px) {
-  .topbar { grid-template-columns: 1fr auto; }
+  .topbar { grid-template-columns: 1fr minmax(240px, 320px) auto; }
   .topnav { display: none; }
   .update-status { display: none; }
+  .top-actions { justify-self: end; }
   .workspace { grid-template-columns: 220px minmax(0, 1fr); }
   .hero { grid-template-columns: 1fr; }
   .hero-index { max-width: 560px; }
@@ -219,6 +224,7 @@ footer p { margin: 0; }
   .brand { font-size: 15px; gap: 10px; min-width: 0; }
   .brand-mark { height: 34px; width: 40px; }
   .search-box { grid-column: 1 / -1; height: 40px; }
+  .top-actions { grid-column: 2; grid-row: 1; }
   .issue-strip { min-height: 38px; overflow-x: auto; padding: 0 14px; white-space: nowrap; }
   .issue-strip i, .issue-strip span:last-child { display: none; }
   .workspace { display: block; }

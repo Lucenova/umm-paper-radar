@@ -5554,6 +5554,22 @@ const categoryIcons: Record<string, string> = {
 };
 
 const PAGE_SIZE = 10;
+type Language = "en" | "zh";
+
+type EnglishPaperCopy = {
+  summary: string;
+  why: string;
+  inspiration: string;
+  experiment: string;
+  state: string;
+  objective: string;
+  decoding: string;
+  sharing: string;
+  open: string;
+  action?: string;
+  rollout?: string;
+  evaluation?: string;
+};
 
 function inferDomain(paper: Paper): NonNullable<Paper["domain"]> {
   if (paper.domain) return paper.domain;
@@ -5567,11 +5583,204 @@ function inferDomain(paper: Paper): NonNullable<Paper["domain"]> {
   return "图像生成";
 }
 
-function sourceLabel(paper: Paper) {
+const englishLabels: Record<string, string> = {
+  "今日精选": "Today's Picks",
+  "全部内容": "All Resources",
+  "精读清单": "Deep Reads",
+  "借鉴优先": "Experiment Ideas",
+  "图像生成": "Image Generation",
+  "视频生成": "Video Generation",
+  "可解释性": "Interpretability",
+  "评测诊断": "Evaluation & Diagnostics",
+};
+
+function displayLabel(value: string, language: Language) {
+  return language === "en" ? (englishLabels[value] ?? value) : value;
+}
+
+function englishDomain(paper: Paper) {
+  return displayLabel(inferDomain(paper), "en");
+}
+
+const englishOverrides: Record<string, Partial<EnglishPaperCopy>> = {
+  "mtar-multi-token-ar-image": {
+    summary: "MTAR densifies supervision for autoregressive image generation with multi-token future prediction, token-level contrastive regularization, and semantic dropping. It reports up to a 0.95 FID improvement over LlamaGen, 39% faster training, and competitive quality with roughly one third of the training iterations.",
+    why: "This is a direct test of whether the current narrow IBQ code palette comes from insufficient training signal rather than an underpowered Stage-3 head. The inference path remains standard autoregressive decoding, so the comparison introduces little architectural confounding.",
+    inspiration: "Let each 2×2 merged hidden state predict the four current slots plus one or two future blocks during training, while preserving the original main AR head at inference. Add frequency-balanced token contrastive regularization to improve rare-code separability.",
+    experiment: "Fix Qwen3, IBQ, 2×2 folding, the main AR head, data, training FLOPs, and inference decoding. Compare NTP, NTP + four-slot MTP, + token contrastive regularization, and + semantic dropping. Report slot/block accuracy, rare-ID accuracy, code coverage, per-image unique IDs, teacher/free-running gap, GenEval, generated-text OCR, samples-to-quality, and throughput.",
+    state: "Discrete VQ/IBQ token IDs; clean prefixes with auxiliary prediction of multiple future IDs during training.",
+    objective: "Next-token CE + multi-token future CE + token-level contrastive regularization.",
+    decoding: "Unchanged left-to-right AR decoding with KV cache; all auxiliary branches are training-only.",
+    sharing: "Compatible with a shared Qwen3 backbone, IBQ vocabulary, embeddings, and K-way image head.",
+    open: "Paper and ACM MM 2026 acceptance are public; no official code or weights were found at indexing time.",
+  },
+  "code-world-model": {
+    summary: "Code World Model assigns world dynamics to a coding agent and persistent executable state, while a video model renders compiled semantic proxies into RGB observations. It separates long-horizon rules and state transitions from visual realization.",
+    why: "It adds an important endpoint to unified understanding–generation–prediction–action research: one Transformer does not need to store rules, persistent state, and rendering details implicitly in the same latent sequence.",
+    inspiration: "Have Qwen3 write multi-frame IBQ evidence into a typed state schema. A rule or decision agent updates that state, then boxes, masks, tracks, and events are compiled into URSA/ELF conditions. This separates recognition, rule, persistence, and rendering errors.",
+    experiment: "Fix Qwen3, the IBQ/ELF renderer, scene data, and inference budget. Compare a pure video-latent model, compact neural state, JSON state, and executable state plus proxy. Test entity deletion, rule replacement, occlusion recovery, and style swaps; report state exactness, event persistence, action sensitivity, horizon error, threat-decision success, rendering quality, and p95 latency.",
+    state: "Persistent typed world state in code, compiled per-frame proxies, and video-generation latents.",
+    objective: "Programmed state updates plus proxy-to-RGB video supervision; dynamics and rendering are trained separately.",
+    decoding: "Intent → code update → proxy-video compilation → RGB rendering → state feedback.",
+    sharing: "Shares an executable state/proxy contract, not a single Qwen3 vocabulary, IBQ embedding table, video VAE, or output head.",
+    open: "Paper, project page, and announcement repository are public; training code, data, and weights were not yet released.",
+    action: "Natural-language intent is converted into executable updates over typed entities and rules.",
+    rollout: "Persistent state supports iterative rollout; current evidence does not establish a real-robot closed loop.",
+    evaluation: "Evaluate transition correctness, proxy fidelity, renderer compliance, off-screen memory, and closed-loop goals separately.",
+  },
+  "4dstreamctrl-online-control": {
+    summary: "4DStreamCtrl unifies camera motion, object trajectories, depth editing, and motion transfer through identity-aware 3D point tracks. Self-forcing and distribution matching distill the teacher into a four-step causal streaming student with constant-memory generation.",
+    why: "It advances the explicit track interface from 2D to depth-aware 3D control and exposes the systems constraints that an ELF-based video model must handle: action geometry, student-state forcing, long-context memory, and real end-to-end latency.",
+    inspiration: "Maintain 3D or pseudo-3D track tokens for threat objects. Let Qwen3 handle recognition and risk reasoning while URSA/ELF predicts track-conditioned futures. Without calibrated depth, start with 2D tracks plus relative depth and supervise occlusion order.",
+    experiment: "Fix the video backbone, history, data, four-step NFE, and memory budget. Compare raw actions, 2D tracks, 2D + depth, and 3D point tracks; then compare teacher forcing, self-forcing, and DMD. Report ADE/FDE, occlusion order, camera/object disentanglement, action shuffling, 1/8/32-block drift, threat AUPRC, FPS, p95 latency, and closed-loop success.",
+    state: "Continuous Wan 2.2 video-VAE latents with camera, object, and depth controls rasterized from identity-aware 3D point tracks.",
+    objective: "Video-diffusion teacher objective with track/depth conditioning; self-forcing and DMD distillation for a four-step causal student.",
+    decoding: "Causal block streaming with four denoising steps per block, local attention, sinks, and KV reuse.",
+    sharing: "Shares 3D action geometry, but not the Qwen3/IBQ vocabulary or output head.",
+    open: "Paper and project page are public; code was marked coming soon at indexing time.",
+  },
+  "4dgs-wam-object-centric": {
+    summary: "4DGS-WAM decomposes a scene into persistent static Gaussians and dynamic object Gaussians. The world model predicts only dynamic-object transforms while cached background geometry is reused, reducing repeated prediction of static content.",
+    why: "This allocation matches multi-frame threat analysis: roads and buildings should not consume the future-token budget repeatedly, while vehicles, people, weapons, the camera, and their relations require frequent updates.",
+    inspiration: "Split the IBQ grid into a static appearance cache and object-centric dynamics tokens. Qwen3 reads object state, ELF predicts SE(3), scale, and visibility deltas, and IBQ residuals restore texture or text only when needed.",
+    experiment: "Fix history, renderer, object annotations, parameters, and training FLOPs. Compare full-frame IBQ-AR, full-frame ELF, static/dynamic mask routing, and explicit 4D object state. Report static recomputation, identity switches, trajectories, occlusion, future threat accuracy, horizon error, memory, and rendering cost.",
+    state: "Explicit 4D Gaussian primitives separated into persistent static background and dynamic objects.",
+    objective: "A policy predicts actor actions; the world model predicts transforms for observed dynamic Gaussians.",
+    decoding: "Lift 2D history into a persistent 4D scene, extrapolate dynamic objects, and composite with cached static geometry.",
+    sharing: "Shares object-level state and transforms, not a Qwen3/IBQ tokenizer, Transformer, or output head.",
+    open: "The work-in-progress paper is public; no official project, code, data, or weights were found at indexing time.",
+  },
+  "hallucination-head-targeting": {
+    summary: "The study screens attention heads by image-attention drops, validates causal leverage through ablation, and restricts LoRA plus an inference grounding controller to 32 verified heads. Hallucination metrics improve, but object recall also decreases, exposing a key safety trade-off.",
+    why: "It turns interpretability into a controlled intervention: attention correlation is insufficient without ablation, matched random-head controls, fixed decoding budgets, and audits of behavioral side effects.",
+    inspiration: "In Qwen3+IBQ, screen heads whose image attention drops before an object token, then validate them with bounding-box masking, frame deletion, and head ablation. Constrain any intervention by object recall, temporal persistence, and missed-threat rate.",
+    experiment: "Fix Qwen3, IBQ, training samples, LoRA parameter count, and decoding length. Compare full-layer LoRA, attention-screened heads, ablation-validated heads, and matched random heads. Report hallucination precision/recall, CHAIR, OCRBench, TextVQA, missed threats, frame-deletion sensitivity, intervention curves, and latency.",
+    state: "LLaVA visual/text activations and per-head image attention around hallucinated object tokens.",
+    objective: "Attention-drop screening, causal head ablation, sliced LoRA on 32 heads, and an inference grounding controller.",
+    decoding: "Standard AR text decoding with targeted grounding interventions under a fixed token budget.",
+    sharing: "Leaves the visual tokenizer, vocabulary, and output head unchanged; interventions target a small set of cross-modal heads.",
+    open: "Paper and COLM 2026 workshop acceptance are public; no official code or model was found at indexing time.",
+  },
+};
+
+function getEnglishCopy(paper: Paper): EnglishPaperCopy {
+  const domain = englishDomain(paper);
+  const domainCopy: Record<string, { summary: string; why: string; inspiration: string; state: string; objective: string; decoding: string; sharing: string }> = {
+    UMM: {
+      summary: `This resource studies how multimodal understanding and generation can share or coordinate visual representations under the ${paper.shortTitle} design.`,
+      why: "It helps define which parts of a UMM should truly be shared and which interfaces should remain task-specific.",
+      inspiration: "Use it to audit whether IBQ tokens carry bidirectionally usable concepts inside Qwen3, rather than treating shared parameters as sufficient evidence of unification.",
+      state: "Discrete visual tokens, continuous visual features, or a hybrid representation; see the original source for the exact configuration.",
+      objective: "Joint or coordinated understanding and generation objectives.",
+      decoding: "Task-dependent autoregressive, diffusion, flow, or hybrid decoding.",
+      sharing: "Audit tokenizer, embedding, vocabulary, Transformer, and output-head sharing separately.",
+    },
+    "Image Generation": {
+      summary: `This resource is indexed as an image-generation method centered on ${paper.shortTitle}. It is useful for comparing state space, prediction targets, and decoding order.`,
+      why: "It provides a controlled endpoint for separating the generation mechanism from tokenizer quality and backbone capacity.",
+      inspiration: "Map the method onto Qwen3 + IBQ while keeping the tokenizer and data fixed, then measure whether gains come from the path, target, head, or sampling procedure.",
+      state: "Discrete image-token IDs, continuous embeddings, simplex states, or VAE latents depending on the method.",
+      objective: "Clean-token CE, embedding regression, noise prediction, or velocity prediction depending on the method.",
+      decoding: "Autoregressive, iterative refinement, diffusion, flow, or hybrid decoding.",
+      sharing: "Compare tokenizer, embedding, vocabulary, Transformer, and output-head sharing explicitly.",
+    },
+    "Video Generation": {
+      summary: `This resource studies video or multi-frame generation through the ${paper.shortTitle} design, with emphasis on temporal state and rollout behavior.`,
+      why: "It separates static image quality from motion fidelity, causal control, and long-horizon consistency.",
+      inspiration: "Use it as a controlled video extension of Qwen3 + IBQ/URSA/ELF and measure threat-object identity, motion, and error accumulation over time.",
+      state: "Discrete video tokens, continuous spatiotemporal latents, semantic embeddings, or a hybrid state.",
+      objective: "Future-token, future-latent, noise, velocity, or trajectory prediction depending on the method.",
+      decoding: "Causal rollout, masked refinement, diffusion, flow, or a hybrid temporal decoder.",
+      sharing: "Audit whether image/video tokenizers, semantic space, Transformer, and temporal heads are shared.",
+    },
+    "World Model": {
+      summary: `This resource is indexed as a world-model approach centered on ${paper.shortTitle}, connecting observation state, dynamics, and controllable rollout.`,
+      why: "It should be judged by causal controllability, closed-loop success, and horizon error—not only perceptual video metrics.",
+      inspiration: "Connect Qwen3 reasoning and IBQ/ELF rendering through an explicit state/action interface so understanding–generation can extend toward prediction and action.",
+      state: "Pixels, visual tokens, VAE latents, semantic embeddings, explicit state, or a hybrid representation.",
+      objective: "Next observation/latent, state delta, reward/value, noise, velocity, or causal-event prediction.",
+      decoding: "AR, masked diffusion, continuous diffusion, flow matching, JEPA, or hybrid rollout.",
+      sharing: "Audit reuse of the UMM tokenizer, Transformer, semantic space, and action interface independently.",
+    },
+    Interpretability: {
+      summary: `This resource studies model mechanisms or explanation reliability through the ${paper.shortTitle} approach.`,
+      why: "It offers evidence for distinguishing correlational probes from causal mechanisms and faithful explanations.",
+      inspiration: "Apply matched interventions to Qwen3 + IBQ using frame deletion, region masking, OCR replacement, feature swaps, or head ablation.",
+      state: "Activations, attention heads, SAE features, attribution graphs, or behavioral traces.",
+      objective: "Probe, attribute, ablate, or intervene on internal representations and measure behavioral effects.",
+      decoding: "The base decoding process is usually preserved while internal mechanisms are audited.",
+      sharing: "Focus on cross-modal evidence routing rather than tokenizer or vocabulary sharing alone.",
+    },
+    "Evaluation & Diagnostics": {
+      summary: `This resource provides an evaluation or diagnostic framework centered on ${paper.shortTitle}.`,
+      why: "It helps prevent improvements in one metric from hiding failures in OCR, grounding, dynamics, or closed-loop behavior.",
+      inspiration: "Use the protocol across Qwen3 + IBQ, URSA, and ELF with fixed data, compute, and decoding budgets.",
+      state: "Model outputs, benchmark annotations, interventions, and diagnostic measurements.",
+      objective: "Measure capability, calibration, robustness, faithfulness, or causal controllability.",
+      decoding: "Model-independent evaluation under controlled inference settings.",
+      sharing: "Architecture-independent; keep evaluation inputs, budgets, and scoring procedures matched.",
+    },
+  };
+  const base = domainCopy[domain] ?? domainCopy["Evaluation & Diagnostics"];
+  const world = domain === "World Model";
+  return {
+    ...base,
+    experiment: world
+      ? "Hold the backbone, observation tokenizer, action interface, data, parameters, and compute fixed. Compare only the dynamics model; report multi-step rollout error, action controllability, long-horizon consistency, closed-loop success, latency, throughput, and memory."
+      : "Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.",
+    open: paper.code
+      ? "The original source and an official code or project repository are linked below."
+      : "The original source is linked below; check it for the latest code and model availability.",
+    ...(world ? {
+      action: "Action may be represented by real control tokens, language instructions, latent actions, or explicit state updates; see the source.",
+      rollout: "Evaluate multi-step rollout, closed-loop interaction, planning support, and latency explicitly.",
+      evaluation: "Report causal action tests, task success, horizon-wise error accumulation, physical consistency, and compute cost together.",
+    } : {}),
+    ...(englishOverrides[paper.id] ?? {}),
+  };
+}
+
+function sourceLabel(paper: Paper, language: Language) {
   const match = paper.paper.match(/arxiv\.org\/(?:abs|html|pdf)\/([^/?#]+)/i);
   if (match) return `arXiv · ${match[1].replace(/v\d+$/i, "")}`;
-  if (paper.kind === "Blog") return "阅读 Blog";
-  return "阅读原文";
+  if (paper.kind === "Blog") return language === "en" ? "Read Blog" : "阅读 Blog";
+  return language === "en" ? "Read Source" : "阅读原文";
+}
+
+function EnglishMatrices() {
+  return (
+    <>
+      <section className="matrix-section" id="matrix">
+        <div className="section-heading"><div><p className="eyebrow">CONTROLLED COMPARISON</p><h2>UMM Generation Matrix</h2></div><p>Fix backbone, tokenizer, data, and compute</p></div>
+        <div className="matrix-wrap"><table><thead><tr><th>Route</th><th>State</th><th>Target</th><th>Decoding</th><th>Key control</th></tr></thead><tbody>
+          <tr><th>X-Omni</th><td>Discrete token IDs</td><td>Next-token CE + RL</td><td>Left-to-right AR</td><td>Exposure bias and decoder alignment</td></tr>
+          <tr><th>MTAR</th><td>Discrete token IDs</td><td>NTP + future-token CE + contrastive regularization</td><td>Unchanged AR inference</td><td>Training-signal density</td></tr>
+          <tr><th>URSA</th><td>Discrete image-token IDs</td><td>Clean-token logits / CE</td><td>Global iterative refinement</td><td>Metric path and schedule</td></tr>
+          <tr><th>ELF</th><td>Continuous token embeddings</td><td>Velocity / L2 + auxiliary CE</td><td>ODE/SDE sampling</td><td>Embedding geometry and projection error</td></tr>
+          <tr><th>Block Diffusion</th><td>Discrete IDs in blocks</td><td>Masked-token CE</td><td>AR across blocks, parallel refinement within blocks</td><td>Block size and local NFE</td></tr>
+        </tbody></table></div>
+      </section>
+      <section className="folding-section" id="folding-matrix">
+        <div className="section-heading"><div><p className="eyebrow">TOKEN FOLDING</p><h2>2×2 Stage-3 Controls</h2></div><p>The merger shortens Qwen context; it does not create a new visual ID</p></div>
+        <div className="matrix-wrap"><table className="folding-table"><thead><tr><th>Head</th><th>Output</th><th>Order</th><th>Inference</th><th>Main question</th></tr></thead><tbody>
+          <tr><th>Parallel 4×K</th><td>Four original IBQ IDs</td><td>Parallel slots</td><td>One call</td><td>Is independent slot prediction sufficient?</td></tr>
+          <tr><th>Local AR</th><td>Four original IBQ IDs</td><td>TL → TR → BL → BR</td><td>Four local steps</td><td>Does within-block dependency matter?</td></tr>
+          <tr><th>URSA four-slot</th><td>Four original IBQ IDs</td><td>Joint metric-path refinement</td><td>2/4/8 local steps</td><td>Does discrete iterative correction help?</td></tr>
+          <tr><th>Block Diffusion</th><td>Four masked IBQ slots</td><td>Confidence-aware parallel rewriting</td><td>2/4/8 local calls</td><td>Does iterative block correction justify its cost?</td></tr>
+        </tbody></table></div>
+      </section>
+      <section className="world-section" id="world-matrix">
+        <div className="section-heading"><div><p className="eyebrow">WORLD MODEL COMPARISON</p><h2>Understanding → Generation → Prediction → Action</h2></div><p>Do not reduce evaluation to FVD or LPIPS</p></div>
+        <div className="matrix-wrap"><table className="world-table"><thead><tr><th>Model</th><th>Observation state</th><th>Action</th><th>Dynamics target</th><th>Rollout / planning</th><th>UMM connection</th></tr></thead><tbody>
+          <tr><th>GAIA-1</th><td>Discrete video tokens</td><td>Driving actions + text</td><td>Future token sequence</td><td>AR rollout + diffusion renderer</td><td>Strong IBQ-ID baseline</td></tr>
+          <tr><th>V-JEPA 2-AC</th><td>Semantic video embeddings</td><td>Continuous robot actions</td><td>Next representation</td><td>Latent rollout + MPC</td><td>Decoder-free predictive endpoint</td></tr>
+          <tr><th>Code World Model</th><td>Executable state + semantic proxy</td><td>Programmed state update</td><td>Causal state transition</td><td>Persistent interactive rollout</td><td>Explicit bridge between reasoning and rendering</td></tr>
+          <tr><th>4DStreamCtrl</th><td>Video VAE latent + 3D point tracks</td><td>Camera/object/depth tracks</td><td>Four-step causal denoising</td><td>Streaming interaction</td><td>Track interface for Qwen3 + ELF</td></tr>
+          <tr><th>4DGS-WAM</th><td>Static/dynamic 4D Gaussians</td><td>Actor actions</td><td>Dynamic-object transforms</td><td>Short-horizon object rollout</td><td>Separates appearance cache from dynamics</td></tr>
+        </tbody></table></div>
+      </section>
+    </>
+  );
 }
 
 function ArrowIcon() {
@@ -5580,6 +5789,7 @@ function ArrowIcon() {
 
 export default function Home() {
   const [active, setActive] = useState("今日精选");
+  const [language, setLanguage] = useState<Language>("en");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [saved, setSaved] = useState<string[]>([]);
@@ -5597,6 +5807,16 @@ export default function Home() {
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem("umm-language");
+    if (stored === "zh" || stored === "en") setLanguage(stored);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.lang = language === "en" ? "en" : "zh-CN";
+    window.localStorage.setItem("umm-language", language);
+  }, [language]);
 
   const toggleSaved = (id: string) => {
     setSaved((current) => {
@@ -5655,183 +5875,195 @@ export default function Home() {
     .filter((value) => value === 1 || value === pageCount || Math.abs(value - page) <= 1);
 
   return (
-    <main>
+    <main data-language={language}>
       <header className="topbar">
-        <a className="brand" href="#top" aria-label="返回顶部">
+        <a className="brand" href="#top" aria-label={language === "en" ? "Back to top" : "返回顶部"}>
           <span className="brand-mark">UMM</span>
-          <span>UMM 论文雷达</span>
+          <span>{language === "en" ? "UMM Paper Radar" : "UMM 论文雷达"}</span>
         </a>
-        <nav className="topnav" aria-label="主导航">
-          <a className="active" href="#papers">建模范式</a>
+        <nav className="topnav" aria-label={language === "en" ? "Primary navigation" : "主导航"}>
+          <a className="active" href="#papers">{language === "en" ? "Research" : "建模范式"}</a>
           <a href="#folding-matrix">Token Folding</a>
-          <a href="#world-matrix">世界模型</a>
-          <a href="#papers" onClick={() => { setActive("Blog"); setPage(1); }}>研究 Blog</a>
-          <a href="#matrix">实验矩阵</a>
+          <a href="#world-matrix">{language === "en" ? "World Models" : "世界模型"}</a>
+          <a href="#papers" onClick={() => { setActive("Blog"); setPage(1); }}>{language === "en" ? "Research Blogs" : "研究 Blog"}</a>
+          <a href="#matrix">{language === "en" ? "Matrices" : "实验矩阵"}</a>
         </nav>
         <label className="search-box">
           <span aria-hidden="true">⌕</span>
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="搜索论文、作者或范式"
-            aria-label="搜索论文"
+            placeholder={language === "en" ? "Search papers, blogs, or paradigms" : "搜索论文、作者或范式"}
+            aria-label={language === "en" ? "Search resources" : "搜索论文"}
           />
         </label>
-        <div className="update-status"><span />每日更新</div>
+        <div className="top-actions">
+          <div className="language-switch" role="group" aria-label="Language">
+            <button className={language === "en" ? "selected" : ""} onClick={() => setLanguage("en")}>EN</button>
+            <button className={language === "zh" ? "selected" : ""} onClick={() => setLanguage("zh")}>ZH</button>
+          </div>
+          <div className="update-status"><span />{language === "en" ? "Daily" : "每日更新"}</div>
+        </div>
       </header>
 
       <div className="issue-strip" id="top">
         <span>▣</span>
         <strong>DAILY BRIEF · 2026.08.27</strong>
         <i />
-        <span>统一多模态建模研究知识库</span>
+        <span>{language === "en" ? "Unified multimodal modeling research index" : "统一多模态建模研究知识库"}</span>
       </div>
 
       <div className="workspace">
         <aside className="sidebar">
-          <h2>研究目录</h2>
+          <h2>{language === "en" ? "Research Index" : "研究目录"}</h2>
           <div className="side-nav">
             <div className="nav-group">
-              <h3>快捷入口</h3>
+              <h3>{language === "en" ? "QUICK ACCESS" : "快捷入口"}</h3>
               {shortcuts.map((category) => (
                 <button
                   className={active === category ? "selected" : ""}
                   key={category}
                   onClick={() => { setActive(category); setPage(1); }}
                 >
-                  <span>{categoryIcons[category]}</span>{category}
+                  <span>{categoryIcons[category]}</span>{displayLabel(category, language)}
                 </button>
               ))}
             </div>
             <div className="nav-group">
-              <h3>六个独立方向</h3>
+              <h3>{language === "en" ? "SIX RESEARCH TRACKS" : "六个独立方向"}</h3>
               {directions.map((category) => (
                 <button
                   className={active === category ? "selected" : ""}
                   key={category}
                   onClick={() => { setActive(category); setPage(1); }}
                 >
-                  <span>{categoryIcons[category]}</span>{category}
+                  <span>{categoryIcons[category]}</span>{displayLabel(category, language)}
                 </button>
               ))}
             </div>
           </div>
           <div className="side-filter">
-            <h3>当前筛选</h3>
-            <div className="filter-row"><span>年份</span><strong>2025–2026</strong></div>
-            <div className="filter-row"><span>开源优先</span><strong>是</strong></div>
-            <div className="filter-row"><span>阅读清单</span><strong>{saved.length} 篇</strong></div>
+            <h3>{language === "en" ? "Current Filters" : "当前筛选"}</h3>
+            <div className="filter-row"><span>{language === "en" ? "Years" : "年份"}</span><strong>2025–2026</strong></div>
+            <div className="filter-row"><span>{language === "en" ? "Open-source first" : "开源优先"}</span><strong>{language === "en" ? "Yes" : "是"}</strong></div>
+            <div className="filter-row"><span>{language === "en" ? "Reading list" : "阅读清单"}</span><strong>{saved.length} {language === "en" ? "items" : "篇"}</strong></div>
           </div>
-          <p className="side-note">所有推荐都要回答：为什么值得读，以及能为你的 URSA / ELF / IBQ 实验带来什么。</p>
+          <p className="side-note">{language === "en" ? "Every recommendation explains why it matters and how it can inform Qwen3, URSA, ELF, and IBQ experiments." : "所有推荐都要回答：为什么值得读，以及能为你的 URSA / ELF / IBQ 实验带来什么。"}</p>
         </aside>
 
         <div className="content">
           <section className="hero">
             <div>
               <p className="eyebrow">[UMM RADAR · ISSUE 046]</p>
-              <h1>别让整帧生成，<br />替代真正的状态与动作建模</h1>
-              <p className="hero-copy">今日从173项cs.CV新列表精选MTAR、Code World Model、4DStreamCtrl、4DGS-WAM与Hallucination Heads：把AR监督密度、可执行状态、3D动作接口、静动分解和可因果干预的跨模态注意拆成独立实验轴。</p>
+              <h1>{language === "en" ? <>Do not let full-frame generation<br />stand in for state and action modeling.</> : <>别让整帧生成，<br />替代真正的状态与动作建模</>}</h1>
+              <p className="hero-copy">{language === "en" ? "The latest issue separates supervision density, executable state, 3D action interfaces, static–dynamic decomposition, and causal cross-modal interventions into controlled research axes." : "今日从173项cs.CV新列表精选MTAR、Code World Model、4DStreamCtrl、4DGS-WAM与Hallucination Heads：把AR监督密度、可执行状态、3D动作接口、静动分解和可因果干预的跨模态注意拆成独立实验轴。"}</p>
               <div className="hero-actions">
-                <a className="primary-button" href="#papers">查看今日精选</a>
-                <button className="text-button" onClick={() => selectDeepReads()}>打开精读清单 <span>→</span></button>
+                <a className="primary-button" href="#papers">{language === "en" ? "View today's picks" : "查看今日精选"}</a>
+                <button className="text-button" onClick={() => selectDeepReads()}>{language === "en" ? "Open deep reads" : "打开精读清单"} <span>→</span></button>
               </div>
               <div className="taxonomy-note">
-                <b>新的分类逻辑</b>
-                <span>UMM / 图像 / 视频 / World Model 分轨</span>
+                <b>{language === "en" ? "Research taxonomy" : "新的分类逻辑"}</b>
+                <span>{language === "en" ? "Separate UMM, image, video, and world-model tracks" : "UMM / 图像 / 视频 / World Model 分轨"}</span>
                 <i>→</i>
-                <span>Blog 与论文按来源类型区分</span>
+                <span>{language === "en" ? "Papers and blogs are labeled by source type" : "Blog 与论文按来源类型区分"}</span>
               </div>
               <div className="stats">
-                <div><b>217</b><span>论文与 Blog</span></div>
-                <div><b>06</b><span>独立方向</span></div>
-                <div><b>03</b><span>比较矩阵</span></div>
+                <div><b>217</b><span>{language === "en" ? "Papers & blogs" : "论文与 Blog"}</span></div>
+                <div><b>06</b><span>{language === "en" ? "Research tracks" : "独立方向"}</span></div>
+                <div><b>03</b><span>{language === "en" ? "Comparison matrices" : "比较矩阵"}</span></div>
               </div>
             </div>
-            <div className="hero-index" aria-label="建模坐标索引">
+            <div className="hero-index" aria-label={language === "en" ? "Modeling coordinate map" : "建模坐标索引"}>
               <p>MODELING COORDINATES</p>
               <div className="coordinate-map">
-                <span className="axis-label top">连续状态</span>
-                <span className="axis-label bottom">离散状态</span>
-                <span className="axis-label left">并行修正</span>
-                <span className="axis-label right">顺序生成</span>
+                <span className="axis-label top">{language === "en" ? "Continuous state" : "连续状态"}</span>
+                <span className="axis-label bottom">{language === "en" ? "Discrete state" : "离散状态"}</span>
+                <span className="axis-label left">{language === "en" ? "Parallel refinement" : "并行修正"}</span>
+                <span className="axis-label right">{language === "en" ? "Sequential generation" : "顺序生成"}</span>
                 <i className="dot elf">ELF</i>
                 <i className="dot ursa">URSA</i>
                 <i className="dot xomni">X-Omni</i>
                 <i className="dot toklip">TokLIP</i>
               </div>
-              <p className="map-caption">先区分“在哪里建模”，再比较“如何学习与解码”。</p>
+              <p className="map-caption">{language === "en" ? "First identify the state space; then compare training and decoding." : "先区分“在哪里建模”，再比较“如何学习与解码”。"}</p>
             </div>
           </section>
 
           <section className="papers-section" id="papers">
             <div className="section-heading">
-              <div><p className="eyebrow">TODAY&apos;S SELECTION</p><h2>{active}</h2></div>
-              <p>{visiblePapers.length} 项匹配 · 第 {Math.min(page, pageCount)} / {pageCount} 页</p>
+              <div><p className="eyebrow">{language === "en" ? "CURATED RESEARCH" : "TODAY'S SELECTION"}</p><h2>{displayLabel(active, language)}</h2></div>
+              <p>{language === "en" ? `${visiblePapers.length} matches · Page ${Math.min(page, pageCount)} of ${pageCount}` : `${visiblePapers.length} 项匹配 · 第 ${Math.min(page, pageCount)} / ${pageCount} 页`}</p>
             </div>
             <div className="paper-list">
-              {pagedPapers.map((paper) => (
+              {pagedPapers.map((paper) => {
+                const english = getEnglishCopy(paper);
+                const copy = language === "en" ? english : paper;
+                return (
                 <article className="paper-card" id={`paper-${paper.id}`} key={paper.id}>
                   <div className="paper-number">[{paper.index}]</div>
                   <div className="paper-main">
                     <div className="paper-title-row">
                       <div>
                         <h3>{paper.title}</h3>
-                        <div className="tags"><span>{paper.paradigm}</span><span>{inferDomain(paper)}</span><span>{paper.kind === "Blog" ? "BLOG" : paper.category}</span><span>{paper.date}</span></div>
+                        <div className="tags"><span>{language === "en" ? (/[\u3400-\u9fff]/.test(paper.paradigm) ? englishDomain(paper) : paper.paradigm) : paper.paradigm}</span><span>{language === "en" ? englishDomain(paper) : inferDomain(paper)}</span><span>{paper.kind === "Blog" ? "BLOG" : (language === "en" ? englishDomain(paper) : paper.category)}</span><span>{paper.date}</span></div>
                       </div>
                       <button
                         className={`priority ${paper.priority === "精读" ? "high" : ""}`}
                         onClick={paper.priority === "精读" ? () => selectDeepReads(paper.id) : undefined}
-                        title={paper.priority === "精读" ? "展开论文完整推荐" : "建议泛读"}
+                        title={language === "en"
+                          ? (paper.priority === "精读" ? "Open the full recommendation" : "Recommended for a quick read")
+                          : (paper.priority === "精读" ? "展开论文完整推荐" : "建议泛读")}
                       >
-                        {paper.priority}
+                        {language === "en" ? (paper.priority === "精读" ? "Deep read" : "Skim") : paper.priority}
                       </button>
                     </div>
-                    <p className="summary">{paper.summary}</p>
+                    <p className="summary">{copy.summary}</p>
                     <button
                       className="mobile-read-toggle"
                       onClick={() => toggleExpanded(paper.id)}
                       aria-expanded={expanded.includes(paper.id)}
                     >
-                      {expanded.includes(paper.id) ? "收起完整推荐" : "查看完整推荐"}
+                      {language === "en" ? (expanded.includes(paper.id) ? "Hide full notes" : "View full notes") : (expanded.includes(paper.id) ? "收起完整推荐" : "查看完整推荐")}
                       <span>{expanded.includes(paper.id) ? "↑" : "↓"}</span>
                     </button>
                     <div className={`paper-details ${expanded.includes(paper.id) ? "expanded" : ""}`}>
                       <div className="reason-grid">
-                        <section><h4>为什么推荐</h4><p>{paper.why}</p></section>
-                        <section><h4>可能给你的启发</h4><p>{paper.inspiration}</p></section>
+                        <section><h4>{language === "en" ? "Why it matters" : "为什么推荐"}</h4><p>{copy.why}</p></section>
+                        <section><h4>{language === "en" ? "How it can inform your work" : "可能给你的启发"}</h4><p>{copy.inspiration}</p></section>
                       </div>
-                      <div className="experiment-note"><strong>建议实验</strong><p>{paper.experiment}</p></div>
+                      <div className="experiment-note"><strong>{language === "en" ? "CONTROL" : "建议实验"}</strong><p>{copy.experiment}</p></div>
                       <div className="paper-specs">
-                        <span><b>建模状态</b>{paper.state}</span>
-                        <span><b>训练目标</b>{paper.objective}</span>
-                        <span><b>解码方式</b>{paper.decoding}</span>
-                        <span><b>共享结构</b>{paper.sharing}</span>
+                        <span><b>{language === "en" ? "STATE" : "建模状态"}</b>{copy.state}</span>
+                        <span><b>{language === "en" ? "OBJECTIVE" : "训练目标"}</b>{copy.objective}</span>
+                        <span><b>{language === "en" ? "DECODING" : "解码方式"}</b>{copy.decoding}</span>
+                        <span><b>{language === "en" ? "SHARING" : "共享结构"}</b>{copy.sharing}</span>
                       </div>
-                      {paper.action && (
+                      {(language === "en" ? english.action : paper.action) && (
                         <div className="world-specs">
-                          <span><b>动作接口</b>{paper.action}</span>
-                          <span><b>Rollout / 闭环</b>{paper.rollout}</span>
-                          <span><b>世界模型评价</b>{paper.evaluation}</span>
+                          <span><b>{language === "en" ? "ACTION INTERFACE" : "动作接口"}</b>{language === "en" ? english.action : paper.action}</span>
+                          <span><b>{language === "en" ? "ROLLOUT / CLOSED LOOP" : "Rollout / 闭环"}</b>{language === "en" ? english.rollout : paper.rollout}</span>
+                          <span><b>{language === "en" ? "WORLD-MODEL EVALUATION" : "世界模型评价"}</b>{language === "en" ? english.evaluation : paper.evaluation}</span>
                         </div>
                       )}
                     </div>
                     <div className="paper-footer">
-                      <span className="open-status"><i />{paper.open}</span>
+                      <span className="open-status"><i />{copy.open}</span>
                       <div>
-                        <button onClick={() => toggleSaved(paper.id)}>{saved.includes(paper.id) ? "已加入清单" : "加入阅读清单"}</button>
-                        <a className={paper.paper.includes("arxiv.org") ? "arxiv-link" : "source-link"} href={paper.paper} target="_blank" rel="noreferrer">{sourceLabel(paper)} <ArrowIcon /></a>
-                        {paper.project && <a href={paper.project} target="_blank" rel="noreferrer">项目页 <ArrowIcon /></a>}
-                        {paper.code && <a href={paper.code} target="_blank" rel="noreferrer">{paper.codeLabel ?? "代码"} <ArrowIcon /></a>}
+                        <button onClick={() => toggleSaved(paper.id)}>{language === "en" ? (saved.includes(paper.id) ? "Saved" : "Add to reading list") : (saved.includes(paper.id) ? "已加入清单" : "加入阅读清单")}</button>
+                        <a className={paper.paper.includes("arxiv.org") ? "arxiv-link" : "source-link"} href={paper.paper} target="_blank" rel="noreferrer">{sourceLabel(paper, language)} <ArrowIcon /></a>
+                        {paper.project && <a href={paper.project} target="_blank" rel="noreferrer">{language === "en" ? "Project" : "项目页"} <ArrowIcon /></a>}
+                        {paper.code && <a href={paper.code} target="_blank" rel="noreferrer">{language === "en" ? "Code" : (paper.codeLabel ?? "代码")} <ArrowIcon /></a>}
                       </div>
                     </div>
                   </div>
                 </article>
-              ))}
-              {visiblePapers.length === 0 && <div className="empty-state">没有找到匹配内容，请尝试其他关键词或研究方向。</div>}
+                );
+              })}
+              {visiblePapers.length === 0 && <div className="empty-state">{language === "en" ? "No matching resources. Try another keyword or research track." : "没有找到匹配内容，请尝试其他关键词或研究方向。"}</div>}
             </div>
             {visiblePapers.length > PAGE_SIZE && (
-              <nav className="pagination" aria-label="内容分页">
-                <button disabled={page === 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>← 上一页</button>
+              <nav className="pagination" aria-label={language === "en" ? "Resource pages" : "内容分页"}>
+                <button disabled={page === 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>← {language === "en" ? "Previous" : "上一页"}</button>
                 <div>
                   {paginationItems.map((value, index) => {
                     const previous = paginationItems[index - 1];
@@ -5843,11 +6075,12 @@ export default function Home() {
                     );
                   })}
                 </div>
-                <button disabled={page === pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))}>下一页 →</button>
+                <button disabled={page === pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))}>{language === "en" ? "Next" : "下一页"} →</button>
               </nav>
             )}
           </section>
 
+          {language === "zh" ? <>
           <section className="matrix-section" id="matrix">
             <div className="section-heading">
               <div><p className="eyebrow">CONTROLLED COMPARISON</p><h2>UMM 建模方式实验矩阵</h2></div>
@@ -6172,8 +6405,9 @@ export default function Home() {
               ].map(([title, value]) => <div key={title}><b>{title}</b><span>{value}</span></div>)}
             </div>
           </section>
+          </> : <EnglishMatrices />}
 
-          <footer><span>UMM PAPER RADAR</span><p>把每天的论文推荐，变成可以持续积累和验证的研究路线图。</p></footer>
+          <footer><span>UMM PAPER RADAR</span><p>{language === "en" ? "Turn daily recommendations into a cumulative, testable research roadmap." : "把每天的论文推荐，变成可以持续积累和验证的研究路线图。"}</p></footer>
         </div>
       </div>
     </main>

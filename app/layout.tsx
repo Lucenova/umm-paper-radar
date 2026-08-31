@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "UMM 论文雷达",
+  title: "UMM Paper Radar",
   description:
-    "统一多模态模型、视觉 Token、Diffusion/Flow、可解释性与世界模型研究雷达。",
+    "A bilingual research radar for unified multimodal models, visual tokens, image and video generation, interpretability, and world models.",
   other: {
     "codex-preview": "development",
   },
@@ -16,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN">
+    <html lang="en">
       <body>{children}</body>
     </html>
   );
