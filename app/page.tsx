@@ -5550,7 +5550,7 @@ const papers: Paper[] = [
     code: "https://github.com/Msr233/VTC",
     codeLabel: "代码状态",
     domain: "视频生成",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -5573,7 +5573,7 @@ const papers: Paper[] = [
     experiment: "固定Qwen3主干、prompt、数据量和训练FLOPs，比较纯IBQ-AR、URSA、ELF、layout-schema→IBQ以及HTML/CSS renderer；统一评测文字CER、OCRBench式字符准确率、布局IoU、商品/目标保真、GenEval、可编辑性、延迟与失败类型。",
     paper: "https://arxiv.org/abs/2608.27893",
     domain: "图像生成",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -5598,7 +5598,7 @@ const papers: Paper[] = [
     project: "https://zhaowqq.github.io/DensityKV/",
     code: "https://github.com/ZhaoWQQ/DensityKV",
     domain: "视频生成",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -5627,7 +5627,7 @@ const papers: Paper[] = [
     rollout: "支持基于持久3D proxy的分块长视频生成；未证明闭环交互、行动选择或MPC规划",
     evaluation: "除视觉/几何质量外，应补相机干预、闭环回访、遮挡后状态恢复、proxy误差与任务成功率",
     domain: "World Model",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -5652,6 +5652,131 @@ const papers: Paper[] = [
     action: "固定真实动作或控制条件，评价不同随机rollout的结果概率；本身不生成动作",
     rollout: "要求同条件重复多步rollout；不提供闭环planner，但可作为规划前的预测分布验收",
     evaluation: "核心是概率校准、mode coverage与高风险尾部，而不是单视频FVD/LPIPS",
+    domain: "World Model",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "llada-image-open-recipe",
+    index: "223",
+    title: "LLaDA-Image: Building Strong Image Generators with Fully Open Training Recipes",
+    shortTitle: "LLaDA-Image",
+    date: "2026-09-03",
+    category: "连续 Flow",
+    paradigm: "Frozen Diffusion-LM Understanding + VAE-Latent Flow DiT",
+    state: "FLUX.2 VAE连续图像latent；理解侧为冻结的LLaDA2.0-Mini diffusion LM，编辑参考另用SigLIP-VQ与clean VAE latent",
+    objective: "线性path x_t=(1-t)x+t z，DiT以MSE预测常量velocity (z-x)；RQA与connector适配冻结VLM",
+    decoding: "Base使用50步Flow采样；TwinFlow蒸馏的Turbo版本使用2–4步",
+    sharing: "冻结视觉encoder与VLM，仅训练RQA、connector及从零初始化的6B DiT；理解与像素生成不共享tokenizer、词表或输出head",
+    open: "论文、Apache-2.0官方代码、推理脚本、模型与训练配方已公开",
+    priority: "精读",
+    summary: "LLaDA-Image用冻结的diffusion-LM多模态理解模块提供语义条件，再从零训练6B视频/图像DiT在FLUX.2 VAE latent上做Flow Matching。其训练集约2.2亿生成样本，Base为50步，TwinFlow Turbo降至2–4步。",
+    why: "它正面回答‘训练生成分支时是否先冻结理解分支’：该方案把冻结VLM作为稳定语义控制器，但生成器仍是独立连续DiT，因此它证明的是阶段化解耦的有效性，而不是完全共享视觉词表与head的UMM。",
+    inspiration: "可将它作为Qwen3+IBQ/URSA→ELF的强外部对照：冻结Qwen3理解分支，只训练轻量RQA/connector与独立Flow生成器；若生成显著改善而OCR理解不退化，说明共享主干梯度冲突比生成状态空间更可能是瓶颈。",
+    experiment: "固定Qwen3、数据、训练FLOPs与文本条件，比较：共享Qwen+IBQ-AR、共享Qwen+URSA、共享Qwen+ELF、冻结Qwen+RQA+独立VAE-latent Flow。共同报告OCRBench/DocVQA/TextVQA、GenEval、生成文字CER、NFE、吞吐、显存与理解遗忘；再只解冻共享中层。",
+    paper: "https://arxiv.org/abs/2609.03796",
+    project: "https://huggingface.co/inclusionAI/LLaDA-Image",
+    code: "https://github.com/inclusionAI/LLaDA-Image",
+    domain: "图像生成",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "migm-shortcut-controlled-latent-dynamics",
+    index: "224",
+    title: "Accelerating Masked Image Generation by Learning Controlled Latent Dynamics",
+    shortTitle: "MIGM Shortcut",
+    date: "2026-02-27 · v2 2026-09-03",
+    category: "离散 Diffusion",
+    paradigm: "Masked Token Refinement + Continuous Hidden-State Shortcut",
+    state: "外层仍是离散VQ token ID与MASK；shortcut在两次完整MaskGIT更新之间建模连续hidden feature dynamics",
+    objective: "完整模型仍预测clean-token logits/CE；轻量shortcut根据旧feature和新采样token预测下一feature或区间average velocity",
+    decoding: "仅在选定full steps调用完整双向模型，其余迭代由shortcut推进feature；token按原置信度调度提交",
+    sharing: "保留原tokenizer、词表、MaskGIT主干与输出head；新增小型shortcut，可由现有masked generator继续训练而非重训全模型",
+    open: "论文、官方项目页、MaskGIT/Lumina-DiMOO代码与权重已公开；许可需以仓库为准",
+    priority: "精读",
+    summary: "该方法不把离散图像token改成连续生成，而是在Masked Image Generative Model内部学习连续特征的受控动力学，用轻量shortcut替代多数昂贵的全模型迭代；官方在Lumina-DiMOO上报告超过4倍的T2I加速并保持质量。",
+    why: "它为IBQ Stage-3提供一个低混杂加速端点：token状态、clean-token CE和提交顺序均不变，只近似中间hidden演化，可判断瓶颈究竟在K-way离散预测还是重复调用Qwen。",
+    inspiration: "在四槽IBQ masked refinement中，每2或4步才调用Qwen3/URSA，其余步由局部shortcut根据上一步四槽feature与新采样ID更新hidden；同时检查shortcut是否放大低频ID丢失与palette collapse。",
+    experiment: "固定Qwen3、IBQ、mask schedule、总迭代数、数据与质量目标，扫描full-step间隔1/2/4/8；比较跳步、特征插值、shortcut next-feature与average-velocity。报告slot accuracy、block exact match、code coverage、低频ID召回、GenEval、文字OCR、吞吐、峰值显存及full-model调用数。",
+    paper: "https://arxiv.org/abs/2602.23996",
+    project: "https://kaiwen-zhu.github.io/MIGM-Shortcut/",
+    code: "https://github.com/Kaiwen-Zhu/MIGM-Shortcut",
+    domain: "图像生成",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "flashrender-camera-meanflow",
+    index: "225",
+    title: "FlashRender: Few-Step Generative Rendering via Camera-Controlled Video MeanFlow",
+    shortTitle: "FlashRender",
+    date: "2026-09-03",
+    category: "视频生成加速",
+    paradigm: "Geometry-Aligned Video MeanFlow + On-Policy Distillation",
+    state: "Wan2.1视频VAE连续latent；输入视频与目标相机轨迹为条件，VGGT feature仅作训练期几何对齐目标",
+    objective: "先做多步Flow Matching并以RETA对齐VGGT几何feature，再学习average velocity，最后在student自身4步轨迹上做flow-map/DMD蒸馏",
+    decoding: "4 NFE相机可控video-to-video retake；相对2×50步基线约降低25倍采样调用",
+    sharing: "复用预训练Wan2.1-CamCtrl视频DiT与VAE；不共享Qwen3/IBQ词表或head，但可共享相机轨迹与几何语义接口",
+    open: "论文、项目页、Apache-2.0完整训练/推理代码、数据配置与三阶段checkpoints已公开",
+    priority: "精读",
+    summary: "FlashRender先用VGGT表征对齐降低相机控制轨迹的曲率，再用MeanFlow学习四步average velocity，最后让student在真实推理schedule与自到达状态上蒸馏。官方报告4 NFE、约25倍采样成本下降，并改善相机控制与几何一致性。",
+    why: "它把ELF式少步平均速度放进视频生成并补上两个关键条件：几何表征先验与on-policy轨迹对齐。对多帧威胁生成，清晰单帧不足以保证相机/目标运动的因果一致性。",
+    inspiration: "可在IBQ/ELF视频分支中加入training-only轨迹/深度feature对齐，再比较离线velocity、MeanFlow与student-state蒸馏；最终仍需用IBQ回投和OCR/身份指标检查几何对齐是否牺牲细粒度外观。",
+    experiment: "固定视频backbone、VAE/IBQ renderer、相机轨迹、数据、4 NFE与总FLOPs，比较普通Flow、RETA+Flow、MeanFlow、MeanFlow+on-policy distillation；报告camera EPE、几何一致性、动作置换、身份/OCR、1/8/32块漂移、FPS、p95延迟与显存。",
+    paper: "https://arxiv.org/abs/2609.03563",
+    project: "https://byeongjun-park.github.io/FlashRender/",
+    code: "https://github.com/byeongjun-park/FlashRender",
+    domain: "视频生成",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "veriphy-agentic-world-evaluation",
+    index: "226",
+    title: "VeriPhy: Agentic Physical Reasoning for World Model Evaluation and Refinement",
+    shortTitle: "VeriPhy",
+    date: "2026-09-02",
+    category: "评测诊断",
+    paradigm: "Typed Physical Obligations + Provenance-Carrying Expert Verification",
+    state: "生成视频、结构化物理义务、经静态校验的执行计划，以及带帧/区域/测量来源的证据记录",
+    objective: "无生成训练目标；冻结分割、跟踪、深度、OCR、音频与物理测量专家输出supported/contradicted/unknown判定",
+    decoding: "先把prompt编译成typed obligations和工具计划，再查看帧并执行；允许证据不足时abstain",
+    sharing: "评测层与AR、URSA、ELF、Diffusion/Flow world model解耦，不共享tokenizer、Transformer或head",
+    open: "论文与1,500段评测语料说明已公开；截至收录日未定位到官方代码或项目页",
+    priority: "精读",
+    summary: "VeriPhy把‘视频是否物理合理’拆成可执行、可追溯的物理义务，调用冻结视觉/音频专家收集证据，并输出支持、反驳或未知。在149段核心集的304条缺陷记录中，它解释228条，对问题分解基线为164条。",
+    why: "它避免用自由文本CoT假装完成物理审计：每个判断都必须回到具体帧、对象轨迹、深度、OCR或事件证据。对威胁检测，这比单一FVD或流畅解释更接近可验收的安全协议。",
+    inspiration: "把Qwen3的威胁结论编译为typed obligations，例如‘目标A在t1后持续接近B’、‘警示文字在关键帧可见’，再用track/depth/OCR专家验证，并保留unknown而非强迫二分类。",
+    experiment: "固定Qwen3+IBQ/URSA/ELF输出与推理预算，比较自由CoT、问题分解、typed plan、typed plan+provenance专家；做frame deletion、bbox遮挡、OCR替换和action shuffle，报告缺陷召回、误报、abstention calibration、证据忠实度、horizon error与延迟。",
+    paper: "https://arxiv.org/abs/2609.03153",
+    domain: "评测诊断",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "blog-nvidia-world-action-models",
+    index: "227",
+    title: "Beyond VLAs: How World Action Models Reshape Robot Manipulation",
+    shortTitle: "NVIDIA WAM Blog",
+    date: "2026-08-04",
+    category: "世界模型",
+    paradigm: "官方技术 Blog / Omni World Action Model",
+    state: "Cosmos 3连续image/video/audio/action latent + 离散文本；MoT按模态路由计算，不强迫单一tokenizer或head",
+    objective: "AR Transformer处理reasoning/text，Diffusion Transformer联合连续图像、视频、音频与action；DROID后训练联合预测未来视觉与动作",
+    decoding: "一次推理输出32个动作；Blog报告4B Edge在Jetson Thor约15 Hz，另有16B与64B规模",
+    sharing: "共享omni上下文与Mixture-of-Transformers接口，但离散文本AR与连续模态diffusion保留专用机制",
+    open: "NVIDIA官方技术Blog；Cosmos 3 checkpoints、recipes、tools与datasets公开，具体许可和模型适用范围以官方资源为准",
+    priority: "精读",
+    summary: "NVIDIA以Cosmos 3说明WAM相对传统VLA的核心变化：策略不仅预测动作，还联合想象未来视频。官方Blog给出4B/16B/64B分级、32-action chunk、边缘端15 Hz，并报告同配方下omni checkpoint在RoboLab由28.1%提升到36.8%。",
+    why: "它是高质量官方Blog，也澄清MoT的共享边界：统一系统可以共享语义上下文与训练接口，同时让文本走AR、图像/视频/动作走连续diffusion；‘统一’不等于词表、embedding和head全部绑权。",
+    inspiration: "Qwen3+IBQ可先共享任务语义、对象状态和action interface，生成侧保留URSA/ELF专用head；多帧威胁检测再增加future-video/action联合辅助目标，把‘理解—生成’扩展为‘理解—生成—预测—行动’。",
+    experiment: "固定Qwen3、IBQ、机器人/威胁数据、参数量和FLOPs，比较VLA action-only、action+IBQ future CE、action+ELF future velocity、MoT分支式action+future video；报告理解/OCR、动作成功、action-shuffle、未来误差、15Hz可达性、显存与训练稳定性。",
+    paper: "https://developer.nvidia.com/blog/beyond-vlas-how-world-action-models-reshape-robot-manipulation/",
+    action: "真实机器人action chunk与未来视觉联合建模；官方Blog描述一次推理32个动作",
+    rollout: "以未来视频作为动作结果的显式预测辅助；Blog给出边缘端频率，闭环任务仍需按具体Cosmos 3实验验收",
+    evaluation: "除动作成功率外，应报告action-shuffle、future-video因果性、horizon error、端到端频率和资源成本",
+    kind: "Blog",
     domain: "World Model",
     featured: true,
     idea: true,
@@ -5850,6 +5975,64 @@ const englishOverrides: Record<string, Partial<EnglishPaperCopy>> = {
     sharing: "Leaves the visual tokenizer, vocabulary, and output head unchanged; interventions target a small set of cross-modal heads.",
     open: "Paper and COLM 2026 workshop acceptance are public; no official code or model was found at indexing time.",
   },
+  "llada-image-open-recipe": {
+    summary: "LLaDA-Image freezes a diffusion-LM multimodal understanding module and trains a 6B DiT from scratch on FLUX.2 VAE latents. Its base model uses 50 Flow-Matching steps; TwinFlow distillation reduces inference to 2–4 steps.",
+    why: "It directly tests the staged design in which understanding stays fixed while generation learns. This supports decoupled training, but not a fully shared UMM: the visual generator remains a separate continuous DiT with its own tokenizer and head.",
+    inspiration: "Use it as an external control for Qwen3 + IBQ/URSA/ELF: freeze Qwen3 and train only an RQA/connector plus a separate Flow generator. If generation improves without degrading OCR understanding, shared-backbone gradient interference is a stronger suspect than the generation state space.",
+    experiment: "Fix Qwen3, data, training FLOPs, and text conditioning. Compare shared Qwen + IBQ-AR, shared Qwen + URSA, shared Qwen + ELF, and frozen Qwen + RQA + independent VAE-latent Flow. Report OCRBench, DocVQA, TextVQA, GenEval, generated-text CER, NFE, throughput, memory, and forgetting; then unfreeze only matched middle layers.",
+    state: "Continuous FLUX.2 VAE image latents; the frozen understanding module is LLaDA2.0-Mini, while editing also conditions on SigLIP-VQ and a clean reference latent.",
+    objective: "Linear path x_t=(1-t)x+t z; the DiT regresses constant velocity (z-x) with MSE through a residual query adapter and connector.",
+    decoding: "50-step Flow sampling for the base model; 2–4 steps for the TwinFlow-distilled Turbo model.",
+    sharing: "The vision encoder and VLM are frozen. RQA, connector, and a scratch 6B DiT are trained; understanding and image generation do not share tokenizer, vocabulary, or output head.",
+    open: "Paper, Apache-2.0 official code, inference scripts, models, and training recipes are public.",
+  },
+  "migm-shortcut-controlled-latent-dynamics": {
+    summary: "MIGM Shortcut keeps the outer masked discrete-token process intact and learns continuous hidden-feature dynamics between expensive full-model updates. A lightweight shortcut replaces most iterations; the authors report more than 4× T2I acceleration on Lumina-DiMOO while preserving quality.",
+    why: "It is a low-confound efficiency control for IBQ Stage 3: token IDs, clean-token CE, and confidence-based commitment remain unchanged, isolating whether repeated Qwen calls rather than K-way prediction dominate cost.",
+    inspiration: "In four-slot IBQ refinement, call Qwen3/URSA only every two or four steps and let a local shortcut update hidden features from the previous feature and newly sampled IDs. Audit whether the shortcut amplifies rare-ID loss or code-palette collapse.",
+    experiment: "Fix Qwen3, IBQ, mask schedule, total iterations, data, and quality targets. Sweep full-step intervals of 1/2/4/8 and compare naive skipping, feature interpolation, next-feature shortcuts, and average-velocity shortcuts. Report slot accuracy, block exact match, code coverage, rare-ID recall, GenEval, text OCR, throughput, peak memory, and full-model calls.",
+    state: "Discrete VQ token IDs and MASK at the outer level; continuous hidden features evolve between full MaskGIT updates.",
+    objective: "The full model retains clean-token logits/CE. The shortcut predicts the next feature or interval-average velocity from prior features and newly sampled tokens.",
+    decoding: "Run the full bidirectional model only at selected steps; use the shortcut in between while preserving the original confidence schedule and token commitment order.",
+    sharing: "Keeps the tokenizer, vocabulary, masked generator, and output head; adds a small shortcut that can be trained from an existing model.",
+    open: "Paper, official project page, MaskGIT/Lumina-DiMOO code, and weights are public; consult the repository for license terms.",
+  },
+  "flashrender-camera-meanflow": {
+    summary: "FlashRender aligns intermediate video features to frozen VGGT geometry, learns a four-step MeanFlow average velocity, and then distills on the student's actual four-step trajectory. The official project reports roughly 25× fewer sampling calls than a 2×50-step baseline with stronger camera control and geometry.",
+    why: "It brings ELF-like few-step average velocity to video while adding two missing controls: geometry-aware representation alignment and on-policy trajectory matching. Sharp frames alone cannot establish causal camera or object motion.",
+    inspiration: "Add training-only trajectory or depth-feature alignment to an IBQ/ELF video branch, then separate offline velocity, MeanFlow, and student-state distillation. Continue measuring IBQ projection, OCR, and identity so geometry gains do not hide detail loss.",
+    experiment: "Fix the video backbone, VAE/IBQ renderer, camera paths, data, 4 NFE, and total FLOPs. Compare standard Flow, RETA + Flow, MeanFlow, and MeanFlow + on-policy distillation. Report camera EPE, geometry, action-shuffle sensitivity, identity/OCR, 1/8/32-block drift, FPS, p95 latency, and memory.",
+    state: "Continuous Wan2.1 video-VAE latents conditioned on an input video and target camera trajectory; frozen VGGT features are used only for training-time geometry alignment.",
+    objective: "Multi-step Flow Matching plus RETA geometry alignment, interval-average velocity learning, and student-state flow-map/DMD distillation.",
+    decoding: "Four-NFE camera-controlled video retaking, versus the cited 2×50-NFE baseline.",
+    sharing: "Reuses a pretrained Wan2.1-CamCtrl video DiT and VAE. It does not share Qwen3/IBQ vocabulary or heads, but can share camera and geometry interfaces.",
+    open: "Paper, project page, Apache-2.0 training and inference code, data configuration, and all three stage checkpoints are public.",
+  },
+  "veriphy-agentic-world-evaluation": {
+    summary: "VeriPhy compiles prompts into typed physical obligations and statically validated tool plans, collects provenance-carrying evidence from frozen visual and audio experts, and returns supported, contradicted, or unknown judgments. On its 149-clip core, it accounts for 228 of 304 flaw records versus 164 for a question-decomposition baseline.",
+    why: "It prevents free-form chain-of-thought from masquerading as physical verification: every claim must resolve to frames, tracks, depth, OCR, or event evidence. This is closer to an auditable safety protocol than FVD or fluent explanations.",
+    inspiration: "Compile Qwen3 threat claims into typed obligations such as 'object A keeps approaching B after t1' or 'warning text is visible in the key frame.' Verify them with tracking, depth, and OCR experts, and preserve unknown rather than forcing a binary answer.",
+    experiment: "Fix Qwen3 + IBQ/URSA/ELF outputs and inference budget. Compare free-form CoT, question decomposition, typed plans, and typed plans plus provenance experts. Apply frame deletion, bounding-box masking, OCR replacement, and action shuffle; report flaw recall, false positives, abstention calibration, evidence faithfulness, horizon error, and latency.",
+    state: "Generated videos, typed physical obligations, validated execution plans, and evidence records tied to frames, regions, and measurements.",
+    objective: "Evaluation only: frozen segmentation, tracking, depth, OCR, audio, and physical-measurement experts support supported/contradicted/unknown verdicts.",
+    decoding: "Compile obligations and a tool plan before inspecting frames; execute the plan and abstain when evidence is insufficient.",
+    sharing: "Architecture-independent evaluation for AR, URSA, ELF, diffusion, and flow world models; no tokenizer, Transformer, or head sharing is required.",
+    open: "Paper and the 1,500-clip evaluation-corpus description are public; no official code or project page was located at indexing time.",
+  },
+  "blog-nvidia-world-action-models": {
+    summary: "NVIDIA uses Cosmos 3 to explain how a WAM jointly predicts actions and future video rather than actions alone. The official blog describes 4B/16B/64B tiers, 32-action chunks, roughly 15 Hz for the 4B Edge model on Jetson Thor, and a RoboLab gain from 28.1% to 36.8% for the omni checkpoint under a matched recipe.",
+    why: "This official technical blog clarifies the MoT sharing boundary: one system can share semantic context and training interfaces while text remains AR and image, video, audio, and action use continuous diffusion. Unification does not require one vocabulary, embedding table, or output head.",
+    inspiration: "Let Qwen3 + IBQ first share task semantics, object state, and the action interface while URSA/ELF keeps a specialized generation head. Add future-video/action objectives to multi-frame threat detection to extend understanding–generation toward prediction and action.",
+    experiment: "Fix Qwen3, IBQ, robot or threat data, parameters, and FLOPs. Compare action-only VLA, action plus future-IBQ CE, action plus ELF future velocity, and MoT-style action plus future video. Report understanding/OCR, control success, action shuffle, future error, 15-Hz feasibility, memory, and training stability.",
+    state: "Continuous Cosmos 3 image/video/audio/action latents plus discrete text; Mixture-of-Transformers routes computation by modality.",
+    objective: "An AR Transformer handles reasoning and text, while a diffusion Transformer models continuous image, video, audio, and action; DROID post-training jointly predicts future visuals and actions.",
+    decoding: "Produces 32 actions per inference; the blog reports about 15 Hz for the 4B Edge model on Jetson Thor, with 16B and 64B variants also described.",
+    sharing: "Shares omni context and a Mixture-of-Transformers interface, while discrete-text AR and continuous-modality diffusion keep specialized mechanisms.",
+    open: "Official NVIDIA technical blog; Cosmos 3 checkpoints, recipes, tools, and datasets are public. Consult the official resources for license and deployment scope.",
+    action: "Real robot-action chunks are jointly modeled with future visual outcomes; the blog describes 32 actions per inference.",
+    rollout: "Future video provides an explicit predicted consequence of actions. Closed-loop performance must still be verified on the corresponding Cosmos 3 experiments.",
+    evaluation: "Report task success, action-shuffle sensitivity, causal future-video response, horizon error, end-to-end frequency, and resource cost together.",
+  },
 };
 
 function getEnglishCopy(paper: Paper): EnglishPaperCopy {
@@ -5942,6 +6125,9 @@ function EnglishMatrices() {
       <section className="matrix-section" id="matrix">
         <div className="section-heading"><div><p className="eyebrow">CONTROLLED COMPARISON</p><h2>UMM Generation Matrix</h2></div><p>Fix backbone, tokenizer, data, and compute</p></div>
         <div className="matrix-wrap"><table><thead><tr><th>Route</th><th>State</th><th>Target</th><th>Decoding</th><th>Key control</th></tr></thead><tbody>
+          <tr><th>LLaDA-Image</th><td>FLUX.2 continuous VAE latent</td><td>Flow velocity MSE</td><td>50-step base / 2–4-step Turbo</td><td>Frozen VLM + separate DiT versus shared UMM</td></tr>
+          <tr><th>MIGM Shortcut</th><td>Discrete IDs outside, continuous features inside</td><td>Clean-token CE + feature/average-velocity shortcut</td><td>Masked refinement with sparse full-model calls</td><td>External token process versus internal feature dynamics</td></tr>
+          <tr><th>FlashRender</th><td>Continuous video-VAE latent</td><td>Flow → MeanFlow → on-policy flow map</td><td>4-NFE camera-controlled retake</td><td>Geometry alignment and student-state exposure</td></tr>
           <tr><th>X-Omni</th><td>Discrete token IDs</td><td>Next-token CE + RL</td><td>Left-to-right AR</td><td>Exposure bias and decoder alignment</td></tr>
           <tr><th>MTAR</th><td>Discrete token IDs</td><td>NTP + future-token CE + contrastive regularization</td><td>Unchanged AR inference</td><td>Training-signal density</td></tr>
           <tr><th>URSA</th><td>Discrete image-token IDs</td><td>Clean-token logits / CE</td><td>Global iterative refinement</td><td>Metric path and schedule</td></tr>
@@ -5962,6 +6148,8 @@ function EnglishMatrices() {
       <section className="world-section" id="world-matrix">
         <div className="section-heading"><div><p className="eyebrow">WORLD MODEL COMPARISON</p><h2>Understanding → Generation → Prediction → Action</h2></div><p>Do not reduce evaluation to FVD or LPIPS</p></div>
         <div className="matrix-wrap"><table className="world-table"><thead><tr><th>Model</th><th>Observation state</th><th>Action</th><th>Dynamics target</th><th>Rollout / planning</th><th>UMM connection</th></tr></thead><tbody>
+          <tr><th>Cosmos 3 WAM</th><td>Discrete text + continuous image/video/audio/action latents</td><td>Real action chunks</td><td>Joint future-video and action diffusion</td><td>32 actions/inference; edge deployment reported</td><td>Shared omni context, modality-specific AR/diffusion</td></tr>
+          <tr><th>VeriPhy</th><td>Video + typed obligations + provenance evidence</td><td>Evaluates given controls/events</td><td>Evaluation only</td><td>Auditable supported/contradicted/unknown verdicts</td><td>External causal and physical audit for any UMM world model</td></tr>
           <tr><th>GAIA-1</th><td>Discrete video tokens</td><td>Driving actions + text</td><td>Future token sequence</td><td>AR rollout + diffusion renderer</td><td>Strong IBQ-ID baseline</td></tr>
           <tr><th>V-JEPA 2-AC</th><td>Semantic video embeddings</td><td>Continuous robot actions</td><td>Next representation</td><td>Latent rollout + MPC</td><td>Decoder-free predictive endpoint</td></tr>
           <tr><th>Code World Model</th><td>Executable state + semantic proxy</td><td>Programmed state update</td><td>Causal state transition</td><td>Persistent interactive rollout</td><td>Explicit bridge between reasoning and rendering</td></tr>
@@ -6100,7 +6288,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.08.27</strong>
+        <strong>DAILY BRIEF · 2026.09.07</strong>
         <i />
         <span>{language === "en" ? "Unified multimodal modeling research index" : "统一多模态建模研究知识库"}</span>
       </div>
@@ -6146,9 +6334,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 047]</p>
-              <h1>{language === "en" ? <>Separate compression, memory,<br />world state, and rendering.</> : <>把压缩、记忆、世界状态<br />与外观渲染分开比较</>}</h1>
-              <p className="hero-copy">{language === "en" ? "Today's issue adds temporal token coding, executable visual programs, bounded long-video memory, persistent 3D proxies, and distribution-level world-model evaluation as five independent control axes." : "今日新增VTC、CommerceVibe、DensityKV、SpatialCrafter与PAWBench：把多帧token压缩、可执行视觉代码、长视频记忆、3D世界状态和未来分布校准拆成五个独立控制轴。"}</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 048]</p>
+              <h1>{language === "en" ? <>Separate token state, hidden dynamics,<br />generation, and physical verification.</> : <>把 token 状态、隐藏动力学、生成<br />与物理验证分开比较</>}</h1>
+              <p className="hero-copy">{language === "en" ? "This issue adds LLaDA-Image, MIGM Shortcut, FlashRender, VeriPhy, and NVIDIA's official WAM blog: five controls for frozen understanding, masked-token acceleration, video MeanFlow, auditable physics, and modality-specific MoT." : "本期新增 LLaDA-Image、MIGM Shortcut、FlashRender、VeriPhy 与 NVIDIA WAM 官方 Blog：分别检验冻结理解、masked token 加速、视频 MeanFlow、可追溯物理审计与按模态分工的 MoT。"}</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">{language === "en" ? "View today's picks" : "查看今日精选"}</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>{language === "en" ? "Open deep reads" : "打开精读清单"} <span>→</span></button>
@@ -6160,7 +6348,7 @@ export default function Home() {
                 <span>{language === "en" ? "Papers and blogs are labeled by source type" : "Blog 与论文按来源类型区分"}</span>
               </div>
               <div className="stats">
-                <div><b>222</b><span>{language === "en" ? "Papers & blogs" : "论文与 Blog"}</span></div>
+                <div><b>227</b><span>{language === "en" ? "Papers & blogs" : "论文与 Blog"}</span></div>
                 <div><b>06</b><span>{language === "en" ? "Research tracks" : "独立方向"}</span></div>
                 <div><b>03</b><span>{language === "en" ? "Comparison matrices" : "比较矩阵"}</span></div>
               </div>
@@ -6283,6 +6471,9 @@ export default function Home() {
               <table>
                 <thead><tr><th>路线</th><th>状态空间</th><th>预测目标</th><th>生成顺序</th><th>最关键变量</th></tr></thead>
                 <tbody>
+                  <tr><th>LLaDA-Image</th><td>冻结diffusion-LM理解模块 + FLUX.2连续VAE latent</td><td>线性path的velocity MSE；TwinFlow做2–4步蒸馏</td><td>Base 50步Flow / Turbo 2–4步</td><td>冻结理解、独立DiT的阶段化解耦；不应误写为共享视觉词表/head的UMM</td></tr>
+                  <tr><th>MIGM Shortcut</th><td>外层离散VQ ID/MASK；内层连续hidden feature</td><td>主干clean-token CE + shortcut next-feature/average velocity</td><td>原masked迭代与置信度提交，仅减少full-model调用</td><td>严格区分外部token状态与内部feature动力学；固定schedule测真实加速和palette偏移</td></tr>
+                  <tr><th>FlashRender</th><td>Wan2.1连续video-VAE latent + training-only VGGT几何feature</td><td>Flow velocity → MeanFlow average velocity → on-policy flow-map/DMD</td><td>相机可控4 NFE video-to-video</td><td>固定4步预算，隔离几何对齐、average velocity与student-state暴露</td></tr>
                   <tr><th>X-Omni</th><td>离散 token ID</td><td>Next-token CE</td><td>左到右</td><td>累计误差、KV Cache、RL</td></tr>
                   <tr><th>MTAR</th><td>离散VQ/IBQ token ID；训练期从同一hidden预测多个future IDs</td><td>next-token CE + multi-token CE + token contrastive regularization</td><td>推理仍严格左到右AR；MTP/TCR/semantic dropping均移除</td><td>固定主head与推理，隔离监督密度、低频ID可分性和training-only token dropping</td></tr>
                   <tr><th>URSA</th><td>原始 IBQ 网格的离散 token ID；无额外 merge</td><td>每位置 64K clean-token CE</td><td>全 H×W 网格并行迭代</td><td>Metric path、schedule、solver；勿与仓库中的连续 DiT 混淆</td></tr>
@@ -6509,6 +6700,8 @@ export default function Home() {
               <table className="world-table">
                 <thead><tr><th>路线</th><th>观测状态</th><th>动作接口</th><th>动力学目标</th><th>建模方式</th><th>Rollout / 规划</th><th>与 UMM 的关系</th></tr></thead>
                 <tbody>
+                  <tr><th>Cosmos 3 WAM（官方Blog）</th><td>离散文本 + 连续图像/视频/音频/action latent</td><td>真实action chunk；一次推理32个动作</td><td>未来视觉与action联合diffusion</td><td>MoT：文本AR Transformer + 连续模态Diffusion Transformer</td><td>官方报告4B Edge在Jetson Thor约15 Hz；需独立验证闭环任务</td><td>共享omni上下文与接口，不强迫tokenizer、词表、embedding和head全绑权</td></tr>
+                  <tr><th>VeriPhy</th><td>生成视频 + typed obligations + 带来源证据</td><td>审计既定动作/事件；本身不生成action</td><td>无训练目标；supported/contradicted/unknown物理判定</td><td>Agentic plan + 冻结视觉/音频专家</td><td>逐义务可追溯验证，可abstain；不提供planner</td><td>为AR/URSA/ELF补帧、轨迹、深度、OCR与事件级因果审计</td></tr>
                   <tr><th>Code World Model</th><td>持久可执行typed state + 可编译proxy + RGB/video latent</td><td>自然语言意图→coding agent生成state update程序</td><td>显式state transition；proxy约束renderer的实体、位置、身份与遮挡</td><td>Executable symbolic dynamics + proxy-conditioned video generation</td><td>逐轮state更新与长时可视化；尚未证明真实机器人闭环</td><td>Qwen3写/读权威state，IBQ/URSA/ELF作为可替换renderer；统一接口而非全绑权</td></tr>
                   <tr><th>4DStreamCtrl</th><td>Wan 2.2视频latent + 3D point tracks、depth与constant-memory KV</td><td>在线相机/对象/深度3D track编辑</td><td>track-conditioned future video；student-state Self-Forcing/DMD</td><td>块间causal streaming + 块内4步video diffusion</td><td>480p单H100约20.6 FPS、数百帧恒定内存；无任务planner</td><td>3D track可作为Qwen threat state、URSA/ELF renderer与action之间的共享因果接口</td></tr>
                   <tr><th>4DGS-WAM</th><td>持久静态背景Gaussian + 动态object Gaussians</td><td>policy预测actor future actions</td><td>动态Gaussian变换；静态内容缓存复用</td><td>Object-centric explicit 4D state transition + rendering</td><td>KITTI-MOT短期未来/历史重建；长时闭环仍待验证</td><td>IBQ保留appearance residual，Qwen/ELF只更新对象位姿、可见性与风险delta</td></tr>
