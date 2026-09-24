@@ -5810,7 +5810,7 @@ const papers: Paper[] = [
     index: "229",
     title: "VIVAS: Vitalizing Visual Perception in VLM Pre-training via Vision-language Unified Autoregressive Supervision",
     shortTitle: "VIVAS",
-    date: "2026-08-25 · recent update 2026-09-24",
+    date: "2026-08-25",
     category: "统一多模态",
     paradigm: "Unified Vision-Language Autoregression",
     state: "dense-structural-semantic视觉token扩展文本词表，形成统一视觉—语言离散词表",
