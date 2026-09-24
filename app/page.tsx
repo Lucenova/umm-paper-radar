@@ -5678,7 +5678,7 @@ const papers: Paper[] = [
     project: "https://huggingface.co/inclusionAI/LLaDA-Image",
     code: "https://github.com/inclusionAI/LLaDA-Image",
     domain: "图像生成",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -5703,7 +5703,7 @@ const papers: Paper[] = [
     project: "https://kaiwen-zhu.github.io/MIGM-Shortcut/",
     code: "https://github.com/Kaiwen-Zhu/MIGM-Shortcut",
     domain: "图像生成",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -5728,7 +5728,7 @@ const papers: Paper[] = [
     project: "https://byeongjun-park.github.io/FlashRender/",
     code: "https://github.com/byeongjun-park/FlashRender",
     domain: "视频生成",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -5751,7 +5751,7 @@ const papers: Paper[] = [
     experiment: "固定Qwen3+IBQ/URSA/ELF输出与推理预算，比较自由CoT、问题分解、typed plan、typed plan+provenance专家；做frame deletion、bbox遮挡、OCR替换和action shuffle，报告缺陷召回、误报、abstention calibration、证据忠实度、horizon error与延迟。",
     paper: "https://arxiv.org/abs/2609.03153",
     domain: "评测诊断",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -5776,6 +5776,130 @@ const papers: Paper[] = [
     action: "真实机器人action chunk与未来视觉联合建模；官方Blog描述一次推理32个动作",
     rollout: "以未来视频作为动作结果的显式预测辅助；Blog给出边缘端频率，闭环任务仍需按具体Cosmos 3实验验收",
     evaluation: "除动作成功率外，应报告action-shuffle、future-video因果性、horizon error、端到端频率和资源成本",
+    kind: "Blog",
+    domain: "World Model",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "diffusibility-high-dimensional-latents",
+    index: "228",
+    title: "On the Diffusibility of High-Dimensional Latents",
+    shortTitle: "Diffusibility of Latents",
+    date: "2026-09-23 · ECCV 2026",
+    category: "连续 Flow",
+    paradigm: "RAE Latent Flow · x0 Prediction",
+    state: "重建微调的高维连续视觉encoder feature；观测到有效维度下降，信号集中在低维流形",
+    objective: "比较标准Flow velocity与clean-data x0 prediction；x0目标避开流形正交噪声方向",
+    decoding: "连续latent上的并行Flow/ODE采样；末端由RAE decoder重建图像",
+    sharing: "不共享文本词表或输出head；可把IBQ/Qwen视觉embedding替换为同一受控latent接口",
+    open: "论文与官方项目页已公开；截至收录日未发现官方代码或checkpoint",
+    priority: "精读",
+    summary: "论文发现：为重建而微调视觉encoder虽然恢复细节，却会降低表示的有效维度；此时velocity prediction必须拟合大量位于信号流形之外的正交噪声方向，优化效率反而下降。改用clean x0 prediction后，多种强重建encoder的T2I表现均改善。",
+    why: "它直接挑战ELF改造中的默认假设：连续视觉embedding并不自动适合velocity回归。若IBQ code embedding或Qwen视觉hidden同样低秩，palette collapse可能来自目标参数化，而非Stage-3 head容量。",
+    inspiration: "先测IBQ code embedding、2×2 merged hidden与decoder-valid latent的奇异值谱和局部有效维度，再决定用velocity、noise还是x0目标；不要把连续状态空间与velocity目标绑定成一个不可拆的方案。",
+    experiment: "固定Qwen3、IBQ tokenizer/decoder、数据、backbone、path、NFE与训练FLOPs，只切换velocity、noise、clean-embedding x0和clean-token logits/CE；报告有效秩、正交噪声能量、最近ID回投、code coverage、OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、显存与收敛速度。",
+    paper: "https://arxiv.org/abs/2609.28473",
+    project: "https://cfeng16.github.io/on_the_diffusibility/",
+    domain: "图像生成",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "vivas-unified-ar-supervision",
+    index: "229",
+    title: "VIVAS: Vitalizing Visual Perception in VLM Pre-training via Vision-language Unified Autoregressive Supervision",
+    shortTitle: "VIVAS",
+    date: "2026-08-25 · recent update 2026-09-24",
+    category: "统一多模态",
+    paradigm: "Unified Vision-Language Autoregression",
+    state: "dense-structural-semantic视觉token扩展文本词表，形成统一视觉—语言离散词表",
+    objective: "对视觉细节与语言内容做统一next-token autoregressive supervision",
+    decoding: "同一AR Transformer顺序预测文本与视觉token；论文重点是预训练监督与理解能力",
+    sharing: "视觉词表并入文本词表并共享AR主干；仍需单独核对视觉decoder与输出head的具体共享边界",
+    open: "论文已公开；截至收录日未发现官方代码、模型、项目页或可复现训练配方",
+    priority: "精读",
+    summary: "VIVAS把细粒度视觉感知不足归因于文本主导的预训练偏置，并提出兼具结构粒度与语义的视觉tokenizer，把视觉词表并入语言词表，在12.4T token上端到端进行视觉—语言统一AR监督。论文报告覆盖7类任务、39个多模态benchmark的强结果。",
+    why: "它把‘生成视觉token’用作理解侧的密集监督，而不是只把像素生成当附加能力；这正对应Qwen3+IBQ在OCR、DocVQA和TextVQA上可能出现的视觉细节被文本目标淹没问题。",
+    inspiration: "在不改Qwen3主干的前提下，为IBQ序列加入受控比例的视觉token AR重建或未来block预测，并分开统计高频/低频code、glyph与布局概念是否真的进入共享中层。",
+    experiment: "固定Qwen3、IBQ、语料、总token与FLOPs，比较text-only NTP、caption/interleaved、IBQ重建AR、URSA视觉CE与ELF x0/velocity辅助；扫描视觉loss比例，统一报告OCRBench、DocVQA、TextVQA、生成文字CER、GenEval、code coverage、语言退化与训练稳定性。",
+    paper: "https://arxiv.org/abs/2609.27948",
+    domain: "UMM",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "past-frames-future-memory-survey",
+    index: "230",
+    title: "The Past Frames the Future: Memory for Autoregressive Video Generation",
+    shortTitle: "AR Video Memory Survey",
+    date: "2026-09-23",
+    category: "视频生成",
+    paradigm: "Memory-conditioned Autoregressive Video Generation",
+    state: "跨外层AR rollout持续保存的history carrier：帧、latent、token、KV、显式状态或混合记忆",
+    objective: "综述而非新训练目标；归纳记忆写入、读取、更新、管理、整合与self-rollout learning",
+    decoding: "外层因果AR视频延展，在有界context与存储预算下查询持久历史",
+    sharing: "与tokenizer和动力学目标正交；Qwen3/IBQ/URSA/ELF均可复用同一记忆协议做公平对照",
+    open: "综述论文已公开；无单一官方代码或统一实现",
+    priority: "精读",
+    summary: "该综述把视频记忆严格定义为：原始证据离开局部上下文后，仍能跨外层AR步骤影响未来生成的历史信息。它从载体、功能、操作、学习和评测五个维度整理长期身份、动态状态与干预后因果变化的保存机制。",
+    why: "它能阻止把‘更长context’误写成‘拥有记忆’。对多帧威胁检测，遮挡前身份、OCR变化、轨迹转折与动作干预必须在证据离开窗口后仍影响未来，否则长视频只是局部连贯。",
+    inspiration: "把记忆载体与动力学模型分开：固定IBQ/ELF预测器，只切换FIFO帧、压缩KV、显式对象状态和事件记忆；再测哪些信息能在32个block后被正确读取和更新。",
+    experiment: "固定视频backbone、tokenizer、NFE、局部窗口、总memory bytes与rollout长度，比较无记忆、FIFO、attention Top-K、DensityKV和对象/事件显式记忆；报告身份/OCR/轨迹保持、干预传播、32-block误差、威胁AUPRC、吞吐、显存与每条有效记忆成本。",
+    paper: "https://arxiv.org/abs/2609.28466",
+    domain: "视频生成",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "frozen-flows-forget-dart",
+    index: "231",
+    title: "Frozen Flows Forget: Diagnosing and Restoring Lost Motion in a Latent-flow World Model",
+    shortTitle: "Frozen Flows Forget",
+    date: "2026-09-23",
+    category: "世界模型",
+    paradigm: "Frozen Latent Flow + Decode-Augmented Rollout Training",
+    state: "冻结自监督视觉表示中的连续latent状态；decode-path仅提供训练监督",
+    objective: "latent flow预测未来状态；DART以decode-path rollout监督运动发生的位置与时序",
+    decoding: "在冻结表示上进行多步latent rollout；需要解码检查真实运动而非只看latent/pixel平均误差",
+    sharing: "可复用Qwen3语义状态或IBQ encoder，但不要求共享视觉词表/head；重点是动力学监督而非表示重训",
+    open: "论文已公开；截至收录日未发现官方代码、模型或项目页",
+    priority: "精读",
+    summary: "论文诊断冻结自监督latent上的flow世界模型会悄然丢失运动：原模型不移动被操纵对象，单纯latent-only重训又容易产生瞬移。根因不是表示本身，而是稀疏latent监督没有说明变化应在预测horizon的哪里发生；DART用decode-path rollout监督恢复时序运动。",
+    why: "这与ELF视频分支的dynamic collapse高度同构：单帧可能清晰、平均误差也低，但目标并未沿因果时间移动。论文还证明pixel error会偏爱冻结预测，因此不能把低重建误差当动力学正确。",
+    inspiration: "保持Qwen3/IBQ encoder冻结，只重训ELF dynamics，并在训练期解码关键horizon检查目标位移、接触与遮挡；把静态背景重建和动态对象运动分开加权。",
+    experiment: "固定Qwen3/IBQ表示、flow backbone、数据、参数量和FLOPs，比较latent-only、endpoint decode loss、逐horizon decode supervision与DART rollout；报告零运动率、瞬移率、轨迹/接触时序、action shuffle、horizon error、威胁决策、FVD/LPIPS、延迟与显存。",
+    paper: "https://arxiv.org/abs/2609.28414",
+    action: "以场景操纵条件驱动未来；论文重点是运动监督，真实action接口需按具体实验核对",
+    rollout: "支持多步latent rollout；DART在rollout路径上加入可解码监督，未单独证明闭环规划",
+    evaluation: "必须同时报告运动幅度/时序、动作干预与horizon累积误差；pixel error可能错误奖励冻结",
+    domain: "World Model",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "blog-meta-vjepa-predictive-representation",
+    index: "232",
+    title: "V-JEPA: The Next Step toward Advanced Machine Intelligence",
+    shortTitle: "Meta V-JEPA Blog",
+    date: "2024-02-15 · foundation gap-filler",
+    category: "世界模型",
+    paradigm: "官方研究 Blog / Joint-Embedding Prediction",
+    state: "视频的抽象连续语义embedding；不重建每个像素，只预测被时空mask区域的表示",
+    objective: "self-supervised masked spatiotemporal feature prediction；冻结encoder/predictor后训练轻量probe",
+    decoding: "原始V-JEPA无像素生成decoder；可用独立冻结后训练的diffusion decoder做可视化",
+    sharing: "可作为Qwen3理解/预测语义空间；不与IBQ生成词表、embedding或输出head强制共享",
+    open: "Meta官方研究Blog；CC BY-NC研究模型、PyTorch代码、配置与checkpoints已公开",
+    priority: "泛读",
+    summary: "Meta官方Blog用简洁方式解释V-JEPA为何预测抽象视频表示而不是像素：大块时空mask迫使模型学习对象交互，冻结backbone后只需轻量probe即可迁移。原始版本聚焦短视频感知，明确把长时规划列为后续目标。",
+    why: "它为网站补齐高质量Blog入口，也提供世界模型的decoder-free端点：如果威胁检测只需要动作与因果状态，不必先生成完整未来像素；但OCR与细粒度身份仍可能需要IBQ/重建分支。",
+    inspiration: "让Qwen3同时读取JEPA式future semantic token与IBQ细节token：前者承担动作/事件预测，后者保留文字和身份；用门控或任务路由决定是否调用昂贵的像素生成。",
+    experiment: "固定视频数据、Qwen3、计算与token预算，比较IBQ future CE、ELF future velocity、JEPA feature prediction和JEPA+IBQ双分支；报告OCR/身份、动作识别、威胁AUPRC、未来事件、闭环规划代理指标、吞吐与decoder调用率。",
+    paper: "https://ai.meta.com/blog/v-jepa-yann-lecun-ai-model-video-joint-embedding-predictive-architecture/",
+    code: "https://github.com/facebookresearch/jepa",
+    action: "原始V-JEPA不以真实动作作为条件；主要从被动视频学习交互表示",
+    rollout: "原始Blog强调短时感知与表示预测，未证明长时闭环规划；可作为后续V-JEPA 2-AC的基础",
+    evaluation: "除frozen probe外，应加入动作干预、未来事件、长时horizon与OCR/细节保留测试",
     kind: "Blog",
     domain: "World Model",
     featured: true,
@@ -6033,6 +6157,67 @@ const englishOverrides: Record<string, Partial<EnglishPaperCopy>> = {
     rollout: "Future video provides an explicit predicted consequence of actions. Closed-loop performance must still be verified on the corresponding Cosmos 3 experiments.",
     evaluation: "Report task success, action-shuffle sensitivity, causal future-video response, horizon error, end-to-end frequency, and resource cost together.",
   },
+  "diffusibility-high-dimensional-latents": {
+    summary: "Reconstruction tuning recovers fine detail in pretrained visual features but reduces their effective dimensionality. Standard flow velocity prediction then spends capacity fitting noise directions orthogonal to the low-dimensional signal manifold; clean-data x0 prediction improves T2I performance across multiple strong-reconstruction encoders.",
+    why: "It challenges a default assumption in ELF conversion: a continuous visual embedding is not automatically well matched to velocity regression. If IBQ embeddings or Qwen visual states are similarly low rank, palette collapse may come from target parameterization rather than Stage-3 head capacity.",
+    inspiration: "Measure the singular spectrum and local effective dimension of IBQ code embeddings, 2×2 merged states, and decoder-valid latents before choosing velocity, noise, or x0 prediction. Keep state space and prediction target as separate variables.",
+    experiment: "Fix Qwen3, the IBQ tokenizer/decoder, data, backbone, path, NFE, and training FLOPs. Change only velocity, noise, clean-embedding x0, and clean-token logits/CE. Report effective rank, orthogonal-noise energy, nearest-ID projection, code coverage, OCRBench, DocVQA, TextVQA, generated-text OCR, GenEval, memory, and convergence.",
+    state: "High-dimensional continuous features from reconstruction-tuned visual encoders; the signal contracts onto a lower-dimensional manifold.",
+    objective: "Compare standard flow velocity prediction with clean-data x0 prediction, which avoids orthogonal noise directions.",
+    decoding: "Parallel flow/ODE sampling in continuous latent space followed by an RAE decoder.",
+    sharing: "No text vocabulary or output head is shared; IBQ or Qwen visual embeddings can replace the latent under a matched interface.",
+    open: "The ECCV 2026 paper and official project page are public; no official code or checkpoints were found at indexing time.",
+  },
+  "vivas-unified-ar-supervision": {
+    summary: "VIVAS attributes weak fine-grained perception to text-dominant pretraining. Its dense structural-semantic tokenizer extends the language vocabulary with visual tokens and applies unified autoregressive supervision to visual detail and language over 12.4T tokens, with results reported across 7 task families and 39 multimodal benchmarks.",
+    why: "It uses visual-token generation as dense supervision for understanding rather than treating pixel generation as an auxiliary showcase. That directly targets the loss of glyph, layout, and fine detail in Qwen3 + IBQ OCR and document tasks.",
+    inspiration: "Add a controlled ratio of IBQ reconstruction or future-block prediction to Qwen3 pretraining without changing the backbone. Track whether rare codes, glyphs, and layout concepts become linearly and causally usable in shared middle layers.",
+    experiment: "Fix Qwen3, IBQ, corpus, total tokens, and FLOPs. Compare text-only NTP, caption/interleaved training, IBQ reconstruction AR, URSA visual CE, and ELF x0/velocity auxiliaries. Sweep visual-loss ratios and report OCRBench, DocVQA, TextVQA, generated-text CER, GenEval, code coverage, language regression, and stability.",
+    state: "Dense structural-semantic visual tokens expand the text vocabulary into a unified discrete vision-language vocabulary.",
+    objective: "Unified next-token autoregressive supervision over visual detail and linguistic content.",
+    decoding: "A shared AR Transformer predicts text and visual tokens sequentially; the paper emphasizes pretraining supervision and understanding.",
+    sharing: "The visual vocabulary joins the text vocabulary and shares the AR backbone; decoder and output-head boundaries still require source-level audit.",
+    open: "The paper is public; no official code, model, project page, or reproducible recipe was found at indexing time.",
+  },
+  "past-frames-future-memory-survey": {
+    summary: "This survey defines video memory as historical information that can still influence outer autoregressive steps after the original evidence has left local context. It organizes the field by memory forms, functions, operations, learning, and evaluation.",
+    why: "It prevents a longer context window from being mistaken for memory. In multi-frame threat analysis, pre-occlusion identity, OCR changes, trajectory turns, and intervention effects must survive after their source frames disappear.",
+    inspiration: "Keep the memory carrier separate from the dynamics model. Freeze the IBQ/ELF predictor and compare FIFO frames, compressed K/V, explicit object state, and event memory under the same byte budget.",
+    experiment: "Fix the video backbone, tokenizer, NFE, local window, memory bytes, and rollout length. Compare no memory, FIFO, attention Top-K, DensityKV, and explicit object/event memory. Report identity, OCR and trajectory retention, intervention propagation, 32-block error, threat AUPRC, throughput, memory, and cost per useful memory.",
+    state: "Persistent cross-rollout history carried by frames, latents, tokens, K/V, explicit state, or hybrids.",
+    objective: "Survey rather than a new objective; it covers memory writing, reading, updating, management, integration, and self-rollout learning.",
+    decoding: "Outer causal AR video extension queries persistent history under bounded context, storage, and compute.",
+    sharing: "Orthogonal to the tokenizer and dynamics target; Qwen3, IBQ, URSA, and ELF can share the same memory protocol.",
+    open: "The survey is public; it provides no single official implementation.",
+  },
+  "frozen-flows-forget-dart": {
+    summary: "A latent-flow world model built on frozen self-supervised features can silently lose motion: the pretrained model leaves manipulated objects static, while latent-only retraining produces teleport-like change. DART keeps the representation frozen and adds decode-path rollout supervision to recover temporal motion.",
+    why: "This closely matches dynamic collapse in an ELF video branch. Individual frames and average pixel error can look good while the object never follows causal time; the paper explicitly finds that pixel error can reward frozen predictions.",
+    inspiration: "Freeze the Qwen3/IBQ encoder and retrain only ELF dynamics with decoded checkpoints along the rollout. Weight static background reconstruction separately from object displacement, contact, and occlusion.",
+    experiment: "Fix the Qwen3/IBQ representation, flow backbone, data, parameters, and FLOPs. Compare latent-only, endpoint decode loss, per-horizon decode supervision, and DART. Report zero-motion and teleport rates, trajectories, contact timing, action shuffle, horizon error, threat decisions, FVD/LPIPS, latency, and memory.",
+    state: "Continuous latent states in a frozen self-supervised representation; decode paths are used only for training supervision.",
+    objective: "A latent flow predicts future state, while DART supervises where and when motion occurs along decoded rollouts.",
+    decoding: "Multi-step latent rollout in a frozen representation, with decoded motion audits rather than latent or mean pixel error alone.",
+    sharing: "May reuse a Qwen3 semantic state or IBQ encoder without sharing the visual vocabulary or output head; the intervention targets dynamics supervision.",
+    open: "The paper is public; no official code, model, or project page was found at indexing time.",
+    action: "Scene manipulation conditions drive the future; the exact real-action interface must be checked in the experimental protocol.",
+    rollout: "Supports multi-step latent rollout with decoded supervision; closed-loop planning is not independently established.",
+    evaluation: "Measure motion magnitude and timing, action interventions, and horizon-wise error; pixel error can incorrectly reward frozen futures.",
+  },
+  "blog-meta-vjepa-predictive-representation": {
+    summary: "Meta's official research blog explains why V-JEPA predicts abstract video representations instead of pixels. Large spatiotemporal masks force interaction modeling, while a frozen backbone transfers through lightweight probes. The original release focuses on short-horizon perception and names long-horizon planning as future work.",
+    why: "It adds a high-quality blog entry and a decoder-free world-model endpoint. Threat detection may need predicted actions and causal state without full future pixels, while OCR and identity detail can remain in an IBQ reconstruction branch.",
+    inspiration: "Feed Qwen3 both JEPA-style future semantic tokens and IBQ detail tokens. Let semantics carry action/event prediction, preserve text and identity in IBQ, and gate expensive pixel generation by task need.",
+    experiment: "Fix video data, Qwen3, compute, and token budget. Compare future-IBQ CE, ELF future velocity, JEPA feature prediction, and a JEPA+IBQ dual branch. Report OCR/identity, action recognition, threat AUPRC, future events, planning proxies, throughput, and decoder-call rate.",
+    state: "Abstract continuous video embeddings; masked spatiotemporal regions are predicted without reconstructing every pixel.",
+    objective: "Self-supervised masked feature prediction, followed by lightweight probes on a frozen encoder and predictor.",
+    decoding: "The core V-JEPA has no pixel decoder; a separately trained diffusion decoder can visualize frozen feature predictions.",
+    sharing: "The semantic space can feed Qwen3 understanding and prediction without sharing the IBQ vocabulary, embedding table, or image head.",
+    open: "Official Meta research blog; CC BY-NC research models, PyTorch code, configurations, and checkpoints are public.",
+    action: "The original V-JEPA is trained on passive video rather than real action conditions.",
+    rollout: "The blog emphasizes short-horizon perception, not long closed-loop rollout; it is a foundation for later V-JEPA 2-AC.",
+    evaluation: "Add causal interventions, future-event prediction, long-horizon tests, and OCR/detail retention to frozen probes.",
+  },
 };
 
 function getEnglishCopy(paper: Paper): EnglishPaperCopy {
@@ -6125,6 +6310,8 @@ function EnglishMatrices() {
       <section className="matrix-section" id="matrix">
         <div className="section-heading"><div><p className="eyebrow">CONTROLLED COMPARISON</p><h2>UMM Generation Matrix</h2></div><p>Fix backbone, tokenizer, data, and compute</p></div>
         <div className="matrix-wrap"><table><thead><tr><th>Route</th><th>State</th><th>Target</th><th>Decoding</th><th>Key control</th></tr></thead><tbody>
+          <tr><th>Latent Diffusibility</th><td>High-dimensional RAE feature on a low-effective-rank manifold</td><td>Velocity versus clean x0</td><td>Continuous Flow/ODE</td><td>Target parameterization versus latent geometry</td></tr>
+          <tr><th>VIVAS</th><td>Unified discrete vision-language vocabulary</td><td>Visual + language next-token CE</td><td>Shared sequential AR</td><td>Dense visual supervision versus text-dominant bias</td></tr>
           <tr><th>LLaDA-Image</th><td>FLUX.2 continuous VAE latent</td><td>Flow velocity MSE</td><td>50-step base / 2–4-step Turbo</td><td>Frozen VLM + separate DiT versus shared UMM</td></tr>
           <tr><th>MIGM Shortcut</th><td>Discrete IDs outside, continuous features inside</td><td>Clean-token CE + feature/average-velocity shortcut</td><td>Masked refinement with sparse full-model calls</td><td>External token process versus internal feature dynamics</td></tr>
           <tr><th>FlashRender</th><td>Continuous video-VAE latent</td><td>Flow → MeanFlow → on-policy flow map</td><td>4-NFE camera-controlled retake</td><td>Geometry alignment and student-state exposure</td></tr>
@@ -6148,6 +6335,8 @@ function EnglishMatrices() {
       <section className="world-section" id="world-matrix">
         <div className="section-heading"><div><p className="eyebrow">WORLD MODEL COMPARISON</p><h2>Understanding → Generation → Prediction → Action</h2></div><p>Do not reduce evaluation to FVD or LPIPS</p></div>
         <div className="matrix-wrap"><table className="world-table"><thead><tr><th>Model</th><th>Observation state</th><th>Action</th><th>Dynamics target</th><th>Rollout / planning</th><th>UMM connection</th></tr></thead><tbody>
+          <tr><th>Frozen Flows Forget</th><td>Frozen semantic latent + decode-path supervision</td><td>Scene manipulation condition</td><td>Latent flow with DART rollout supervision</td><td>Multi-step rollout; closed-loop planning not shown</td><td>Separates frozen representation from temporal dynamics supervision</td></tr>
+          <tr><th>V-JEPA Blog</th><td>Masked spatiotemporal semantic embeddings</td><td>Passive video; no real action input</td><td>JEPA feature prediction</td><td>Short-horizon perception in the original release</td><td>Decoder-free semantic endpoint beside IBQ/ELF rendering</td></tr>
           <tr><th>Cosmos 3 WAM</th><td>Discrete text + continuous image/video/audio/action latents</td><td>Real action chunks</td><td>Joint future-video and action diffusion</td><td>32 actions/inference; edge deployment reported</td><td>Shared omni context, modality-specific AR/diffusion</td></tr>
           <tr><th>VeriPhy</th><td>Video + typed obligations + provenance evidence</td><td>Evaluates given controls/events</td><td>Evaluation only</td><td>Auditable supported/contradicted/unknown verdicts</td><td>External causal and physical audit for any UMM world model</td></tr>
           <tr><th>GAIA-1</th><td>Discrete video tokens</td><td>Driving actions + text</td><td>Future token sequence</td><td>AR rollout + diffusion renderer</td><td>Strong IBQ-ID baseline</td></tr>
@@ -6190,7 +6379,9 @@ export default function Home() {
 
   useEffect(() => {
     const stored = window.localStorage.getItem("umm-language");
-    if (stored === "zh" || stored === "en") setLanguage(stored);
+    if (stored !== "zh" && stored !== "en") return;
+    const timer = window.setTimeout(() => setLanguage(stored), 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -6247,8 +6438,6 @@ export default function Home() {
     });
   }, [active, query]);
 
-  useEffect(() => setPage(1), [query]);
-
   const pageCount = Math.max(1, Math.ceil(visiblePapers.length / PAGE_SIZE));
   const pagedPapers = visiblePapers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const paginationItems = Array.from({ length: pageCount }, (_, index) => index + 1)
@@ -6272,7 +6461,7 @@ export default function Home() {
           <span aria-hidden="true">⌕</span>
           <input
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => { setQuery(event.target.value); setPage(1); }}
             placeholder={language === "en" ? "Search papers, blogs, or paradigms" : "搜索论文、作者或范式"}
             aria-label={language === "en" ? "Search resources" : "搜索论文"}
           />
@@ -6288,7 +6477,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.09.07</strong>
+        <strong>DAILY BRIEF · 2026.09.24</strong>
         <i />
         <span>{language === "en" ? "Unified multimodal modeling research index" : "统一多模态建模研究知识库"}</span>
       </div>
@@ -6334,9 +6523,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 048]</p>
-              <h1>{language === "en" ? <>Separate token state, hidden dynamics,<br />generation, and physical verification.</> : <>把 token 状态、隐藏动力学、生成<br />与物理验证分开比较</>}</h1>
-              <p className="hero-copy">{language === "en" ? "This issue adds LLaDA-Image, MIGM Shortcut, FlashRender, VeriPhy, and NVIDIA's official WAM blog: five controls for frozen understanding, masked-token acceleration, video MeanFlow, auditable physics, and modality-specific MoT." : "本期新增 LLaDA-Image、MIGM Shortcut、FlashRender、VeriPhy 与 NVIDIA WAM 官方 Blog：分别检验冻结理解、masked token 加速、视频 MeanFlow、可追溯物理审计与按模态分工的 MoT。"}</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 049]</p>
+              <h1>{language === "en" ? <>Separate latent geometry, supervision,<br />memory, and temporal dynamics.</> : <>把 latent 几何、监督、记忆<br />与时序动力学分开比较</>}</h1>
+              <p className="hero-copy">{language === "en" ? "This issue adds Latent Diffusibility, VIVAS, the AR Video Memory survey, Frozen Flows Forget, and Meta's V-JEPA blog: five controls for target parameterization, unified visual supervision, persistent history, decoded motion, and decoder-free prediction." : "本期新增高维 Latent 可扩散性、VIVAS、AR 视频记忆综述、Frozen Flows Forget 与 Meta V-JEPA 官方 Blog：分别检验目标参数化、统一视觉监督、持久历史、可解码运动与 decoder-free 预测。"}</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">{language === "en" ? "View today's picks" : "查看今日精选"}</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>{language === "en" ? "Open deep reads" : "打开精读清单"} <span>→</span></button>
@@ -6348,7 +6537,7 @@ export default function Home() {
                 <span>{language === "en" ? "Papers and blogs are labeled by source type" : "Blog 与论文按来源类型区分"}</span>
               </div>
               <div className="stats">
-                <div><b>227</b><span>{language === "en" ? "Papers & blogs" : "论文与 Blog"}</span></div>
+                <div><b>232</b><span>{language === "en" ? "Papers & blogs" : "论文与 Blog"}</span></div>
                 <div><b>06</b><span>{language === "en" ? "Research tracks" : "独立方向"}</span></div>
                 <div><b>03</b><span>{language === "en" ? "Comparison matrices" : "比较矩阵"}</span></div>
               </div>
@@ -6471,6 +6660,8 @@ export default function Home() {
               <table>
                 <thead><tr><th>路线</th><th>状态空间</th><th>预测目标</th><th>生成顺序</th><th>最关键变量</th></tr></thead>
                 <tbody>
+                  <tr><th>Latent Diffusibility</th><td>高维RAE连续feature；重建微调后有效秩下降</td><td>标准velocity vs clean x0 prediction</td><td>连续Flow/ODE并行采样</td><td>固定latent/path，分离目标参数化与表示几何；迁移到IBQ前先测有效秩</td></tr>
+                  <tr><th>VIVAS</th><td>统一文本—视觉离散词表</td><td>视觉细节 + 语言next-token CE</td><td>同一Transformer顺序AR</td><td>固定Qwen3/IBQ与FLOPs，隔离密集视觉监督和文本主导偏置</td></tr>
                   <tr><th>LLaDA-Image</th><td>冻结diffusion-LM理解模块 + FLUX.2连续VAE latent</td><td>线性path的velocity MSE；TwinFlow做2–4步蒸馏</td><td>Base 50步Flow / Turbo 2–4步</td><td>冻结理解、独立DiT的阶段化解耦；不应误写为共享视觉词表/head的UMM</td></tr>
                   <tr><th>MIGM Shortcut</th><td>外层离散VQ ID/MASK；内层连续hidden feature</td><td>主干clean-token CE + shortcut next-feature/average velocity</td><td>原masked迭代与置信度提交，仅减少full-model调用</td><td>严格区分外部token状态与内部feature动力学；固定schedule测真实加速和palette偏移</td></tr>
                   <tr><th>FlashRender</th><td>Wan2.1连续video-VAE latent + training-only VGGT几何feature</td><td>Flow velocity → MeanFlow average velocity → on-policy flow-map/DMD</td><td>相机可控4 NFE video-to-video</td><td>固定4步预算，隔离几何对齐、average velocity与student-state暴露</td></tr>
@@ -6700,6 +6891,8 @@ export default function Home() {
               <table className="world-table">
                 <thead><tr><th>路线</th><th>观测状态</th><th>动作接口</th><th>动力学目标</th><th>建模方式</th><th>Rollout / 规划</th><th>与 UMM 的关系</th></tr></thead>
                 <tbody>
+                  <tr><th>Frozen Flows Forget</th><td>冻结语义latent + decode-path监督</td><td>场景操纵条件；真实action接口需按实验核对</td><td>latent flow + DART逐horizon运动监督</td><td>Frozen representation Flow + Decode-Augmented Rollout</td><td>多步latent rollout；未单独证明闭环规划</td><td>冻结Qwen3/IBQ表示，只审计动力学监督能否修复静止/瞬移</td></tr>
+                  <tr><th>V-JEPA（官方Blog）</th><td>被时空mask的视频语义embedding</td><td>被动视频；原始版本无真实action输入</td><td>masked future feature prediction</td><td>Joint-Embedding Prediction</td><td>原始版本聚焦短时感知；长时规划是后续方向</td><td>作为IBQ/ELF像素渲染之外的decoder-free语义预测端点</td></tr>
                   <tr><th>Cosmos 3 WAM（官方Blog）</th><td>离散文本 + 连续图像/视频/音频/action latent</td><td>真实action chunk；一次推理32个动作</td><td>未来视觉与action联合diffusion</td><td>MoT：文本AR Transformer + 连续模态Diffusion Transformer</td><td>官方报告4B Edge在Jetson Thor约15 Hz；需独立验证闭环任务</td><td>共享omni上下文与接口，不强迫tokenizer、词表、embedding和head全绑权</td></tr>
                   <tr><th>VeriPhy</th><td>生成视频 + typed obligations + 带来源证据</td><td>审计既定动作/事件；本身不生成action</td><td>无训练目标；supported/contradicted/unknown物理判定</td><td>Agentic plan + 冻结视觉/音频专家</td><td>逐义务可追溯验证，可abstain；不提供planner</td><td>为AR/URSA/ELF补帧、轨迹、深度、OCR与事件级因果审计</td></tr>
                   <tr><th>Code World Model</th><td>持久可执行typed state + 可编译proxy + RGB/video latent</td><td>自然语言意图→coding agent生成state update程序</td><td>显式state transition；proxy约束renderer的实体、位置、身份与遮挡</td><td>Executable symbolic dynamics + proxy-conditioned video generation</td><td>逐轮state更新与长时可视化；尚未证明真实机器人闭环</td><td>Qwen3写/读权威state，IBQ/URSA/ELF作为可替换renderer；统一接口而非全绑权</td></tr>
