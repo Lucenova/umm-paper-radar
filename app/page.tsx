@@ -5802,7 +5802,7 @@ const papers: Paper[] = [
     paper: "https://arxiv.org/abs/2609.28473",
     project: "https://cfeng16.github.io/on_the_diffusibility/",
     domain: "图像生成",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -5825,7 +5825,7 @@ const papers: Paper[] = [
     experiment: "固定Qwen3、IBQ、语料、总token与FLOPs，比较text-only NTP、caption/interleaved、IBQ重建AR、URSA视觉CE与ELF x0/velocity辅助；扫描视觉loss比例，统一报告OCRBench、DocVQA、TextVQA、生成文字CER、GenEval、code coverage、语言退化与训练稳定性。",
     paper: "https://arxiv.org/abs/2609.27948",
     domain: "UMM",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -5848,7 +5848,7 @@ const papers: Paper[] = [
     experiment: "固定视频backbone、tokenizer、NFE、局部窗口、总memory bytes与rollout长度，比较无记忆、FIFO、attention Top-K、DensityKV和对象/事件显式记忆；报告身份/OCR/轨迹保持、干预传播、32-block误差、威胁AUPRC、吞吐、显存与每条有效记忆成本。",
     paper: "https://arxiv.org/abs/2609.28466",
     domain: "视频生成",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -5874,7 +5874,7 @@ const papers: Paper[] = [
     rollout: "支持多步latent rollout；DART在rollout路径上加入可解码监督，未单独证明闭环规划",
     evaluation: "必须同时报告运动幅度/时序、动作干预与horizon累积误差；pixel error可能错误奖励冻结",
     domain: "World Model",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -5902,6 +5902,132 @@ const papers: Paper[] = [
     evaluation: "除frozen probe外，应加入动作干预、未来事件、长时horizon与OCR/细节保留测试",
     kind: "Blog",
     domain: "World Model",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "rolling-wam-rolling-imagination",
+    index: "233",
+    title: "Rolling-WAM: World Action Models with Rolling Imagination",
+    shortTitle: "Rolling-WAM",
+    date: "2026-09-24",
+    category: "世界模型",
+    paradigm: "Rolling Joint Video-Action Diffusion",
+    state: "预训练video-DiT处理当前观测与多段未来视频latent，轻量action Transformer处理真实机器人action chunk；各chunk处于不同噪声等级",
+    objective: "视频与动作联合去噪；rolling schedule让最近action chunk完全去噪，远期视频/动作chunk只部分更新并跨控制周期保留",
+    decoding: "滑动窗口逐周期滚动：执行最近动作、接收新观测、保留远期预测并追加高噪新chunk；稳态每周期不再重算整个horizon",
+    sharing: "Mixture-of-Transformers共享语言、机器人状态与视觉上下文接口；video/action expert、attention规则和head分开，不共享Qwen3/IBQ词表",
+    open: "论文、项目页与Apache-2.0仓库已公开；截至收录日仓库明确标注核心代码与checkpoints仍在准备中",
+    priority: "精读",
+    summary: "Rolling-WAM把联合视频—动作去噪摊到连续闭环周期：下一段动作在本周期完成，较远未来只继续细化。官方在LIBERO、RoboTwin 2.0和Unitree G1上报告竞争性成功率，并在受控A100设置下把稳态重规划延迟从Joint-WAM的978 ms降到215 ms，即4.5倍加速。",
+    why: "它解决世界模型最容易被忽略的系统瓶颈：闭环控制不能每次从纯噪声重算完整未来。对Qwen3+IBQ/ELF，多帧威胁预测也应把未来block作为可复用状态，而不是每个新帧都重新生成整段horizon。",
+    inspiration: "可让ELF视频分支保留跨周期的部分去噪IBQ/连续future blocks，同时只把最近动作或威胁判断推进到clean；必须加入新观测纠错门控，防止过期远期预测锁死。",
+    experiment: "固定Qwen3、IBQ/视频codec、联合video-action backbone、数据、horizon、总NFE与硬件，比较full-horizon重算、action-only快速头、Rolling-WAM staggered schedule和rolling+观测重置；报告闭环成功、action-shuffle、1/8/32-block误差、215ms目标达成率、吞吐、显存与旧预测纠错时间。",
+    paper: "https://arxiv.org/abs/2609.30247",
+    project: "https://rolling-wam.github.io/",
+    code: "https://github.com/zyinghua/Rolling-WAM",
+    action: "真实机器人action chunk与未来视频联合建模；语言指令和机器人状态条件化两个expert",
+    rollout: "支持跨重规划周期保留并更新远期预测，已在模拟和真实机器人闭环任务验证",
+    evaluation: "除视频质量外，应同时报告闭环成功率、动作干预、观测纠错、horizon误差、稳态/冷启动延迟与资源成本",
+    domain: "World Model",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "representation-world-model-executable-paths",
+    index: "234",
+    title: "Representation World Model: Learning States, Transition and Executable Plans in Representation",
+    shortTitle: "Representation World Model",
+    date: "2026-09-24",
+    category: "世界模型",
+    paradigm: "Representation-Geometry Planning + Inverse Dynamics",
+    state: "当前与目标观测的连续representation；endpoint之间构造latent path并以局部inverse-dynamics监督塑造几何",
+    objective: "让路径上的局部表示同时保存任务相关状态、transition与可逆推出的action；不要求像素未来或递归next-frame rollout",
+    decoding: "推理时直接连接current/goal representation形成latent path，再由inverse dynamics逐段恢复可执行动作，无action-space search或递归rollout",
+    sharing: "可复用Qwen3语义视觉空间或IBQ encoder，但规划几何与IBQ像素decoder/head可分离；共享状态空间不等于共享生成词表",
+    open: "论文已公开并给出官方项目入口，但收录时项目页不可访问，未发现可用官方代码或checkpoint",
+    priority: "精读",
+    summary: "RWM不把世界模型等同于未来视频生成：它直接把规划写进representation geometry。训练时在current—goal端点之间构造latent path，用局部inverse dynamics确保路径可执行；推理时直接生成表示路径并解码动作，省去递归rollout、MPC搜索或策略候选优化。",
+    why: "它为ELF显式未来生成提供低成本反例：如果任务目标是威胁规避或到达目标，可能只需可执行状态路径而非高保真未来像素。与此同时，没有renderer也意味着OCR、身份与细粒度证据必须由IBQ/Qwen分支另外保留。",
+    inspiration: "把Qwen3威胁状态作为路径端点，让IBQ/ELF只在需要解释或校验时渲染若干关键节点；用inverse dynamics检验中间表示是否真的对应可执行运动，而非只在线性probe上可读。",
+    experiment: "固定Qwen3/IBQ encoder、动作接口、数据、参数量和训练FLOPs，比较IBQ-ID AR未来、ELF latent rollout、RWM直连路径与RWM+关键点renderer；报告路径可执行率、闭环成功、碰撞/威胁规避、horizon误差、OCR/身份保留、规划延迟、显存及renderer调用率。",
+    paper: "https://arxiv.org/abs/2609.29171",
+    project: "https://tsinghua-mars-lab.github.io/RepresentationWorldModel",
+    action: "inverse dynamics从相邻latent path节点恢复连续控制动作",
+    rollout: "不递归预测未来观测；直接构造current-to-goal表示路径并执行，连续控制与机器人操纵实验验证其可行性",
+    evaluation: "需把短路径可执行性、长horizon偏离、闭环成功、表征捷径和真实环境扰动恢复分开报告",
+    domain: "World Model",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "track-training-free-trajectory-routing",
+    index: "235",
+    title: "Accelerating Video Diffusion via Training-Free Trajectory Routing",
+    shortTitle: "TRACK",
+    date: "2026-09-24",
+    category: "视频生成",
+    paradigm: "Training-Free Heterogeneous Denoiser Routing",
+    state: "同一视频diffusion/flow latent、timestep、条件与guidance输入，在兼容的大/小denoiser之间按步路由",
+    objective: "训练目标不变；离线校准每个denoising step上small/large预测的相对分歧，低分歧步使用小模型",
+    decoding: "保持原scheduler与步序，每一步只执行被选中的一个模型；无需在线双模型评估、重训或架构修改",
+    sharing: "大/小模型必须共享兼容latent、条件与scheduler接口，但参数与容量不同；不涉及Qwen3/IBQ词表或head共享",
+    open: "论文已公开；截至收录日未发现官方项目页、代码仓库或checkpoint",
+    priority: "精读",
+    summary: "TRACK先用大模型跑参考轨迹，再在相同latent、timestep、条件与CFG输入上测小模型分歧，得到跨step的固定路由表。质量敏感步保留大模型，其余步换小模型；论文在Wan 2.1、Cosmos 3、TurboDiffusion与FastVideo上报告约1.95–2.73倍加速且保持总体质量与多样性。",
+    why: "它把‘哪些timestep真正需要大容量’从经验问题变成可校准控制变量。若ELF/视频Flow在少数高曲率或高语义步决定IBQ code palette，统一使用同一大head会浪费大量计算。",
+    inspiration: "先在Qwen3+IBQ/ELF轨迹上测大/小velocity head的逐t分歧，再只在OCR、小目标或运动转折敏感步调用大head；路由必须同时看最近ID回投、文字OCR和动态性，不能只看latent MSE。",
+    experiment: "固定ELF teacher、小head、视频数据、scheduler、NFE与校准集，比较全大、全小、均匀交替、TRACK分歧路由和按OCR/运动风险条件化路由；报告GenEval/视频质量、生成文字OCR、code coverage、运动幅度、轨迹误差、真实延迟、吞吐、显存与路由迁移稳定性。",
+    paper: "https://arxiv.org/abs/2609.30096",
+    domain: "视频生成",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "alignment-illusion-mllm",
+    index: "236",
+    title: "The Alignment Illusion in Multimodal Large Language Models",
+    shortTitle: "Alignment Illusion",
+    date: "2026-09-24 · NeurIPS 2026",
+    category: "可解释性",
+    paradigm: "Controlled Visual-Stream Intervention + Principal-Angle Gap",
+    state: "MLLM逐层视觉/文本hidden、projector输出，以及经Gaussian noise或无关图像替换的受控视觉流",
+    objective: "不训练生成器；比较CKA、SVCCA、MIR、首主角余弦与top-two principal-angle gap对内容破坏的敏感性",
+    decoding: "保持原MLLM推理，只替换视觉token并同步观察任务准确率和层间几何指标",
+    sharing: "诊断共享LLM路径是否制造伪对齐；把权重诱导的一维共同方向与多方向视觉内容结构分开",
+    open: "论文已公开并被NeurIPS 2026接收；截至收录日未发现官方代码或项目页",
+    priority: "精读",
+    summary: "该工作在13个、0.5B–72B的MLLM上把projector输出视觉token替换为Gaussian noise：任务准确率显著下降，但CKA、SVCCA、MIR和首主角余弦常无法区分。作者把假象归因于共享LLM的各向异性MLP下投影，并提出top-two主角余弦差PA gap作为更敏感诊断。",
+    why: "这直接约束Qwen3+IBQ的‘语义对齐’结论：逐层相似度升高可能只是共享权重把两种token压到同一主方向，并不证明OCR、对象或威胁概念真正互通。",
+    inspiration: "在raw IBQ、semantic adapter与2×2 merged hidden上同时做noise replacement、同布局无关图、OCR替换和对象交换；只有指标随任务能力和干预强度一致变化，才能称为内容级对齐。",
+    experiment: "固定Qwen3、IBQ、数据与层位，比较CKA/SVCCA/MIR、首主角余弦、PA gap与linear probe；扫描visual corruption强度并报告OCRBench、DocVQA、TextVQA、多帧威胁AUPRC、逐层指标、因果恢复率和随机方向对照。",
+    paper: "https://arxiv.org/abs/2609.30210",
+    domain: "可解释性",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "strand-spatiotemporal-monitoring",
+    index: "237",
+    title: "STRAND: Benchmarking and Improving Object-Centric Spatio-Temporal Monitoring in Video Large Language Models",
+    shortTitle: "STRAND",
+    date: "2026-08-28",
+    category: "评测诊断",
+    paradigm: "Object-Centric Trajectory Memory + Faithful Accuracy",
+    state: "人审对象、状态、关系与时间事实；模型侧把15秒chunk的结构化状态聚合为可查询对象轨迹",
+    objective: "评测目标与全部先决sub-question必须同时正确才计入Faithful Accuracy；方法侧以结构化轨迹替代仅靠raw frames回答",
+    decoding: "先一次性构建跨chunk对象轨迹，再按问题检索相关轨迹并结合固定帧预算回答；聚合器为确定性符号程序",
+    sharing: "与AR/URSA/ELF生成head解耦；可直接作为Qwen3多帧理解与world-model rollout的外部事实审计层",
+    open: "论文、项目页、MIT许可代码、benchmark数据、评测脚本与方法实现已公开",
+    priority: "精读",
+    summary: "STRAND含88段平均183秒视频、977个目标问题和2,516个原子sub-question。只有目标与所有依赖事实均正确才计分；项目页报告对象轨迹框架在Qwen3体系的等frame、等call和等token对照中分别提升Faithful Accuracy 12.7、9.5和7.7点，并将时间顺序暴露为主要残余瓶颈。",
+    why: "它比最终答案准确率更适合多帧威胁检测：模型不能靠碰巧答对风险类别掩盖错身份、错状态或错事件顺序。公开数据与代码也让这一诊断可直接复现。",
+    inspiration: "把威胁结论拆成对象身份、OCR/标识、接近趋势、动作先后和交互关系等先决事实；同时将IBQ/ELF预测出的未来轨迹写入同一事实表，统一审计理解与预测。",
+    experiment: "固定Qwen3、帧/token/call预算与问题集，比较raw-frame端到端、dense caption、结构化state、object trajectory和trajectory+ELF future；做顺序打乱、身份链接移除、关键帧删除与action shuffle，报告Faithful/Target/Sub accuracy、威胁AUPRC、horizon误差、延迟和成本。",
+    paper: "https://arxiv.org/abs/2609.29607",
+    project: "https://nguyentthong.github.io/strand/",
+    code: "https://github.com/nguyentthong/video_hallucination",
+    domain: "评测诊断",
     featured: true,
     idea: true,
   },
@@ -6218,6 +6344,67 @@ const englishOverrides: Record<string, Partial<EnglishPaperCopy>> = {
     rollout: "The blog emphasizes short-horizon perception, not long closed-loop rollout; it is a foundation for later V-JEPA 2-AC.",
     evaluation: "Add causal interventions, future-event prediction, long-horizon tests, and OCR/detail retention to frozen probes.",
   },
+  "rolling-wam-rolling-imagination": {
+    summary: "Rolling-WAM amortizes joint video-action denoising across consecutive closed-loop cycles: the imminent action chunk finishes now while farther-future chunks remain partially denoised and continue later. On LIBERO, RoboTwin 2.0, and a real Unitree G1, the project reports competitive success and a controlled A100 steady-state replanning latency drop from 978 ms to 215 ms, a 4.5× speedup over Joint-WAM.",
+    why: "It targets a systems bottleneck that world-model papers often hide: closed-loop control cannot regenerate the entire future from noise after every observation. A Qwen3 + IBQ/ELF threat model should likewise carry reusable future blocks across frames.",
+    inspiration: "Retain partially denoised IBQ or continuous future blocks between cycles and push only the nearest action or threat decision to clean. Add an observation-reset gate so stale predictions do not lock the rollout.",
+    experiment: "Fix Qwen3, the IBQ/video codec, joint video-action backbone, data, horizon, total NFE, and hardware. Compare full-horizon restart, an action-only fast head, the staggered rolling schedule, and rolling plus observation reset. Report closed-loop success, action shuffle, 1/8/32-block error, 215-ms deadline rate, throughput, memory, and stale-plan correction time.",
+    state: "A pretrained video DiT processes the current observation and several future video-latent chunks; a lightweight action Transformer processes real robot-action chunks at staggered noise levels.",
+    objective: "Joint video-action denoising under a rolling schedule that fully resolves the imminent action chunk while retaining partially refined future chunks.",
+    decoding: "Execute the nearest action, observe, roll the window, keep future predictions, and append a new noisy chunk instead of restarting the horizon.",
+    sharing: "A Mixture-of-Transformers shares language, robot state, and visual context interfaces while keeping video/action experts, attention rules, and heads distinct; it does not share a Qwen3/IBQ vocabulary.",
+    open: "The paper, project page, and Apache-2.0 repository are public; the repository says core code and checkpoints are still being prepared.",
+    action: "Real robot-action chunks are jointly modeled with future video; language instructions and robot state condition both experts.",
+    rollout: "Future predictions persist across replanning cycles, with closed-loop simulation and real-robot evaluations.",
+    evaluation: "Report closed-loop success, action interventions, correction after new observations, horizon error, steady-state and cold-start latency, and resource cost—not video quality alone.",
+  },
+  "representation-world-model-executable-paths": {
+    summary: "RWM writes planning into representation geometry rather than equating a world model with future-video generation. Local inverse-dynamics supervision makes paths between current and goal endpoints executable; inference constructs the latent path directly and decodes actions without recursive rollouts, MPC search, or candidate-policy optimization.",
+    why: "It is a low-cost counterpoint to explicit ELF future rendering. Threat avoidance may require an executable state path rather than photorealistic future pixels, while OCR, identity, and fine evidence still need an IBQ/Qwen branch.",
+    inspiration: "Use Qwen3 threat states as path endpoints, invoke IBQ/ELF only to render selected checkpoints, and test whether intermediate states recover executable actions rather than merely supporting a linear probe.",
+    experiment: "Fix the Qwen3/IBQ encoder, action interface, data, parameters, and FLOPs. Compare IBQ-ID AR futures, ELF latent rollout, direct RWM paths, and RWM plus sparse checkpoint rendering. Report path executability, closed-loop success, collision/threat avoidance, horizon error, OCR/identity retention, planning latency, memory, and renderer-call rate.",
+    state: "Continuous current and goal representations connected by latent paths whose local geometry is shaped by inverse-dynamics supervision.",
+    objective: "Preserve task state and transition information along a path so local inverse dynamics can recover executable actions; no pixel-future target is required.",
+    decoding: "Construct a current-to-goal representation path and recover actions segment by segment without recursive observation rollout or action-space search.",
+    sharing: "The state space may reuse a Qwen3 semantic visual encoder or IBQ encoder while planning geometry and the pixel decoder/head remain separate.",
+    open: "The paper is public and names an official project page, but that page was unavailable at indexing time; no usable official code or checkpoints were found.",
+    action: "Inverse dynamics recovers continuous controls from adjacent latent-path states.",
+    rollout: "Planning is direct rather than recursive; continuous-control and manipulation results demonstrate feasibility but long-horizon robustness remains to be audited.",
+    evaluation: "Separate short-path executability, long-horizon deviation, closed-loop success, representation shortcuts, and recovery from real-environment disturbances.",
+  },
+  "track-training-free-trajectory-routing": {
+    summary: "TRACK calibrates disagreement between compatible large and small denoisers using the same latent, timestep, conditioning, and guidance. It keeps the large model on quality-sensitive steps and routes low-disagreement steps to the small model. The paper reports roughly 1.95–2.73× speedups on Wan 2.1, Cosmos 3, TurboDiffusion, and FastVideo while preserving aggregate quality and diversity.",
+    why: "It turns 'which timesteps need large capacity' into a measurable control. If only high-curvature or semantic-critical parts of an ELF trajectory determine the IBQ palette, using the same large head everywhere wastes compute.",
+    inspiration: "Measure large/small velocity-head disagreement by timestep, then call the larger head only for OCR-, small-object-, or motion-turn-sensitive states. Route on nearest-ID projection, text OCR, and dynamics—not latent MSE alone.",
+    experiment: "Fix the ELF teacher, small head, video data, scheduler, NFE, and calibration set. Compare all-large, all-small, uniform alternation, disagreement routing, and OCR/motion-risk-conditioned routing. Report visual quality, generated-text OCR, code coverage, motion magnitude, trajectory error, latency, throughput, memory, and transfer stability.",
+    state: "The same video diffusion/flow latent, timestep, condition, and guidance are routed between compatible large and small denoisers.",
+    objective: "Training is unchanged; offline calibration measures per-step relative disagreement and assigns low-disagreement steps to the small model.",
+    decoding: "The original scheduler and order remain intact, and only one selected model runs per step; no online dual evaluation is required.",
+    sharing: "Large and small models need compatible latent, conditioning, and scheduler interfaces but keep separate parameters and capacity; no Qwen3/IBQ vocabulary is shared.",
+    open: "The paper is public; no official project page, code repository, or checkpoints were found at indexing time.",
+  },
+  "alignment-illusion-mllm": {
+    summary: "Across 13 MLLMs from 0.5B to 72B, replacing projector-output visual tokens with Gaussian noise sharply reduces accuracy while CKA, SVCCA, MIR, and the leading principal-angle cosine often fail to separate the corrupted stream. The paper traces this illusion to anisotropic MLP down-projections in the shared LLM and proposes the top-two principal-angle gap as a more sensitive diagnostic.",
+    why: "It constrains semantic-alignment claims in Qwen3 + IBQ: rising layer-wise similarity may reflect shared weights collapsing both modalities toward one direction, not usable OCR, object, or threat concepts.",
+    inspiration: "Apply noise replacement, layout-matched irrelevant images, OCR swaps, and object swaps to raw IBQ tokens, semantic adapters, and 2×2 merged states. Call alignment content-level only when the metric follows capability and intervention strength.",
+    experiment: "Fix Qwen3, IBQ, data, and layer positions. Compare CKA, SVCCA, MIR, leading-angle cosine, PA gap, and linear probes while sweeping visual corruption. Report OCRBench, DocVQA, TextVQA, multi-frame threat AUPRC, layer-wise metrics, causal recovery, and random-direction controls.",
+    state: "Layer-wise visual/text states and projector outputs under Gaussian-noise or structured irrelevant-image interventions.",
+    objective: "No generation training; compare common scalar alignment scores with the gap between the top two principal-angle cosines.",
+    decoding: "Preserve base MLLM inference while replacing visual tokens and measuring both task accuracy and internal geometry.",
+    sharing: "Diagnoses whether the shared LLM pathway creates weight-induced pseudo-alignment, separating one-dimensional common directions from multidirectional visual content.",
+    open: "The NeurIPS 2026 paper is public; no official code or project page was found at indexing time.",
+  },
+  "strand-spatiotemporal-monitoring": {
+    summary: "STRAND contains 88 videos averaging 183 seconds, 977 target questions, and 2,516 atomic sub-questions. Faithful Accuracy gives credit only when the target and every prerequisite fact are correct. The project reports +12.7, +9.5, and +7.7 points for its trajectory framework under equal-frame, equal-call, and equal-token Qwen controls, exposing temporal order as the main remaining bottleneck.",
+    why: "It is better suited to multi-frame threat analysis than final-answer accuracy: a lucky risk label cannot hide wrong identity, state, or event order. The released code and data make the diagnosis reproducible.",
+    inspiration: "Decompose each threat verdict into identity, OCR/signage, approach trend, event order, and interaction facts. Write IBQ/ELF predicted futures into the same fact table to audit understanding and prediction together.",
+    experiment: "Fix Qwen3, frame/token/call budgets, and questions. Compare raw-frame end-to-end, dense captions, structured states, object trajectories, and trajectories plus ELF futures. Shuffle order, remove identity linking, delete key frames, and shuffle actions; report Faithful/Target/Sub accuracy, threat AUPRC, horizon error, latency, and cost.",
+    state: "Human-verified object, state, relation, and temporal facts; the model aggregates 15-second chunk states into queryable trajectories.",
+    objective: "A target counts only when every prerequisite sub-question is also correct; the method answers from structured object trajectories instead of raw frames alone.",
+    decoding: "Build trajectories once across chunks, retrieve question-relevant paths, then answer with a fixed frame budget; aggregation is deterministic and symbolic.",
+    sharing: "Independent of AR, URSA, or ELF generation heads; it can audit Qwen3 multi-frame understanding and world-model rollouts externally.",
+    open: "The paper, project page, MIT-licensed code, benchmark data, evaluation scripts, and method implementation are public.",
+  },
 };
 
 function getEnglishCopy(paper: Paper): EnglishPaperCopy {
@@ -6310,6 +6497,7 @@ function EnglishMatrices() {
       <section className="matrix-section" id="matrix">
         <div className="section-heading"><div><p className="eyebrow">CONTROLLED COMPARISON</p><h2>UMM Generation Matrix</h2></div><p>Fix backbone, tokenizer, data, and compute</p></div>
         <div className="matrix-wrap"><table><thead><tr><th>Route</th><th>State</th><th>Target</th><th>Decoding</th><th>Key control</th></tr></thead><tbody>
+          <tr><th>TRACK</th><td>Shared video latent routed to compatible large/small denoisers</td><td>Original noise/velocity objective; offline per-step disagreement</td><td>Original schedule with one model selected per step</td><td>Capacity routing versus target, scheduler, and NFE</td></tr>
           <tr><th>Latent Diffusibility</th><td>High-dimensional RAE feature on a low-effective-rank manifold</td><td>Velocity versus clean x0</td><td>Continuous Flow/ODE</td><td>Target parameterization versus latent geometry</td></tr>
           <tr><th>VIVAS</th><td>Unified discrete vision-language vocabulary</td><td>Visual + language next-token CE</td><td>Shared sequential AR</td><td>Dense visual supervision versus text-dominant bias</td></tr>
           <tr><th>LLaDA-Image</th><td>FLUX.2 continuous VAE latent</td><td>Flow velocity MSE</td><td>50-step base / 2–4-step Turbo</td><td>Frozen VLM + separate DiT versus shared UMM</td></tr>
@@ -6335,6 +6523,9 @@ function EnglishMatrices() {
       <section className="world-section" id="world-matrix">
         <div className="section-heading"><div><p className="eyebrow">WORLD MODEL COMPARISON</p><h2>Understanding → Generation → Prediction → Action</h2></div><p>Do not reduce evaluation to FVD or LPIPS</p></div>
         <div className="matrix-wrap"><table className="world-table"><thead><tr><th>Model</th><th>Observation state</th><th>Action</th><th>Dynamics target</th><th>Rollout / planning</th><th>UMM connection</th></tr></thead><tbody>
+          <tr><th>Rolling-WAM</th><td>Video latent chunks at staggered noise levels</td><td>Real robot-action chunks</td><td>Joint rolling video-action denoising</td><td>Persistent future window; 4.5× steady-state replanning speedup</td><td>Shared context with separate video/action experts</td></tr>
+          <tr><th>Representation WM</th><td>Current/goal semantic representations + latent path</td><td>Inverse-dynamics recovered controls</td><td>Locally executable representation geometry</td><td>Direct path planning without recursive observation rollout</td><td>Qwen semantic state with optional IBQ/ELF checkpoint renderer</td></tr>
+          <tr><th>STRAND</th><td>Human-verified facts + object trajectories</td><td>Observed actions/events for audit</td><td>Evaluation only; target + prerequisite facts</td><td>Long-video monitoring with fixed-budget controls</td><td>External faithfulness audit for Qwen3 and world-model futures</td></tr>
           <tr><th>Frozen Flows Forget</th><td>Frozen semantic latent + decode-path supervision</td><td>Scene manipulation condition</td><td>Latent flow with DART rollout supervision</td><td>Multi-step rollout; closed-loop planning not shown</td><td>Separates frozen representation from temporal dynamics supervision</td></tr>
           <tr><th>V-JEPA Blog</th><td>Masked spatiotemporal semantic embeddings</td><td>Passive video; no real action input</td><td>JEPA feature prediction</td><td>Short-horizon perception in the original release</td><td>Decoder-free semantic endpoint beside IBQ/ELF rendering</td></tr>
           <tr><th>Cosmos 3 WAM</th><td>Discrete text + continuous image/video/audio/action latents</td><td>Real action chunks</td><td>Joint future-video and action diffusion</td><td>32 actions/inference; edge deployment reported</td><td>Shared omni context, modality-specific AR/diffusion</td></tr>
@@ -6477,7 +6668,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.09.24</strong>
+        <strong>DAILY BRIEF · 2026.09.25</strong>
         <i />
         <span>{language === "en" ? "Unified multimodal modeling research index" : "统一多模态建模研究知识库"}</span>
       </div>
@@ -6523,9 +6714,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 049]</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 050]</p>
               <h1>{language === "en" ? <>Separate latent geometry, supervision,<br />memory, and temporal dynamics.</> : <>把 latent 几何、监督、记忆<br />与时序动力学分开比较</>}</h1>
-              <p className="hero-copy">{language === "en" ? "This issue adds Latent Diffusibility, VIVAS, the AR Video Memory survey, Frozen Flows Forget, and Meta's V-JEPA blog: five controls for target parameterization, unified visual supervision, persistent history, decoded motion, and decoder-free prediction." : "本期新增高维 Latent 可扩散性、VIVAS、AR 视频记忆综述、Frozen Flows Forget 与 Meta V-JEPA 官方 Blog：分别检验目标参数化、统一视觉监督、持久历史、可解码运动与 decoder-free 预测。"}</p>
+              <p className="hero-copy">{language === "en" ? "This issue adds Rolling-WAM, Representation World Model, TRACK, Alignment Illusion, and STRAND: five controls for rolling closed-loop denoising, executable representation paths, timestep capacity routing, causal alignment diagnostics, and faithful long-video monitoring." : "本期新增 Rolling-WAM、Representation World Model、TRACK、Alignment Illusion 与 STRAND：分别检验滚动闭环去噪、可执行表征路径、逐步容量路由、因果对齐诊断与长视频忠实监测。"}</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">{language === "en" ? "View today's picks" : "查看今日精选"}</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>{language === "en" ? "Open deep reads" : "打开精读清单"} <span>→</span></button>
@@ -6537,7 +6728,7 @@ export default function Home() {
                 <span>{language === "en" ? "Papers and blogs are labeled by source type" : "Blog 与论文按来源类型区分"}</span>
               </div>
               <div className="stats">
-                <div><b>232</b><span>{language === "en" ? "Papers & blogs" : "论文与 Blog"}</span></div>
+                <div><b>237</b><span>{language === "en" ? "Papers & blogs" : "论文与 Blog"}</span></div>
                 <div><b>06</b><span>{language === "en" ? "Research tracks" : "独立方向"}</span></div>
                 <div><b>03</b><span>{language === "en" ? "Comparison matrices" : "比较矩阵"}</span></div>
               </div>
@@ -6660,6 +6851,7 @@ export default function Home() {
               <table>
                 <thead><tr><th>路线</th><th>状态空间</th><th>预测目标</th><th>生成顺序</th><th>最关键变量</th></tr></thead>
                 <tbody>
+                  <tr><th>TRACK</th><td>同一视频latent在兼容的大/小denoiser之间路由</td><td>原noise/velocity目标不变；离线测逐step分歧</td><td>原scheduler逐步执行，每步只调用一个模型</td><td>固定target/scheduler/NFE，隔离容量路由与模型蒸馏</td></tr>
                   <tr><th>Latent Diffusibility</th><td>高维RAE连续feature；重建微调后有效秩下降</td><td>标准velocity vs clean x0 prediction</td><td>连续Flow/ODE并行采样</td><td>固定latent/path，分离目标参数化与表示几何；迁移到IBQ前先测有效秩</td></tr>
                   <tr><th>VIVAS</th><td>统一文本—视觉离散词表</td><td>视觉细节 + 语言next-token CE</td><td>同一Transformer顺序AR</td><td>固定Qwen3/IBQ与FLOPs，隔离密集视觉监督和文本主导偏置</td></tr>
                   <tr><th>LLaDA-Image</th><td>冻结diffusion-LM理解模块 + FLUX.2连续VAE latent</td><td>线性path的velocity MSE；TwinFlow做2–4步蒸馏</td><td>Base 50步Flow / Turbo 2–4步</td><td>冻结理解、独立DiT的阶段化解耦；不应误写为共享视觉词表/head的UMM</td></tr>
@@ -6891,6 +7083,9 @@ export default function Home() {
               <table className="world-table">
                 <thead><tr><th>路线</th><th>观测状态</th><th>动作接口</th><th>动力学目标</th><th>建模方式</th><th>Rollout / 规划</th><th>与 UMM 的关系</th></tr></thead>
                 <tbody>
+                  <tr><th>Rolling-WAM</th><td>不同噪声阶段的视频latent chunks</td><td>真实机器人action chunks</td><td>视频/动作联合rolling denoising</td><td>跨周期持久future window；稳态重规划4.5×加速</td><td>共享语言/状态/视觉上下文，video/action expert与head分开</td></tr>
+                  <tr><th>Representation WM</th><td>current/goal语义表示 + 端点latent path</td><td>inverse dynamics恢复连续控制</td><td>局部可执行的representation geometry</td><td>直接路径规划，无递归观测rollout或action search</td><td>Qwen语义状态 + 可选IBQ/ELF关键点renderer</td></tr>
+                  <tr><th>STRAND</th><td>人审时空事实 + object trajectories</td><td>用于审计的观察动作/事件</td><td>无动力学训练；target与全部先决事实联合计分</td><td>固定frame/token/call预算的长视频监测</td><td>Qwen3理解和world-model future的外部忠实性审计</td></tr>
                   <tr><th>Frozen Flows Forget</th><td>冻结语义latent + decode-path监督</td><td>场景操纵条件；真实action接口需按实验核对</td><td>latent flow + DART逐horizon运动监督</td><td>Frozen representation Flow + Decode-Augmented Rollout</td><td>多步latent rollout；未单独证明闭环规划</td><td>冻结Qwen3/IBQ表示，只审计动力学监督能否修复静止/瞬移</td></tr>
                   <tr><th>V-JEPA（官方Blog）</th><td>被时空mask的视频语义embedding</td><td>被动视频；原始版本无真实action输入</td><td>masked future feature prediction</td><td>Joint-Embedding Prediction</td><td>原始版本聚焦短时感知；长时规划是后续方向</td><td>作为IBQ/ELF像素渲染之外的decoder-free语义预测端点</td></tr>
                   <tr><th>Cosmos 3 WAM（官方Blog）</th><td>离散文本 + 连续图像/视频/音频/action latent</td><td>真实action chunk；一次推理32个动作</td><td>未来视觉与action联合diffusion</td><td>MoT：文本AR Transformer + 连续模态Diffusion Transformer</td><td>官方报告4B Edge在Jetson Thor约15 Hz；需独立验证闭环任务</td><td>共享omni上下文与接口，不强迫tokenizer、词表、embedding和head全绑权</td></tr>
