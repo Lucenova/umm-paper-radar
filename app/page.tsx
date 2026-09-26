@@ -5930,7 +5930,7 @@ const papers: Paper[] = [
     rollout: "支持跨重规划周期保留并更新远期预测，已在模拟和真实机器人闭环任务验证",
     evaluation: "除视频质量外，应同时报告闭环成功率、动作干预、观测纠错、horizon误差、稳态/冷启动延迟与资源成本",
     domain: "World Model",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -5957,7 +5957,7 @@ const papers: Paper[] = [
     rollout: "不递归预测未来观测；直接构造current-to-goal表示路径并执行，连续控制与机器人操纵实验验证其可行性",
     evaluation: "需把短路径可执行性、长horizon偏离、闭环成功、表征捷径和真实环境扰动恢复分开报告",
     domain: "World Model",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -5980,7 +5980,7 @@ const papers: Paper[] = [
     experiment: "固定ELF teacher、小head、视频数据、scheduler、NFE与校准集，比较全大、全小、均匀交替、TRACK分歧路由和按OCR/运动风险条件化路由；报告GenEval/视频质量、生成文字OCR、code coverage、运动幅度、轨迹误差、真实延迟、吞吐、显存与路由迁移稳定性。",
     paper: "https://arxiv.org/abs/2609.30096",
     domain: "视频生成",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -6003,7 +6003,7 @@ const papers: Paper[] = [
     experiment: "固定Qwen3、IBQ、数据与层位，比较CKA/SVCCA/MIR、首主角余弦、PA gap与linear probe；扫描visual corruption强度并报告OCRBench、DocVQA、TextVQA、多帧威胁AUPRC、逐层指标、因果恢复率和随机方向对照。",
     paper: "https://arxiv.org/abs/2609.30210",
     domain: "可解释性",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -6028,6 +6028,140 @@ const papers: Paper[] = [
     project: "https://nguyentthong.github.io/strand/",
     code: "https://github.com/nguyentthong/video_hallucination",
     domain: "评测诊断",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "uwm-video-action-diffusion",
+    index: "238",
+    title: "Unified World Models: Coupling Video and Action Diffusion for Pretraining on Large Robotic Datasets",
+    shortTitle: "UWM",
+    date: "2025-05-23 · RSS 2025 · weekend foundation gap-filler",
+    category: "世界模型",
+    paradigm: "Independent-Timestep Video–Action Diffusion",
+    state: "未来观测的连续video latent与连续机器人action各自加噪；同一multimodal Transformer接收两种状态及独立timestep",
+    objective: "分别预测video noise与action noise；通过固定某一模态的timestep切换policy、forward dynamics、inverse dynamics或video generator",
+    decoding: "按任务选择条件化方向并迭代去噪；action-free视频把缺失action设为全噪声，机器人数据则联合采样两种timestep",
+    sharing: "共享Transformer与跨模态上下文，但video/action输入投影、噪声时钟和输出head保持分开；不共享IBQ词表或Qwen语言head",
+    open: "论文、官方项目页、完整PyTorch实现、DROID/Robomimic/LIBERO配置及预训练checkpoint已公开",
+    priority: "精读",
+    summary: "UWM用一个Transformer耦合video diffusion与action diffusion，并给两种模态独立时间变量。只需控制各自噪声等级，同一模型即可表示policy、前向动力学、逆动力学与视频生成；缺少动作标注的视频通过把action视作全噪声参与预训练。",
+    why: "它是当前Rolling-WAM、Joint-WAM与Cosmos WAM路线的基础坐标，也直接回答‘统一是否必须共享同一生成状态’：可以共享主干和上下文，却保留不同模态的噪声过程与head。",
+    inspiration: "在Qwen3+IBQ/ELF中给未来视觉、动作/威胁决策分别设置独立timestep与loss mask；action-free多帧数据训练视觉动力学，有动作样本再联合训练控制头，避免把缺失动作错误填成零动作。",
+    experiment: "固定Qwen3、IBQ/video codec、Transformer、机器人数据、action-free视频、参数量和总FLOPs，比较action-only VLA、共享timestep联合Flow、UWM独立timestep、UWM+URSA离散future。报告OCR/身份、future error、action-shuffle、policy成功率、OOD稳健性、NFE、吞吐、显存与梯度冲突。",
+    paper: "https://arxiv.org/abs/2504.02792",
+    project: "https://weirdlabuw.github.io/uwm/",
+    code: "https://github.com/WEIRDLabUW/unified-world-model",
+    action: "连续机器人action与未来视频联合扩散；也可通过噪声时钟切换为纯policy或inverse dynamics",
+    rollout: "支持forward video prediction与真实机器人闭环policy；原始实现不是长时rolling memory模型",
+    evaluation: "除视频质量外需报告动作因果干预、闭环成功、action-free预训练收益、horizon error和模态梯度冲突",
+    domain: "World Model",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "flowwm-feature-space-stochastic-world-model",
+    index: "239",
+    title: "Flow Matching in Feature Space for Stochastic World Modeling",
+    shortTitle: "FlowWM",
+    date: "2026-07-15 · v2 · weekend foundation gap-filler",
+    category: "世界模型",
+    paradigm: "Stochastic Feature-Space Flow Matching",
+    state: "冻结DINOv3的高维连续future feature；context feature较窄，target velocity head保持1024维并直接在原feature尺度建模",
+    objective: "DiT-style predictor对noisy target tokens回归Flow velocity；可微one-step projection加入temporal consistency与task-driven perception目标",
+    decoding: "并行Flow采样未来12帧feature，可从同一上下文生成多种合理未来；不必先解码RGB",
+    sharing: "可与Qwen3共享语义feature接口，但不共享IBQ tokenizer、离散词表或pixel decoder；与ELF同为连续Flow，目标空间从codec embedding改为预训练语义feature",
+    open: "论文、CC BY-NC 4.0官方代码、完整配置、FuturePerception评测与Waymo转换脚本已公开",
+    priority: "精读",
+    summary: "FlowWM在DINOv3等预训练高维feature中直接做随机Flow Matching，避免低维VAE latent牺牲感知能力，也避免确定性feature predictor把多模态未来平均掉。FuturePerception用未来feature上的检测与深度任务评价，而不是像素重建。",
+    why: "它与昨日‘高维latent的diffusibility’形成关键对照：高维语义空间并非不能Flow，但需要足够宽的velocity head、针对高噪区的time shift以及任务/时序投影。",
+    inspiration: "把IBQ像素重建future与DINO/Qwen语义future拆成双分支：ELF/URSA负责可渲染证据，FlowWM负责低成本多分支威胁预测；只有高风险样本才调用renderer。",
+    experiment: "固定视频数据、Qwen3、context长度、horizon、参数量和FLOPs，比较IBQ-ID AR、IBQ-ELF、DINO deterministic MSE、FlowWM以及FlowWM+IBQ renderer。报告FuturePerception、威胁AUPRC、mode coverage、OCR/身份、1/4/12帧horizon误差、action-shuffle、吞吐、显存和renderer调用率。",
+    paper: "https://arxiv.org/abs/2606.29059",
+    code: "https://github.com/facebookresearch/Flow-World-Models",
+    action: "原论文以被动视频上下文预测未来feature，不使用真实机器人action；接入控制任务需新增action conditioning",
+    rollout: "预测4帧上下文后的12帧future feature并评价horizon robustness；未证明真实闭环规划",
+    evaluation: "以检测、深度、mode coverage和horizon robustness为主；仍需补动作干预、闭环成功与OCR细节测试",
+    domain: "World Model",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "worldcrafter-implicit-3d-memory",
+    index: "240",
+    title: "WorldCrafter: Consistent Video World Model with Implicit 3D-aware Memory",
+    shortTitle: "WorldCrafter",
+    date: "2026-09-21",
+    category: "世界模型",
+    paradigm: "Camera-Queryable Implicit 3D Memory + Few-Step Video Diffusion",
+    state: "历史多视角观测经memory encoder压为固定数量、由目标相机pose查询的连续memory tokens，并与近期video context共同条件化生成器",
+    objective: "目标视角条件下的future-video denoising；memory与generator联合训练，无显式depth correspondence或geometry warp",
+    decoding: "按相机控制流式生成video chunks，持续更新3D-aware memory；Base与few-step distilled Fast模型支持分钟级探索",
+    sharing: "可缓存Qwen3/IBQ的对象、OCR与场景证据，但memory readout、video denoiser和输出renderer独立；不强迫共享视觉词表/head",
+    open: "论文、项目页、官方代码、WorldCrafter-Base/Fast权重与推理脚本已公开；交互demo仍标记为调试中",
+    priority: "精读",
+    summary: "WorldCrafter让目标相机视角决定历史证据如何压进有限token预算：pose-conditioned readout从隐式3D-aware memory读取与当前视角相关的信息，再与近期上下文联合去噪。官方在145个场景、725条相机轨迹上评测重访一致性与相机控制。",
+    why: "它把‘长上下文’与‘可查询持久记忆’分开：对象离开窗口后再回到原视角，模型仍需恢复身份、文字和几何，而不是只保持最近几帧流畅。",
+    inspiration: "多帧威胁检测可把静态场景、目标身份和OCR写入视角/对象可查询memory，IBQ/ELF局部窗口只负责当前运动；这样能区分记忆缺失、动力学错误和renderer漂移。",
+    experiment: "固定video backbone、IBQ/codec、局部窗口、总memory token、NFE与相机轨迹，比较FIFO、DensityKV、对象memory、WorldCrafter pose-query memory及pose-query+威胁salience。报告重访OCR/身份、loop closure、camera error、动态目标轨迹、32-block漂移、延迟、显存与错误恢复时间。",
+    paper: "https://arxiv.org/abs/2609.24984",
+    project: "https://drexubery.github.io/WorldCrafter/",
+    code: "https://github.com/TencentARC/WorldCrafter",
+    action: "主要控制量是相机轨迹与文本；未提供通用机器人真实action接口",
+    rollout: "支持单图或文本起点的分钟级流式场景探索和视角重访；不等同闭环机器人规划",
+    evaluation: "重访一致性、相机控制、动态对象连续性与真实延迟必须与VBench/FVD分开报告",
+    domain: "World Model",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "svglm-renderable-program-thinking",
+    index: "241",
+    title: "Multimodal Thinking with Renderable Programs",
+    shortTitle: "SVGLM",
+    date: "2026-09-24",
+    category: "统一多模态",
+    paradigm: "Autoregressive Renderable SVG Programs",
+    state: "离散文本/SVG code token；SVG同时是可编辑程序、可渲染图像描述与推理中间状态",
+    objective: "开放VLM上的next-token CE与SVG编辑/生成监督；不在VAE latent或IBQ embedding中做noise/velocity预测",
+    decoding: "AR生成SVG程序后确定性渲染；图像可在reasoning chain中被编辑、检查并再次送回模型",
+    sharing: "与语言共享token vocabulary和Transformer，renderer独立；不共享IBQ tokenizer或pixel head，但提供可解释的高层结构接口",
+    open: "论文与SVG编辑数据构建范式已公开；截至收录日未发现官方项目页、代码仓库、数据下载或checkpoint",
+    priority: "精读",
+    summary: "SVGLM用SVG primitive把文字推理与图像生成连接起来。相比不可读的raster/latent图像，SVG既可作为语言式指令生成，又能确定性渲染和编辑，使‘在推理链中画图’可检查、可干预。",
+    why: "它提供URSA/ELF之外的重要结构化端点：对文档、图表、布局与文字，真正需要的可能是可执行矢量程序，而不是更高保真的像素latent。",
+    inspiration: "让Qwen3先生成layout/OCR/SVG骨架，再由IBQ/ELF补纹理与自然图像细节；在DocVQA和生成文字任务中分别测结构正确率与renderer质量，避免把glyph错误归因于Flow path。",
+    experiment: "固定Qwen3、prompt、数据规模和训练FLOPs，比较IBQ-AR、URSA、ELF、SVG-only及SVG→IBQ/ELF refiner。报告OCR CER、元素/布局IoU、DocVQA/TextVQA、数学图形正确率、GenEval、可编辑性、token数、渲染延迟和失败可诊断性。",
+    paper: "https://arxiv.org/abs/2609.30130",
+    domain: "UMM",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "blog-wayve-gaia2-controllable-driving-world-model",
+    index: "242",
+    title: "GAIA-2: Pushing the Boundaries of Video Generative Models for Safer Assisted and Automated Driving",
+    shortTitle: "Wayve GAIA-2 Blog",
+    date: "2025-03-26 · official research blog · weekend foundation gap-filler",
+    category: "世界模型",
+    paradigm: "Official Research Blog / Controllable Multi-Camera Latent Diffusion",
+    state: "连续视频tokenizer latent；过去观测、ego speed/curvature、3D agent boxes、天气、道路属性及语义embedding共同条件化",
+    objective: "latent diffusion预测未来多相机video states；支持forecast、无条件/文本场景生成与log editing",
+    decoding: "整段latent并行去噪并解码多相机视频；相对GAIA-1的逐帧离散AR减少时间断裂，但推理成本仍是公开挑战",
+    sharing: "驾驶语义与控制条件进入world model，但不共享Qwen3/IBQ词表、Transformer或输出head；适合作为外部可控simulator",
+    open: "Wayve官方研究Blog与技术报告公开；截至收录日未公开完整训练代码、权重或可复现数据流程",
+    priority: "泛读",
+    summary: "Wayve官方Blog系统解释GAIA-2如何用latent diffusion、多相机一致性和结构化条件生成可控驾驶场景，覆盖地域、天气、道路、ego动作、其他agent以及高风险长尾事件；同时明确列出幻觉、长时一致性与推理效率仍是挑战。",
+    why: "它把‘视频生成好看’提升为可重复安全验证：同一真实log可改变天气、agent行为或目标动作，适合多帧威胁检测做受控反事实，而不是只看FVD。",
+    inspiration: "将Qwen3威胁判定拆成可控变量：保持背景与身份不变，只扫描ego速度、转向、目标轨迹和遮挡；IBQ/ELF生成对应反事实，再检查风险排序是否单调且因果一致。",
+    experiment: "固定初始log、相机、IBQ/ELF backbone、采样预算和评测器，做ego-action、agent-box、天气、道路结构四类单变量干预；报告威胁AUPRC、干预一致性、碰撞/近失事件、身份/OCR保持、跨相机一致性、horizon drift、FVD、延迟与人工审计。",
+    paper: "https://wayve.ai/thinking/gaia-2/",
+    project: "https://wayve.ai/wp-content/uploads/2025/03/GAIA_2_Technical_Report.pdf",
+    action: "ego速度/转向曲率与其他agent 3D boxes可控；更接近生成式验证器而非直接输出policy",
+    rollout: "支持长时、多相机、action-conditioned视频生成；官方Blog未证明真实闭环控制成功率",
+    evaluation: "必须加入因果干预、跨相机一致性、长尾覆盖与检测/规划收益，不能只看视觉质量",
+    kind: "Blog",
+    domain: "World Model",
     featured: true,
     idea: true,
   },
@@ -6405,6 +6539,73 @@ const englishOverrides: Record<string, Partial<EnglishPaperCopy>> = {
     sharing: "Independent of AR, URSA, or ELF generation heads; it can audit Qwen3 multi-frame understanding and world-model rollouts externally.",
     open: "The paper, project page, MIT-licensed code, benchmark data, evaluation scripts, and method implementation are public.",
   },
+  "uwm-video-action-diffusion": {
+    summary: "UWM couples video diffusion and action diffusion in one Transformer with independent modality-specific timesteps. By controlling the two noise levels, one model can act as a policy, forward dynamics, inverse dynamics, or video generator; action-free videos enter pretraining by treating the missing action as fully noised.",
+    why: "It is a foundational coordinate for Rolling-WAM, Joint-WAM, and Cosmos-style WAMs. It also shows that unification can share a backbone and context without forcing video and action into one state space or output head.",
+    inspiration: "Give future vision and action/threat decisions separate timesteps and loss masks in Qwen3 + IBQ/ELF. Train visual dynamics on action-free multi-frame data, then joint-train the control head where actions exist instead of filling missing actions with zeros.",
+    experiment: "Fix Qwen3, the IBQ/video codec, Transformer, robot data, action-free video, parameters, and FLOPs. Compare an action-only VLA, joint Flow with one timestep, UWM with independent timesteps, and UWM with discrete URSA futures. Report OCR/identity, future error, action shuffle, policy success, OOD robustness, NFE, throughput, memory, and gradient conflict.",
+    state: "Continuous future-video latents and continuous robot actions are independently noised; one multimodal Transformer receives both states and their separate timesteps.",
+    objective: "Predict video noise and action noise separately; fixing one modality's timestep switches among policy, forward dynamics, inverse dynamics, and video generation.",
+    decoding: "Choose the conditional direction and iteratively denoise. Action-free video sets the action timestep to full noise, while robot data samples both timesteps independently.",
+    sharing: "The Transformer and cross-modal context are shared, while video/action projections, noise clocks, and heads remain separate; no IBQ vocabulary or Qwen language head is shared.",
+    open: "The paper, official project, full PyTorch implementation, DROID/Robomimic/LIBERO configurations, and pretrained checkpoints are public.",
+    action: "Continuous robot actions and future video are jointly diffused; the noise clocks can also expose a pure policy or inverse-dynamics mode.",
+    rollout: "It supports forward video prediction and real-robot closed-loop policies, but the original design is not a persistent long-horizon rolling-memory model.",
+    evaluation: "Report action interventions, closed-loop success, benefit from action-free pretraining, horizon error, and modality gradient conflict in addition to video quality.",
+  },
+  "flowwm-feature-space-stochastic-world-model": {
+    summary: "FlowWM performs stochastic Flow Matching directly in high-dimensional pretrained features such as DINOv3. It avoids the perceptual loss of low-dimensional VAE states and the mode averaging of deterministic feature predictors. FuturePerception evaluates predicted features through detection and depth rather than pixel reconstruction.",
+    why: "It is an important counterpoint to the recent diffusibility diagnosis: high-dimensional semantic features can support Flow, but they need a sufficiently wide velocity head, a timestep shift toward difficult high-noise regions, and task/temporal projection losses.",
+    inspiration: "Split IBQ pixel-reconstructive futures from DINO/Qwen semantic futures. URSA/ELF can render evidence, while FlowWM produces low-cost stochastic threat branches; invoke the renderer only for high-risk cases.",
+    experiment: "Fix video data, Qwen3, context, horizon, parameters, and FLOPs. Compare IBQ-ID AR, IBQ-ELF, deterministic DINO MSE, FlowWM, and FlowWM plus an IBQ renderer. Report FuturePerception, threat AUPRC, mode coverage, OCR/identity, 1/4/12-frame horizon error, action shuffle, throughput, memory, and renderer-call rate.",
+    state: "Frozen high-dimensional DINOv3 future features; a narrower context stream conditions a 1024-dimensional target velocity head on the original feature scale.",
+    objective: "A DiT-style predictor regresses Flow velocity for noised target tokens; a differentiable one-step projection enables temporal-consistency and task-driven perception objectives.",
+    decoding: "Flow samples twelve future feature frames in parallel and can generate multiple plausible futures from one context without decoding RGB first.",
+    sharing: "It can share a semantic feature interface with Qwen3 but not the IBQ tokenizer, discrete vocabulary, or pixel decoder. Relative to ELF, the continuous target is a pretrained semantic feature rather than a codec embedding.",
+    open: "The paper, official CC BY-NC 4.0 code, complete configurations, FuturePerception evaluation, and Waymo conversion scripts are public.",
+    action: "The paper forecasts from passive video context and does not condition on real robot actions; control tasks need an added action interface.",
+    rollout: "It predicts twelve future feature frames from four context frames and evaluates horizon robustness; real closed-loop planning is not demonstrated.",
+    evaluation: "Detection, depth, mode coverage, and horizon robustness are central; action interventions, closed-loop success, and OCR detail remain necessary additions.",
+  },
+  "worldcrafter-implicit-3d-memory": {
+    summary: "WorldCrafter lets the requested camera viewpoint decide how history is compressed into a fixed token budget. A pose-conditioned readout queries an implicit 3D-aware memory, then conditions video denoising jointly with recent context. The project evaluates revisit consistency and camera control on 145 scenes and 725 trajectories.",
+    why: "It separates a larger context window from queryable persistent memory. When an object leaves the window and the camera revisits it, identity, text, and geometry must recover rather than merely keeping the latest frames smooth.",
+    inspiration: "Write static scene, identity, and OCR evidence from multi-frame threat inputs into view- or object-queryable memory, while IBQ/ELF's local window handles current motion. This separates memory loss, dynamics error, and renderer drift.",
+    experiment: "Fix the video backbone, IBQ/codec, local window, memory-token budget, NFE, and camera path. Compare FIFO, DensityKV, object memory, pose-query memory, and pose-query plus threat salience. Report revisit OCR/identity, loop closure, camera error, dynamic-object tracks, 32-block drift, latency, memory, and recovery time.",
+    state: "Historical multi-view observations become a fixed set of continuous memory tokens queried by target camera pose and combined with recent video context.",
+    objective: "Future-video denoising conditioned on the target view; memory and generator train jointly without explicit depth correspondences or geometric warping.",
+    decoding: "Stream video chunks under camera control while updating the 3D-aware memory. Base and few-step distilled Fast models support minute-scale exploration.",
+    sharing: "The memory may cache Qwen3/IBQ object, OCR, and scene evidence, while readout, video denoiser, and renderer stay separate; no shared vocabulary or head is required.",
+    open: "The paper, project page, official code, WorldCrafter-Base/Fast weights, and inference scripts are public; the interactive demo is still marked as under debugging.",
+    action: "Camera trajectory and text are the main controls; a general real-robot action interface is not provided.",
+    rollout: "It supports minute-scale streaming exploration and viewpoint revisits from an image or text prompt, but not closed-loop robot planning.",
+    evaluation: "Separate revisit consistency, camera control, dynamic-object continuity, and real latency from VBench or FVD.",
+  },
+  "svglm-renderable-program-thinking": {
+    summary: "SVGLM connects language reasoning and image generation with SVG primitives. Unlike opaque raster or latent images, an SVG is simultaneously a program, an editable image description, and a deterministic rendering target, making images inside a reasoning chain inspectable and intervenable.",
+    why: "It is a structured endpoint outside URSA and ELF. For documents, diagrams, layouts, and text, an executable vector program may matter more than a higher-fidelity pixel latent.",
+    inspiration: "Let Qwen3 generate a layout/OCR/SVG scaffold first, then use IBQ/ELF for texture and natural-image detail. Evaluate structure and rendering separately on DocVQA and generated text so glyph errors are not automatically blamed on the Flow path.",
+    experiment: "Fix Qwen3, prompts, data scale, and FLOPs. Compare IBQ-AR, URSA, ELF, SVG-only, and SVG-to-IBQ/ELF refinement. Report OCR CER, element/layout IoU, DocVQA/TextVQA, mathematical-diagram correctness, GenEval, editability, token count, rendering latency, and failure diagnosability.",
+    state: "Discrete text and SVG code tokens; SVG is an editable program, a renderable image description, and an intermediate reasoning state.",
+    objective: "Next-token CE and SVG editing/generation supervision on an open VLM; there is no noise or velocity prediction in a VAE or IBQ latent.",
+    decoding: "Autoregressively generate an SVG program, render it deterministically, then optionally edit or feed the result back into reasoning.",
+    sharing: "Language and SVG share a token vocabulary and Transformer while the renderer remains external; IBQ tokenization and pixel heads are not shared.",
+    open: "The paper and SVG editing-data construction paradigm are public; no official project page, code, dataset download, or checkpoint was found at indexing time.",
+  },
+  "blog-wayve-gaia2-controllable-driving-world-model": {
+    summary: "Wayve's official research blog explains how GAIA-2 combines latent diffusion, multi-camera consistency, and structured controls for geography, weather, roads, ego action, other agents, and safety-critical long-tail events. It also explicitly lists hallucination, long-horizon consistency, and inference efficiency as open problems.",
+    why: "It reframes attractive video generation as repeatable safety validation. The same real log can be counterfactually varied by weather, agent behavior, or target action, which is far more useful for multi-frame threat detection than FVD alone.",
+    inspiration: "Decompose a Qwen3 threat verdict into controllable variables. Hold background and identity fixed while sweeping ego speed, steering, target trajectory, and occlusion; generate counterfactuals with IBQ/ELF and test whether risk rankings remain monotonic and causal.",
+    experiment: "Fix the initial log, cameras, IBQ/ELF backbone, sampling budget, and evaluator. Run one-factor interventions on ego action, agent boxes, weather, and road structure. Report threat AUPRC, intervention consistency, collision/near-miss events, identity/OCR retention, cross-camera consistency, horizon drift, FVD, latency, and human audit.",
+    state: "Continuous video-tokenizer latents conditioned on past observations, ego speed/curvature, 3D agent boxes, weather, road attributes, and semantic embeddings.",
+    objective: "Latent diffusion predicts future multi-camera video states and supports forecasting, scene generation, and logged-scene editing.",
+    decoding: "Denoise a video latent sequence in parallel and decode multi-camera views. Compared with GAIA-1's frame-wise discrete AR, this reduces temporal discontinuity, while inference cost remains a stated challenge.",
+    sharing: "Driving semantics and controls condition the world model, but Qwen3/IBQ vocabulary, Transformer, and output heads are not shared; GAIA-2 is best treated as an external controllable simulator.",
+    open: "Wayve's official research blog and technical report are public; full training code, weights, and a reproducible data pipeline are not public at indexing time.",
+    action: "Ego speed/steering curvature and other agents' 3D boxes are controllable. The model is a generative validator rather than a policy output head.",
+    rollout: "It supports long-horizon, multi-camera, action-conditioned video generation; the blog does not demonstrate real closed-loop control success.",
+    evaluation: "Add causal interventions, multi-camera consistency, long-tail coverage, and downstream detection/planning benefit rather than relying on visual quality.",
+  },
 };
 
 function getEnglishCopy(paper: Paper): EnglishPaperCopy {
@@ -6509,6 +6710,7 @@ function EnglishMatrices() {
           <tr><th>ELF</th><td>Continuous token embeddings</td><td>Velocity / L2 + auxiliary CE</td><td>ODE/SDE sampling</td><td>Embedding geometry and projection error</td></tr>
           <tr><th>Block Diffusion</th><td>Discrete IDs in blocks</td><td>Masked-token CE</td><td>AR across blocks, parallel refinement within blocks</td><td>Block size and local NFE</td></tr>
           <tr><th>CommerceVibe</th><td>Executable HTML/CSS tokens</td><td>Next-code CE + rule/VLM RL</td><td>AR code → deterministic renderer</td><td>Structured text/layout upper bound</td></tr>
+          <tr><th>SVGLM</th><td>Discrete SVG program tokens</td><td>Next-code CE + SVG edit supervision</td><td>AR program → deterministic renderer</td><td>Structured geometry/text versus pixel-latent generation</td></tr>
         </tbody></table></div>
       </section>
       <section className="folding-section" id="folding-matrix">
@@ -6523,6 +6725,10 @@ function EnglishMatrices() {
       <section className="world-section" id="world-matrix">
         <div className="section-heading"><div><p className="eyebrow">WORLD MODEL COMPARISON</p><h2>Understanding → Generation → Prediction → Action</h2></div><p>Do not reduce evaluation to FVD or LPIPS</p></div>
         <div className="matrix-wrap"><table className="world-table"><thead><tr><th>Model</th><th>Observation state</th><th>Action</th><th>Dynamics target</th><th>Rollout / planning</th><th>UMM connection</th></tr></thead><tbody>
+          <tr><th>UWM</th><td>Independently noised video and action states</td><td>Continuous robot actions</td><td>Video noise + action noise</td><td>Policy, forward/inverse dynamics, or video generation by timestep control</td><td>One Transformer with modality-specific clocks and heads</td></tr>
+          <tr><th>FlowWM</th><td>Frozen high-dimensional DINOv3 features</td><td>Passive video; action interface not provided</td><td>Feature-space Flow velocity</td><td>Stochastic 12-frame feature forecast; no closed-loop planner</td><td>Semantic future branch beside IBQ/ELF rendering</td></tr>
+          <tr><th>WorldCrafter</th><td>Camera-queryable implicit 3D memory + recent video context</td><td>Camera trajectory and text</td><td>Pose-conditioned future-video denoising</td><td>Minute-scale streaming exploration and revisits</td><td>Persistent evidence memory separated from local renderer dynamics</td></tr>
+          <tr><th>GAIA-2 Blog</th><td>Multi-camera video latent + structured driving conditions</td><td>Ego controls and 3D agent boxes</td><td>Action-conditioned future-video latent</td><td>Long-horizon counterfactual simulation; no policy output</td><td>External controllable simulator for Qwen3 threat audits</td></tr>
           <tr><th>Rolling-WAM</th><td>Video latent chunks at staggered noise levels</td><td>Real robot-action chunks</td><td>Joint rolling video-action denoising</td><td>Persistent future window; 4.5× steady-state replanning speedup</td><td>Shared context with separate video/action experts</td></tr>
           <tr><th>Representation WM</th><td>Current/goal semantic representations + latent path</td><td>Inverse-dynamics recovered controls</td><td>Locally executable representation geometry</td><td>Direct path planning without recursive observation rollout</td><td>Qwen semantic state with optional IBQ/ELF checkpoint renderer</td></tr>
           <tr><th>STRAND</th><td>Human-verified facts + object trajectories</td><td>Observed actions/events for audit</td><td>Evaluation only; target + prerequisite facts</td><td>Long-video monitoring with fixed-budget controls</td><td>External faithfulness audit for Qwen3 and world-model futures</td></tr>
@@ -6668,7 +6874,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.09.25</strong>
+        <strong>DAILY BRIEF · 2026.09.26</strong>
         <i />
         <span>{language === "en" ? "Unified multimodal modeling research index" : "统一多模态建模研究知识库"}</span>
       </div>
@@ -6714,9 +6920,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 050]</p>
-              <h1>{language === "en" ? <>Separate latent geometry, supervision,<br />memory, and temporal dynamics.</> : <>把 latent 几何、监督、记忆<br />与时序动力学分开比较</>}</h1>
-              <p className="hero-copy">{language === "en" ? "This issue adds Rolling-WAM, Representation World Model, TRACK, Alignment Illusion, and STRAND: five controls for rolling closed-loop denoising, executable representation paths, timestep capacity routing, causal alignment diagnostics, and faithful long-video monitoring." : "本期新增 Rolling-WAM、Representation World Model、TRACK、Alignment Illusion 与 STRAND：分别检验滚动闭环去噪、可执行表征路径、逐步容量路由、因果对齐诊断与长视频忠实监测。"}</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 051]</p>
+              <h1>{language === "en" ? <>Separate semantic prediction, rendering,<br />memory, and action diffusion.</> : <>把语义预测、像素渲染、持久记忆<br />与动作扩散分开比较</>}</h1>
+              <p className="hero-copy">{language === "en" ? "With no new weekend arXiv batch, this issue fills five high-value gaps: UWM, FlowWM, WorldCrafter, SVGLM, and Wayve's official GAIA-2 blog. Together they isolate modality-specific diffusion clocks, stochastic semantic futures, queryable 3D memory, renderable program reasoning, and controlled safety simulation." : "周末没有新的 arXiv 发布批次，本期补齐五个高价值空缺：UWM、FlowWM、WorldCrafter、SVGLM 与 Wayve 官方 GAIA-2 Blog，分别隔离模态独立扩散时钟、随机语义未来、可查询 3D 记忆、可渲染程序推理与安全反事实模拟。"}</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">{language === "en" ? "View today's picks" : "查看今日精选"}</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>{language === "en" ? "Open deep reads" : "打开精读清单"} <span>→</span></button>
@@ -6728,7 +6934,7 @@ export default function Home() {
                 <span>{language === "en" ? "Papers and blogs are labeled by source type" : "Blog 与论文按来源类型区分"}</span>
               </div>
               <div className="stats">
-                <div><b>237</b><span>{language === "en" ? "Papers & blogs" : "论文与 Blog"}</span></div>
+                <div><b>242</b><span>{language === "en" ? "Papers & blogs" : "论文与 Blog"}</span></div>
                 <div><b>06</b><span>{language === "en" ? "Research tracks" : "独立方向"}</span></div>
                 <div><b>03</b><span>{language === "en" ? "Comparison matrices" : "比较矩阵"}</span></div>
               </div>
@@ -6875,6 +7081,8 @@ export default function Home() {
                   <tr><th>4DGS-WAM</th><td>静态/动态对象分解的4D Gaussian primitives</td><td>actor action + dynamic Gaussian transformation</td><td>缓存静态背景，仅外推动态对象后合成</td><td>显式3D对象状态与短期变换；固定renderer比较整帧IBQ/ELF和static–dynamic分流</td></tr>
                   <tr><th>VTC</th><td>冻结MLLM的连续video patch tokens + I/P frame residual</td><td>无生成loss；training-free动态分辨率/预算/空间覆盖选择</td><td>压缩后保持原Qwen3-VL理解解码</td><td>固定平均token预算，隔离时间冗余压缩与逐帧2×2空间folding</td></tr>
                   <tr><th>CommerceVibe</th><td>离散HTML/CSS代码token + 浏览器像素renderer</td><td>next-code CE + 规则奖励 + VLM视觉奖励</td><td>严格AR代码生成→确定性渲染</td><td>文字/布局结构化上界；不共享IBQ tokenizer或image head</td></tr>
+                  <tr><th>SVGLM</th><td>离散SVG程序token；程序同时是图像描述与推理状态</td><td>next-code CE + SVG编辑/生成监督</td><td>严格AR程序→确定性矢量renderer</td><td>结构化几何/文字与IBQ/ELF像素latent的公平端点</td></tr>
+                  <tr><th>SVGLM</th><td>离散SVG程序token；程序同时是图像描述与推理状态</td><td>next-code CE + SVG编辑/生成监督</td><td>严格AR程序→确定性矢量renderer</td><td>结构化几何/文字与IBQ/ELF像素latent的公平端点</td></tr>
                   <tr><th>DensityKV</th><td>每层每头独立的clean post-RoPE历史K/V bank</td><td>不改noise/velocity目标；Soft-Riesz density准入/淘汰</td><td>原块间AR、块内diffusion不变；历史存储有界</td><td>固定backbone/NFE/KV容量，隔离记忆策略与视频动力学</td></tr>
                   <tr><th>WorldMind</th><td>compact game state + visual observation</td><td>state reconstruction、NPC decision、control与render分层目标</td><td>理解→决策→控制→生成闭环</td><td>共享显式state/interface，不强迫tokenizer、主干与head全部绑权</td></tr>
                   <tr><th>Libra-2</th><td>文本离散ID + 语义增强VAE连续visual latent</td><td>文本next-token CE + masked position轻量diffusion</td><td>文本AR；图像外层迭代提交、内层token diffusion</td><td>视觉/语言self-modal分支解耦，仅cross-modal bridge交互；Switch-FFN分开理解与生成</td></tr>
@@ -7083,9 +7291,17 @@ export default function Home() {
               <table className="world-table">
                 <thead><tr><th>路线</th><th>观测状态</th><th>动作接口</th><th>动力学目标</th><th>建模方式</th><th>Rollout / 规划</th><th>与 UMM 的关系</th></tr></thead>
                 <tbody>
-                  <tr><th>Rolling-WAM</th><td>不同噪声阶段的视频latent chunks</td><td>真实机器人action chunks</td><td>视频/动作联合rolling denoising</td><td>跨周期持久future window；稳态重规划4.5×加速</td><td>共享语言/状态/视觉上下文，video/action expert与head分开</td></tr>
-                  <tr><th>Representation WM</th><td>current/goal语义表示 + 端点latent path</td><td>inverse dynamics恢复连续控制</td><td>局部可执行的representation geometry</td><td>直接路径规划，无递归观测rollout或action search</td><td>Qwen语义状态 + 可选IBQ/ELF关键点renderer</td></tr>
-                  <tr><th>STRAND</th><td>人审时空事实 + object trajectories</td><td>用于审计的观察动作/事件</td><td>无动力学训练；target与全部先决事实联合计分</td><td>固定frame/token/call预算的长视频监测</td><td>Qwen3理解和world-model future的外部忠实性审计</td></tr>
+                  <tr><th>UWM</th><td>独立加噪的video latent与action状态</td><td>连续机器人action</td><td>video noise + action noise</td><td>同一Transformer、独立模态timestep与head</td><td>控制timestep切换policy、forward/inverse dynamics和video generation</td><td>共享上下文而不强迫IBQ、动作与语言使用同一状态/head</td></tr>
+                  <tr><th>FlowWM</th><td>冻结DINOv3高维连续future feature</td><td>被动视频；原论文无真实action接口</td><td>feature-space Flow velocity</td><td>随机连续Flow + one-step task/temporal projection</td><td>4帧上下文预测12帧多模态未来；未证明闭环规划</td><td>低成本语义future分支，可与IBQ/ELF可渲染分支解耦</td></tr>
+                  <tr><th>WorldCrafter</th><td>camera-queryable隐式3D memory + 近期video context</td><td>相机轨迹与文本</td><td>目标视角条件下的future-video denoising</td><td>pose-conditioned memory readout + few-step video diffusion</td><td>分钟级流式探索与视角重访；非机器人planner</td><td>把Qwen/IBQ持久证据记忆与URSA/ELF局部动力学分开</td></tr>
+                  <tr><th>GAIA-2（官方Blog）</th><td>多相机video latent + 驾驶结构化条件</td><td>ego speed/curvature与其他agent 3D boxes</td><td>action-conditioned future-video latent</td><td>多相机latent diffusion</td><td>长时反事实驾驶模拟；不直接输出policy</td><td>作为Qwen3威胁检测与IBQ/ELF的外部可控安全验证器</td></tr>
+                  <tr><th>UWM</th><td>独立加噪的video latent与action状态</td><td>连续机器人action</td><td>video noise + action noise</td><td>同一Transformer、独立模态timestep与head</td><td>控制timestep切换policy、forward/inverse dynamics和video generation</td><td>共享上下文而不强迫IBQ、动作与语言使用同一状态/head</td></tr>
+                  <tr><th>FlowWM</th><td>冻结DINOv3高维连续future feature</td><td>被动视频；原论文无真实action接口</td><td>feature-space Flow velocity</td><td>随机连续Flow + one-step task/temporal projection</td><td>4帧上下文预测12帧多模态未来；未证明闭环规划</td><td>低成本语义future分支，可与IBQ/ELF可渲染分支解耦</td></tr>
+                  <tr><th>WorldCrafter</th><td>camera-queryable隐式3D memory + 近期video context</td><td>相机轨迹与文本</td><td>目标视角条件下的future-video denoising</td><td>pose-conditioned memory readout + few-step video diffusion</td><td>分钟级流式探索与视角重访；非机器人planner</td><td>把Qwen/IBQ持久证据记忆与URSA/ELF局部动力学分开</td></tr>
+                  <tr><th>GAIA-2（官方Blog）</th><td>多相机video latent + 驾驶结构化条件</td><td>ego speed/curvature与其他agent 3D boxes</td><td>action-conditioned future-video latent</td><td>多相机latent diffusion</td><td>长时反事实驾驶模拟；不直接输出policy</td><td>作为Qwen3威胁检测与IBQ/ELF的外部可控安全验证器</td></tr>
+                  <tr><th>Rolling-WAM</th><td>不同噪声阶段的视频latent chunks</td><td>真实机器人action chunks</td><td>视频/动作联合rolling denoising</td><td>Rolling video–action diffusion</td><td>跨周期持久future window；稳态重规划4.5×加速</td><td>共享语言/状态/视觉上下文，video/action expert与head分开</td></tr>
+                  <tr><th>Representation WM</th><td>current/goal语义表示 + 端点latent path</td><td>inverse dynamics恢复连续控制</td><td>局部可执行的representation geometry</td><td>Representation-space path planning + inverse dynamics</td><td>直接路径规划，无递归观测rollout或action search</td><td>Qwen语义状态 + 可选IBQ/ELF关键点renderer</td></tr>
+                  <tr><th>STRAND</th><td>人审时空事实 + object trajectories</td><td>用于审计的观察动作/事件</td><td>无动力学训练；target与全部先决事实联合计分</td><td>结构化轨迹聚合 + faithful accuracy评测</td><td>固定frame/token/call预算的长视频监测</td><td>Qwen3理解和world-model future的外部忠实性审计</td></tr>
                   <tr><th>Frozen Flows Forget</th><td>冻结语义latent + decode-path监督</td><td>场景操纵条件；真实action接口需按实验核对</td><td>latent flow + DART逐horizon运动监督</td><td>Frozen representation Flow + Decode-Augmented Rollout</td><td>多步latent rollout；未单独证明闭环规划</td><td>冻结Qwen3/IBQ表示，只审计动力学监督能否修复静止/瞬移</td></tr>
                   <tr><th>V-JEPA（官方Blog）</th><td>被时空mask的视频语义embedding</td><td>被动视频；原始版本无真实action输入</td><td>masked future feature prediction</td><td>Joint-Embedding Prediction</td><td>原始版本聚焦短时感知；长时规划是后续方向</td><td>作为IBQ/ELF像素渲染之外的decoder-free语义预测端点</td></tr>
                   <tr><th>Cosmos 3 WAM（官方Blog）</th><td>离散文本 + 连续图像/视频/音频/action latent</td><td>真实action chunk；一次推理32个动作</td><td>未来视觉与action联合diffusion</td><td>MoT：文本AR Transformer + 连续模态Diffusion Transformer</td><td>官方报告4B Edge在Jetson Thor约15 Hz；需独立验证闭环任务</td><td>共享omni上下文与接口，不强迫tokenizer、词表、embedding和head全绑权</td></tr>
