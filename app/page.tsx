@@ -6056,7 +6056,7 @@ const papers: Paper[] = [
     rollout: "支持forward video prediction与真实机器人闭环policy；原始实现不是长时rolling memory模型",
     evaluation: "除视频质量外需报告动作因果干预、闭环成功、action-free预训练收益、horizon error和模态梯度冲突",
     domain: "World Model",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -6083,7 +6083,7 @@ const papers: Paper[] = [
     rollout: "预测4帧上下文后的12帧future feature并评价horizon robustness；未证明真实闭环规划",
     evaluation: "以检测、深度、mode coverage和horizon robustness为主；仍需补动作干预、闭环成功与OCR细节测试",
     domain: "World Model",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -6111,7 +6111,7 @@ const papers: Paper[] = [
     rollout: "支持单图或文本起点的分钟级流式场景探索和视角重访；不等同闭环机器人规划",
     evaluation: "重访一致性、相机控制、动态对象连续性与真实延迟必须与VBench/FVD分开报告",
     domain: "World Model",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -6134,7 +6134,7 @@ const papers: Paper[] = [
     experiment: "固定Qwen3、prompt、数据规模和训练FLOPs，比较IBQ-AR、URSA、ELF、SVG-only及SVG→IBQ/ELF refiner。报告OCR CER、元素/布局IoU、DocVQA/TextVQA、数学图形正确率、GenEval、可编辑性、token数、渲染延迟和失败可诊断性。",
     paper: "https://arxiv.org/abs/2609.30130",
     domain: "UMM",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -6162,9 +6162,139 @@ const papers: Paper[] = [
     evaluation: "必须加入因果干预、跨相机一致性、长尾覆盖与检测/规划收益，不能只看视觉质量",
     kind: "Blog",
     domain: "World Model",
+    featured: false,
+    idea: true,
+  },
+  {
+    id: "sd3-scaling-rectified-flow-transformers",
+    index: "243",
+    title: "Scaling Rectified Flow Transformers for High-Resolution Image Synthesis",
+    shortTitle: "SD3 / MMDiT",
+    date: "2024-03-05 · weekend foundation gap-filler",
+    category: "图像生成",
+    paradigm: "Reweighted Rectified Flow + Multimodal Diffusion Transformer",
+    state: "16-channel连续VAE image latent与CLIP/T5文本feature保持独立流，在MMDiT joint attention中双向交互",
+    objective: "线性data–noise path上的Rectified Flow velocity；以logit-normal等timestep采样提高感知相关中段的训练权重",
+    decoding: "连续latent按ODE/Flow多步并行采样，再由VAE decoder恢复图像；不生成离散视觉ID",
+    sharing: "图像与文本共享attention交互但使用独立权重、投影与状态空间；不共享tokenizer、vocabulary或输出head，也不是理解—生成统一模型",
+    open: "论文、Stability AI官方研究页、官方sd3-ref推理参考实现及公开推理权重可获得；完整训练数据与端到端训练配方未完全开放",
+    priority: "精读",
+    summary: "SD3系统比较了高分辨率T2I中的扩散与Rectified Flow，并提出MMDiT：文本和图像保留不同参数流，只在joint attention中交换信息。论文还把timestep采样分布作为核心变量，而不是默认均匀采样所有噪声尺度。",
+    why: "它是ELF连续Flow路线必须保留的图像生成基础对照：收益可能来自velocity目标、time sampling、MMDiT模态分流或更强文本编码器，不能笼统归因于‘用了Flow’。",
+    inspiration: "Qwen3+IBQ/ELF可以借用‘共享交互、分开状态’原则：Qwen hidden与IBQ embedding通过attention交换语义，但各自保留归一化、timestep embedding与输出head，避免连续图像状态破坏语言/OCR分布。",
+    experiment: "固定Qwen3、IBQ embedding、数据、参数量、FLOPs与NFE，比较均匀/线性/cosine/logit-normal timestep sampling，以及单流共享FFN与MMDiT式分流FFN。共同报告GenEval、文字OCR、OCRBench、code coverage、effective-rank、吞吐、显存和梯度冲突。",
+    paper: "https://arxiv.org/abs/2403.03206",
+    project: "https://stability.ai/research/scaling-rectified-flow-transformers-for-high-resolution-image-synthesis",
+    code: "https://github.com/Stability-AI/sd3-ref",
+    domain: "图像生成",
     featured: true,
     idea: true,
   },
+  {
+    id: "blog-openai-sora-world-simulators",
+    index: "244",
+    title: "Video Generation Models as World Simulators",
+    shortTitle: "Sora Technical Report",
+    date: "2024-02-15 · official technical report · weekend foundation gap-filler",
+    category: "视频生成",
+    paradigm: "Official Technical Report / Spacetime-Token Diffusion Transformer",
+    state: "图像与视频先压缩到连续latent，再切成时空patch token；支持可变时长、分辨率与宽高比",
+    objective: "文本/图像/视频条件下预测原始clean spacetime patches；公开报告未完整披露noise schedule和训练损失细节",
+    decoding: "从spacetime latent噪声并行迭代生成整段视频，再由decoder恢复像素；不是逐帧AR，也没有公开动作闭环接口",
+    sharing: "文本条件与视觉latent在生成模型中交互，但不共享语言词表、视觉tokenizer或输出head；不应直接视为UMM或可规划world model",
+    open: "OpenAI官方技术报告与能力/局限案例公开；完整论文、训练代码、模型权重、数据配方及可复现实验未公开",
+    priority: "泛读",
+    summary: "Sora技术报告把不同来源、时长、分辨率和宽高比的视觉数据统一成spacetime patches，并展示规模化视频diffusion出现3D一致性、对象持续性与简单交互模拟能力，同时明确模型仍会违反物理与因果。",
+    why: "它是区分‘视频生成’与‘世界模型’的关键边界材料：生成看似合理的未来并不等价于接受真实action、维持可查询状态或改善闭环规划。",
+    inspiration: "在多帧威胁检测中，把ELF视频renderer的目标限定为可视化证据；另设结构化威胁状态、action-conditioned dynamics和闭环评测，避免用高画质未来替代因果预测。",
+    experiment: "固定视频tokenizer、Transformer、数据、context、horizon与采样FLOPs，比较文本条件视频Flow、真实action条件Flow、IBQ-ID AR/URSA及语义future predictor。报告动作置乱敏感度、威胁AUPRC、身份/OCR保持、物理事件、horizon drift、FVD、NFE与延迟。",
+    paper: "https://openai.com/index/video-generation-models-as-world-simulators/",
+    kind: "Blog",
+    domain: "视频生成",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "gamengen-real-time-diffusion-engine",
+    index: "245",
+    title: "Diffusion Models Are Real-Time Game Engines",
+    shortTitle: "GameNGen",
+    date: "2024-08-27 · ICLR 2025 · weekend foundation gap-filler",
+    category: "世界模型",
+    paradigm: "Action-Conditioned Autoregressive Latent Diffusion",
+    state: "近期游戏RGB历史经预训练VAE压成连续latent；模型还读取玩家动作与历史帧噪声增强状态",
+    objective: "在过去帧和动作条件下学习下一帧latent的diffusion denoising target；公开材料未明确区分epsilon/v/x0参数化，conditioning augmentation模拟自由rollout历史误差",
+    decoding: "每次用少步latent diffusion生成下一帧，再把生成帧回灌形成AR rollout；单TPU上DOOM交互超过20 FPS",
+    sharing: "world model、游戏policy和视觉codec分开；不共享Qwen3、IBQ词表或语言head，但可作为ELF逐帧future生成的连续端点",
+    open: "论文、ICLR版本与官方项目页公开；官方未发布完整训练代码、权重或可复现数据生成管线，项目页仓库仅包含网站材料",
+    priority: "精读",
+    summary: "GameNGen先训练RL agent采集DOOM轨迹，再训练action-conditioned diffusion预测下一帧。其关键不是单帧画质，而是用噪声增强让模型适应自己生成的历史，从而维持实时自回归交互。",
+    why: "它为ELF/视频Flow的teacher-forcing—free-running差距提供经典对照：若训练只看干净历史，下一帧loss很低仍可能在长rollout中冻结、漂移或忽略动作。",
+    inspiration: "把多帧威胁future按chunk自回灌训练，并对历史IBQ embedding加入与真实自由轨迹误差匹配的扰动；同时保留clean anchor，防止OCR、身份和背景快速退化。",
+    experiment: "固定IBQ/video codec、Qwen3/ELF backbone、动作条件、数据、NFE与FLOPs，比较clean teacher forcing、Gaussian history noise、student-state self-forcing和混合anchor。报告action shuffle、1/8/32-step威胁误差、身份/OCR、运动幅度、闭环任务成功、延迟和显存。",
+    paper: "https://arxiv.org/abs/2408.14837",
+    project: "https://gamengen.github.io/",
+    action: "离散玩家动作逐帧条件化下一观测；动作来自单独训练的RL agent或在线用户输入",
+    rollout: "支持实时长时交互式DOOM rollout；未证明通用3D世界迁移、显式规划或真实机器人控制",
+    evaluation: "除PSNR/人类区分率外，应报告动作因果性、游戏状态正确率、死亡/奖励事件、horizon drift与策略成功率",
+    domain: "World Model",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "blog-deepmind-genie2-foundation-world-model",
+    index: "246",
+    title: "Genie 2: A Large-Scale Foundation World Model",
+    shortTitle: "Genie 2 Blog",
+    date: "2024-12-04 · official research blog · weekend foundation gap-filler",
+    category: "世界模型",
+    paradigm: "Official Research Blog / General-Purpose Interactive World Model",
+    state: "单张prompt image经autoencoder变成连续latent frames，与自生成历史共同形成隐式世界状态",
+    objective: "causal Transformer根据过去latent frames与键盘/鼠标action学习下一观察的autoregressive latent diffusion；clean/noise/velocity精确参数化未公开",
+    decoding: "逐帧latent diffusion并用CFG增强动作可控性，再由decoder恢复画面；可响应用户/agent动作并维持一定视野外记忆，公开视频最长约一分钟",
+    sharing: "没有公开LLM/UMM共享细节；应视为闭源交互环境端点，而不是可直接复现的IBQ/URSA/ELF基线",
+    open: "Google DeepMind官方Blog与演示公开；截至收录日无完整论文、代码、训练权重、tokenizer或可复现评测协议",
+    priority: "泛读",
+    summary: "Genie 2从单张图像生成可由键盘/鼠标操控的多样3D环境，展示动作响应、对象交互、NPC行为、视野外状态记忆和反事实轨迹。官方材料更强调agent训练与评测平台，而非开放模型细节。",
+    why: "它补齐世界模型矩阵中的‘闭源能力上限’：公平比较时必须把可交互性、状态持续性和agent evaluation与纯视频质量分开，同时明确不可复现的训练目标。",
+    inspiration: "把Qwen3+IBQ/ELF评测改成agent-centric protocol：同一起点执行相反动作、离开后重访、遮挡后寻找目标，并检查威胁状态是否随动作因果变化。",
+    experiment: "固定初始帧、动作序列、horizon和agent policy，比较Genie式交互协议下的IBQ-AR、URSA、ELF与显式state world model。报告action adherence、重访身份/OCR、对象永久性、事件成功率、agent reward、horizon error、延迟和成本。",
+    paper: "https://deepmind.google/blog/genie-2-a-large-scale-foundation-world-model/",
+    action: "键盘/鼠标式离散交互与agent action；详细action tokenizer/conditioning方式未公开",
+    rollout: "官方展示长达约一分钟的交互环境、反事实轨迹和视野外记忆；未开放闭环基准实现",
+    evaluation: "作为能力上限参考，需用统一agent和动作协议复测，不能以官方演示替代可复现闭环数据",
+    kind: "Blog",
+    domain: "World Model",
+    featured: true,
+    idea: true,
+  },
+  {
+    id: "blog-anthropic-open-circuit-tracing",
+    index: "247",
+    title: "Open-Sourcing Circuit Tracing Tools",
+    shortTitle: "Anthropic Circuit Tracing Blog",
+    date: "2025-05-29 · official research blog · weekend foundation gap-filler",
+    category: "可解释性",
+    paradigm: "Official Research Blog / Cross-Layer Transcoder Attribution Graphs",
+    state: "用cross-layer transcoder稀疏feature替换原模型局部计算；节点表示激活feature，边表示对下游feature或logit的局部直接贡献",
+    objective: "不训练生成器；对单个prompt构建、剪枝和标注attribution graph，并用feature intervention验证必要性与输出变化",
+    decoding: "保持原LM生成过程，事后或在线追踪input→feature→logit路径；图本身是局部近似，不能自动视为完整因果解释",
+    sharing: "可审计共享Qwen Transformer中的语言、视觉与生成feature，但现成transcoder主要覆盖部分开放LM；迁移到Qwen3需单独训练/验证替代模型",
+    open: "Anthropic官方Blog、Circuit Tracing/On the Biology方法材料、开源circuit-tracer库、前端与Neuronpedia交互界面均已公开",
+    priority: "精读",
+    summary: "Anthropic把attribution graph工具开放到Gemma-2-2B、Llama-3.2-1B等开放模型：从稀疏feature之间的直接贡献构建局部计算图，并允许修改feature后观察输出变化，而不只展示attention热图。",
+    why: "这正好补足Qwen3+IBQ中的因果解释缺口：OCR token被关注、某层probe可读或生成CoT提到目标，都不能证明该证据真正驱动最终威胁判断或视觉ID输出。",
+    inspiration: "分别追踪OCR字符、目标身份、速度趋势与风险结论到Qwen3语言head和IBQ/ELF生成head的路径；通过替换、抑制和反向增强关键feature检查跨模态概念是否双向可调用。",
+    experiment: "固定20–50个多帧样本，构造原始、OCR替换、关键帧删除、bbox遮挡和伪线索五组；比较attention、gradient attribution、SAE/CLT graph与causal patching。报告路径稳定性、feature intervention effect、威胁准确率、OCR/身份保持及随机feature对照。",
+    paper: "https://www.anthropic.com/research/open-source-circuit-tracing",
+    project: "https://www.transformer-circuits.pub/2025/attribution-graphs/methods.html",
+    code: "https://github.com/decoderesearch/circuit-tracer",
+    kind: "Blog",
+    domain: "可解释性",
+    featured: true,
+    idea: true,
+  },
+
 ];
 
 const shortcuts = ["今日精选", "全部内容", "Blog", "精读清单", "借鉴优先"];
@@ -6606,6 +6736,68 @@ const englishOverrides: Record<string, Partial<EnglishPaperCopy>> = {
     rollout: "It supports long-horizon, multi-camera, action-conditioned video generation; the blog does not demonstrate real closed-loop control success.",
     evaluation: "Add causal interventions, multi-camera consistency, long-tail coverage, and downstream detection/planning benefit rather than relying on visual quality.",
   },
+  "sd3-scaling-rectified-flow-transformers": {
+    summary: "SD3 systematically compares diffusion and Rectified Flow for high-resolution text-to-image synthesis and introduces MMDiT: text and image retain separate parameter streams while exchanging information through joint attention. It also treats timestep sampling as a first-class training variable instead of sampling all noise scales uniformly.",
+    why: "It is a foundational image-generation control for the ELF route. Improvements may come from velocity prediction, timestep sampling, modality-separated MMDiT weights, or stronger text encoders, and should not be attributed generically to Flow.",
+    inspiration: "Apply the same shared-interaction/separate-state principle to Qwen3 + IBQ/ELF. Let Qwen hidden states and IBQ embeddings exchange semantics through attention while keeping normalization, timestep embeddings, and output heads separate so continuous image states do not distort language or OCR distributions.",
+    experiment: "Fix Qwen3, IBQ embeddings, data, parameters, FLOPs, and NFE. Compare uniform, linear, cosine, and logit-normal timestep sampling, then a single shared FFN against MMDiT-style modality-specific FFNs. Report GenEval, generated-text OCR, OCRBench, code coverage, effective rank, throughput, memory, and gradient conflict.",
+    state: "Continuous 16-channel VAE image latents and CLIP/T5 text features remain in separate streams and interact through MMDiT joint attention.",
+    objective: "Rectified-Flow velocity on a linear data-to-noise path, with timestep distributions such as logit-normal emphasizing perceptually relevant scales.",
+    decoding: "Iteratively sample continuous latents with a Flow/ODE solver, then reconstruct pixels through the VAE decoder; no discrete visual IDs are generated.",
+    sharing: "Image and text exchange information through attention but keep separate weights, projections, state spaces, tokenizers, vocabularies, and heads; this is not an understanding-generation UMM.",
+    open: "The paper, Stability AI research page, official sd3-ref inference implementation, and public inference weights are available. The full training data and end-to-end training recipe are not fully open.",
+  },
+  "blog-openai-sora-world-simulators": {
+    summary: "The Sora technical report converts visual data with varied sources, durations, resolutions, and aspect ratios into spacetime patches. It shows that scaled video diffusion can exhibit 3D consistency, object persistence, and simple interaction simulation, while explicitly documenting physical and causal failures.",
+    why: "It is an important boundary case between video generation and world modeling. A plausible future is not equivalent to accepting real actions, maintaining queryable state, or improving closed-loop planning.",
+    inspiration: "Treat an ELF video renderer as evidence visualization in multi-frame threat analysis. Maintain separate structured threat state, action-conditioned dynamics, and closed-loop evaluation instead of using photorealistic futures as a proxy for causal prediction.",
+    experiment: "Fix the video tokenizer, Transformer, data, context, horizon, and sampling FLOPs. Compare text-conditioned video Flow, real-action-conditioned Flow, IBQ-ID AR/URSA, and a semantic future predictor. Report action-shuffle sensitivity, threat AUPRC, identity/OCR retention, physical events, horizon drift, FVD, NFE, and latency.",
+    state: "Images and videos are compressed into continuous latents and represented as spacetime patch tokens with variable duration, resolution, and aspect ratio.",
+    objective: "Predict original clean spacetime patches from noisy inputs under text, image, or video conditioning. The public report does not fully specify the noise schedule or training-loss details.",
+    decoding: "Iteratively generate an entire spacetime latent sequence from noise, then decode pixels. It is not frame-wise AR and exposes no public closed-loop action interface.",
+    sharing: "Text conditions interact with visual latents inside the generator, but language vocabulary, visual tokenizer, and output heads are not shared; Sora should not be treated directly as a UMM or planner.",
+    open: "OpenAI's official technical report and capability/limitation examples are public. A full paper, training code, weights, data recipe, and reproducible experiments are not open.",
+  },
+  "gamengen-real-time-diffusion-engine": {
+    summary: "GameNGen first trains an RL agent to collect DOOM trajectories, then trains an action-conditioned diffusion model to predict the next frame. Its key contribution is conditioning augmentation that exposes the model to corrupted histories resembling its own rollout errors, enabling real-time autoregressive interaction.",
+    why: "It is a classic control for the teacher-forcing/free-running gap in ELF or video Flow. Low one-step loss on clean histories can still produce frozen motion, drift, or ignored actions over long rollouts.",
+    inspiration: "Train multi-frame threat futures with chunk-level self-feedback and perturb historical IBQ embeddings according to measured free-running error, while retaining clean anchors to protect OCR, identity, and background evidence.",
+    experiment: "Fix the IBQ/video codec, Qwen3/ELF backbone, action condition, data, NFE, and FLOPs. Compare clean teacher forcing, Gaussian history noise, student-state self-forcing, and hybrid anchors. Report action shuffle, 1/8/32-step threat error, identity/OCR, motion magnitude, closed-loop success, latency, and memory.",
+    state: "Recent RGB gameplay frames are compressed by a pretrained VAE into continuous latents, together with player actions and noise-augmented frame history.",
+    objective: "Learn a next-frame latent diffusion denoising target from past frames and actions. Public material does not distinguish epsilon, velocity, or clean-latent parameterization; conditioning augmentation approximates free-rollout errors.",
+    decoding: "Generate the next frame with few-step latent diffusion, feed it back, and continue autoregressively. The system runs DOOM at over 20 FPS on one TPU.",
+    sharing: "The world model, game policy, and visual codec are separate. No Qwen3, IBQ vocabulary, or language head is shared, but it is a continuous endpoint for ELF-style frame prediction.",
+    open: "The paper, ICLR version, and official project page are public. Official training code, weights, and a reproducible data-generation pipeline are not released; the project repository contains site materials only.",
+    action: "Discrete player actions condition each next observation, supplied by a separately trained RL agent or an online user.",
+    rollout: "It supports real-time long interactive DOOM rollouts, but does not demonstrate general 3D transfer, explicit planning, or real-robot control.",
+    evaluation: "Beyond PSNR and human realism judgments, report causal action response, game-state correctness, death/reward events, horizon drift, and policy success.",
+  },
+  "blog-deepmind-genie2-foundation-world-model": {
+    summary: "Genie 2 generates diverse keyboard- and mouse-controllable 3D environments from a single image. The official demonstrations emphasize action response, object interactions, NPC behavior, out-of-view memory, and counterfactual trajectories, positioning the model as an agent-training and evaluation environment rather than an open modeling recipe.",
+    why: "It supplies a closed capability ceiling in the world-model matrix. Interactivity, state persistence, and agent evaluation must be separated from video quality, while its undisclosed training objective must be labeled explicitly.",
+    inspiration: "Evaluate Qwen3 + IBQ/ELF with an agent-centric protocol: execute opposite actions from the same start, leave and revisit a scene, search after occlusion, and test whether threat state changes causally with action.",
+    experiment: "Fix the initial frame, action sequence, horizon, and agent policy. Compare IBQ-AR, URSA, ELF, and an explicit-state world model under the same interactive protocol. Report action adherence, revisit identity/OCR, object permanence, event success, agent reward, horizon error, latency, and cost.",
+    state: "An autoencoder maps a prompt image and generated frame history into continuous latent frames that form an implicit world state.",
+    objective: "A causal Transformer learns autoregressive latent diffusion for the next observation from past latents and keyboard or mouse actions; the exact clean/noise/velocity parameterization is undisclosed.",
+    decoding: "Sample each latent frame autoregressively with diffusion and action CFG, then decode pixels. The model retains some out-of-view memory, with public demonstrations lasting up to roughly one minute.",
+    sharing: "No LLM or UMM sharing details are public. Treat Genie 2 as a closed interactive capability endpoint, not a directly reproducible IBQ/URSA/ELF baseline.",
+    open: "Google DeepMind's official blog and demonstrations are public. No complete paper, code, training weights, tokenizer, or reproducible evaluation protocol is available at indexing time.",
+    action: "Keyboard- and mouse-like interactions or agent actions; the exact action tokenizer and conditioning mechanism are undisclosed.",
+    rollout: "The official release demonstrates roughly minute-long interactive environments, counterfactual trajectories, and out-of-view memory, but no open closed-loop benchmark implementation.",
+    evaluation: "Use a common agent and action protocol to test it as a capability reference; official demonstrations are not a substitute for reproducible closed-loop measurements.",
+  },
+  "blog-anthropic-open-circuit-tracing": {
+    summary: "Anthropic released attribution-graph tooling for supported open models such as Gemma-2-2B and Llama-3.2-1B. Sparse-feature direct effects form a local computation graph, and researchers can intervene on features to test output changes rather than relying on attention visualization alone.",
+    why: "It fills the causal-explanation gap for Qwen3 + IBQ. Attention to an OCR token, a readable layer probe, or a fluent chain of thought does not prove that evidence drove the final threat verdict or visual-token output.",
+    inspiration: "Trace OCR characters, object identity, motion trend, and risk concepts to both the Qwen3 language head and IBQ/ELF generation head. Suppress, replace, or amplify candidate features to test whether cross-modal concepts are callable in both directions.",
+    experiment: "Fix 20–50 multi-frame samples and create original, OCR-replaced, key-frame-deleted, box-masked, and spurious-cue variants. Compare attention, gradient attribution, SAE/CLT graphs, and causal patching. Report path stability, feature-intervention effect, threat accuracy, OCR/identity retention, and random-feature controls.",
+    state: "A cross-layer transcoder locally replaces model computation with sparse features; nodes are active features and edges are direct local contributions to later features or logits.",
+    objective: "No generator is trained. Build, prune, and annotate a prompt-specific attribution graph, then validate necessity and output changes with feature interventions.",
+    decoding: "Keep the original LM generation process and trace input-to-feature-to-logit paths afterward or online. The graph is a local approximation, not automatically a complete causal explanation.",
+    sharing: "The method can audit language, vision, and generation features in a shared Qwen Transformer, but released transcoders cover only selected open LMs. Qwen3 requires a separately trained and validated replacement model.",
+    open: "Anthropic's official blog, Circuit Tracing and On the Biology methods, open-source circuit-tracer library, frontend, and Neuronpedia interface are public.",
+  },
+
 };
 
 function getEnglishCopy(paper: Paper): EnglishPaperCopy {
@@ -6708,6 +6900,7 @@ function EnglishMatrices() {
           <tr><th>MTAR</th><td>Discrete token IDs</td><td>NTP + future-token CE + contrastive regularization</td><td>Unchanged AR inference</td><td>Training-signal density</td></tr>
           <tr><th>URSA</th><td>Discrete image-token IDs</td><td>Clean-token logits / CE</td><td>Global iterative refinement</td><td>Metric path and schedule</td></tr>
           <tr><th>ELF</th><td>Continuous token embeddings</td><td>Velocity / L2 + auxiliary CE</td><td>ODE/SDE sampling</td><td>Embedding geometry and projection error</td></tr>
+          <tr><th>SD3 / MMDiT</th><td>Continuous VAE latent + separate text features</td><td>Reweighted Rectified-Flow velocity</td><td>Parallel ODE/Flow sampling</td><td>Timestep distribution versus modality-specific weights</td></tr>
           <tr><th>Block Diffusion</th><td>Discrete IDs in blocks</td><td>Masked-token CE</td><td>AR across blocks, parallel refinement within blocks</td><td>Block size and local NFE</td></tr>
           <tr><th>CommerceVibe</th><td>Executable HTML/CSS tokens</td><td>Next-code CE + rule/VLM RL</td><td>AR code → deterministic renderer</td><td>Structured text/layout upper bound</td></tr>
           <tr><th>SVGLM</th><td>Discrete SVG program tokens</td><td>Next-code CE + SVG edit supervision</td><td>AR program → deterministic renderer</td><td>Structured geometry/text versus pixel-latent generation</td></tr>
@@ -6725,6 +6918,9 @@ function EnglishMatrices() {
       <section className="world-section" id="world-matrix">
         <div className="section-heading"><div><p className="eyebrow">WORLD MODEL COMPARISON</p><h2>Understanding → Generation → Prediction → Action</h2></div><p>Do not reduce evaluation to FVD or LPIPS</p></div>
         <div className="matrix-wrap"><table className="world-table"><thead><tr><th>Model</th><th>Observation state</th><th>Action</th><th>Dynamics target</th><th>Rollout / planning</th><th>UMM connection</th></tr></thead><tbody>
+          <tr><th>GameNGen</th><td>Autoregressive VAE gameplay latent</td><td>Discrete player action</td><td>Next-frame diffusion denoising; parameterization undisclosed</td><td>Real-time interactive rollout; no explicit planner</td><td>Continuous free-running control for ELF-style video futures</td></tr>
+          <tr><th>Genie 2 Blog</th><td>Autoencoded latent frames + generated history</td><td>Keyboard / mouse / agent action</td><td>Autoregressive latent diffusion; parameterization undisclosed</td><td>Interactive counterfactuals and out-of-view memory</td><td>Closed capability ceiling, not a reproducible UMM baseline</td></tr>
+          <tr><th>Sora Report</th><td>Variable-resolution spacetime latent patches</td><td>Text/image/video conditions; no public action interface</td><td>Clean spacetime-patch prediction</td><td>Open-loop video generation, not closed-loop planning</td><td>Renderer/simulator boundary for IBQ/ELF evaluation</td></tr>
           <tr><th>UWM</th><td>Independently noised video and action states</td><td>Continuous robot actions</td><td>Video noise + action noise</td><td>Policy, forward/inverse dynamics, or video generation by timestep control</td><td>One Transformer with modality-specific clocks and heads</td></tr>
           <tr><th>FlowWM</th><td>Frozen high-dimensional DINOv3 features</td><td>Passive video; action interface not provided</td><td>Feature-space Flow velocity</td><td>Stochastic 12-frame feature forecast; no closed-loop planner</td><td>Semantic future branch beside IBQ/ELF rendering</td></tr>
           <tr><th>WorldCrafter</th><td>Camera-queryable implicit 3D memory + recent video context</td><td>Camera trajectory and text</td><td>Pose-conditioned future-video denoising</td><td>Minute-scale streaming exploration and revisits</td><td>Persistent evidence memory separated from local renderer dynamics</td></tr>
@@ -6874,7 +7070,7 @@ export default function Home() {
 
       <div className="issue-strip" id="top">
         <span>▣</span>
-        <strong>DAILY BRIEF · 2026.09.26</strong>
+        <strong>DAILY BRIEF · 2026.09.27</strong>
         <i />
         <span>{language === "en" ? "Unified multimodal modeling research index" : "统一多模态建模研究知识库"}</span>
       </div>
@@ -6910,7 +7106,7 @@ export default function Home() {
           </div>
           <div className="side-filter">
             <h3>{language === "en" ? "Current Filters" : "当前筛选"}</h3>
-            <div className="filter-row"><span>{language === "en" ? "Years" : "年份"}</span><strong>2025–2026</strong></div>
+            <div className="filter-row"><span>{language === "en" ? "Coverage" : "收录范围"}</span><strong>{language === "en" ? "2025–2026 + foundations" : "2025–2026 + 基础材料"}</strong></div>
             <div className="filter-row"><span>{language === "en" ? "Open-source first" : "开源优先"}</span><strong>{language === "en" ? "Yes" : "是"}</strong></div>
             <div className="filter-row"><span>{language === "en" ? "Reading list" : "阅读清单"}</span><strong>{saved.length} {language === "en" ? "items" : "篇"}</strong></div>
           </div>
@@ -6920,9 +7116,9 @@ export default function Home() {
         <div className="content">
           <section className="hero">
             <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 051]</p>
-              <h1>{language === "en" ? <>Separate semantic prediction, rendering,<br />memory, and action diffusion.</> : <>把语义预测、像素渲染、持久记忆<br />与动作扩散分开比较</>}</h1>
-              <p className="hero-copy">{language === "en" ? "With no new weekend arXiv batch, this issue fills five high-value gaps: UWM, FlowWM, WorldCrafter, SVGLM, and Wayve's official GAIA-2 blog. Together they isolate modality-specific diffusion clocks, stochastic semantic futures, queryable 3D memory, renderable program reasoning, and controlled safety simulation." : "周末没有新的 arXiv 发布批次，本期补齐五个高价值空缺：UWM、FlowWM、WorldCrafter、SVGLM 与 Wayve 官方 GAIA-2 Blog，分别隔离模态独立扩散时钟、随机语义未来、可查询 3D 记忆、可渲染程序推理与安全反事实模拟。"}</p>
+              <p className="eyebrow">[UMM RADAR · ISSUE 052]</p>
+              <h1>{language === "en" ? <>Separate image generation, video rendering,<br />interactive dynamics, and causal explanation.</> : <>把图像生成、视频渲染、交互动力学<br />与因果解释分开比较</>}</h1>
+              <p className="hero-copy">{language === "en" ? "With no new Sunday arXiv batch, this issue fills five foundational gaps: SD3/MMDiT, the Sora technical report, GameNGen, DeepMind's Genie 2 blog, and Anthropic's open circuit-tracing tools. Together they separate Flow objectives, spacetime rendering, action-conditioned rollout, closed interactive capability, and causal feature attribution." : "周日没有新的 arXiv 发布批次，本期补齐五个基础空缺：SD3/MMDiT、Sora 技术报告、GameNGen、DeepMind Genie 2 Blog，以及 Anthropic 开源 attribution graph 工具，分别隔离 Flow 目标、时空渲染、动作条件 rollout、闭源交互能力与因果特征归因。"}</p>
               <div className="hero-actions">
                 <a className="primary-button" href="#papers">{language === "en" ? "View today's picks" : "查看今日精选"}</a>
                 <button className="text-button" onClick={() => selectDeepReads()}>{language === "en" ? "Open deep reads" : "打开精读清单"} <span>→</span></button>
@@ -6934,7 +7130,7 @@ export default function Home() {
                 <span>{language === "en" ? "Papers and blogs are labeled by source type" : "Blog 与论文按来源类型区分"}</span>
               </div>
               <div className="stats">
-                <div><b>242</b><span>{language === "en" ? "Papers & blogs" : "论文与 Blog"}</span></div>
+                <div><b>247</b><span>{language === "en" ? "Papers & blogs" : "论文与 Blog"}</span></div>
                 <div><b>06</b><span>{language === "en" ? "Research tracks" : "独立方向"}</span></div>
                 <div><b>03</b><span>{language === "en" ? "Comparison matrices" : "比较矩阵"}</span></div>
               </div>
@@ -7067,6 +7263,7 @@ export default function Home() {
                   <tr><th>MTAR</th><td>离散VQ/IBQ token ID；训练期从同一hidden预测多个future IDs</td><td>next-token CE + multi-token CE + token contrastive regularization</td><td>推理仍严格左到右AR；MTP/TCR/semantic dropping均移除</td><td>固定主head与推理，隔离监督密度、低频ID可分性和training-only token dropping</td></tr>
                   <tr><th>URSA</th><td>原始 IBQ 网格的离散 token ID；无额外 merge</td><td>每位置 64K clean-token CE</td><td>全 H×W 网格并行迭代</td><td>Metric path、schedule、solver；勿与仓库中的连续 DiT 混淆</td></tr>
                   <tr><th>ELF</th><td>连续 embedding</td><td>Velocity / L2 + CE</td><td>ODE / SDE</td><td>空间几何、回投误差、CFG</td></tr>
+                  <tr><th>SD3 / MMDiT</th><td>连续VAE latent + 独立文本feature流</td><td>重加权Rectified-Flow velocity</td><td>并行ODE/Flow采样</td><td>固定NFE与backbone，隔离timestep分布、velocity目标和模态特化权重</td></tr>
                   <tr><th>AffineTok</th><td>VFM语义协调的连续VAE patch latent</td><td>tokenizer SAC/GSCT/PMSA；下游velocity不变</td><td>Gaussian→latent ODE并行生成</td><td>用M_SAC隔离重建质量、clean语义与沿加噪path的可恢复语义；训练期组件推理移除</td></tr>
                   <tr><th>RVM</th><td>预训练Flow/Diffusion连续state；可为IBQ embedding</td><td>reward-weighted velocity + reference anchor</td><td>沿用原ODE/SDE与NFE</td><td>不估计trajectory/endpoint likelihood；奖励与anchor比loss变体更关键，需防画质奖励造成静态或palette collapse</td></tr>
                   <tr><th>KATok</th><td>keep/drop稀疏连续video-VAE latent + 位置/mask prior</td><td>content/position velocity；tokenizer sparsity/reconstruction</td><td>先生成mask/位置再Flow content，或双schedule联合Flow</td><td>tokenizer级可变长度，不等同Qwen 2×2 folding；固定平均token数比较position错位、OCR与动态区域</td></tr>
@@ -7291,10 +7488,9 @@ export default function Home() {
               <table className="world-table">
                 <thead><tr><th>路线</th><th>观测状态</th><th>动作接口</th><th>动力学目标</th><th>建模方式</th><th>Rollout / 规划</th><th>与 UMM 的关系</th></tr></thead>
                 <tbody>
-                  <tr><th>UWM</th><td>独立加噪的video latent与action状态</td><td>连续机器人action</td><td>video noise + action noise</td><td>同一Transformer、独立模态timestep与head</td><td>控制timestep切换policy、forward/inverse dynamics和video generation</td><td>共享上下文而不强迫IBQ、动作与语言使用同一状态/head</td></tr>
-                  <tr><th>FlowWM</th><td>冻结DINOv3高维连续future feature</td><td>被动视频；原论文无真实action接口</td><td>feature-space Flow velocity</td><td>随机连续Flow + one-step task/temporal projection</td><td>4帧上下文预测12帧多模态未来；未证明闭环规划</td><td>低成本语义future分支，可与IBQ/ELF可渲染分支解耦</td></tr>
-                  <tr><th>WorldCrafter</th><td>camera-queryable隐式3D memory + 近期video context</td><td>相机轨迹与文本</td><td>目标视角条件下的future-video denoising</td><td>pose-conditioned memory readout + few-step video diffusion</td><td>分钟级流式探索与视角重访；非机器人planner</td><td>把Qwen/IBQ持久证据记忆与URSA/ELF局部动力学分开</td></tr>
-                  <tr><th>GAIA-2（官方Blog）</th><td>多相机video latent + 驾驶结构化条件</td><td>ego speed/curvature与其他agent 3D boxes</td><td>action-conditioned future-video latent</td><td>多相机latent diffusion</td><td>长时反事实驾驶模拟；不直接输出policy</td><td>作为Qwen3威胁检测与IBQ/ELF的外部可控安全验证器</td></tr>
+                  <tr><th>GameNGen</th><td>自回灌的连续VAE gameplay latent</td><td>离散玩家action</td><td>下一帧diffusion denoising；参数化未公开</td><td>动作条件AR latent diffusion + history corruption</td><td>实时交互rollout；无显式planner</td><td>ELF视频future的free-running连续基线；不共享LLM词表/head</td></tr>
+                  <tr><th>Genie 2（官方Blog）</th><td>autoencoder latent frames + 自生成历史</td><td>键盘/鼠标/agent action</td><td>AR latent diffusion；精确参数化未公开</td><td>causal Transformer + action CFG</td><td>反事实交互、视野外记忆与约一分钟一致性</td><td>作为能力上限，不是可复现IBQ/URSA/ELF基线</td></tr>
+                  <tr><th>Sora（技术报告）</th><td>可变时长/分辨率的spacetime latent patches</td><td>文本/图像/视频条件；无公开真实action接口</td><td>clean spacetime-patch prediction</td><td>大规模视频Diffusion Transformer</td><td>开放环视频生成；未证明闭环规划</td><td>用于划分视频renderer与因果world model边界</td></tr>
                   <tr><th>UWM</th><td>独立加噪的video latent与action状态</td><td>连续机器人action</td><td>video noise + action noise</td><td>同一Transformer、独立模态timestep与head</td><td>控制timestep切换policy、forward/inverse dynamics和video generation</td><td>共享上下文而不强迫IBQ、动作与语言使用同一状态/head</td></tr>
                   <tr><th>FlowWM</th><td>冻结DINOv3高维连续future feature</td><td>被动视频；原论文无真实action接口</td><td>feature-space Flow velocity</td><td>随机连续Flow + one-step task/temporal projection</td><td>4帧上下文预测12帧多模态未来；未证明闭环规划</td><td>低成本语义future分支，可与IBQ/ELF可渲染分支解耦</td></tr>
                   <tr><th>WorldCrafter</th><td>camera-queryable隐式3D memory + 近期video context</td><td>相机轨迹与文本</td><td>目标视角条件下的future-video denoising</td><td>pose-conditioned memory readout + few-step video diffusion</td><td>分钟级流式探索与视角重访；非机器人planner</td><td>把Qwen/IBQ持久证据记忆与URSA/ELF局部动力学分开</td></tr>
