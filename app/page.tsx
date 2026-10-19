@@ -6,6 +6,7 @@ type Paper = {
   id: string;
   index: string;
   title: string;
+  titleEn?: string;
   shortTitle: string;
   date: string;
   category: string;
@@ -1486,6 +1487,7 @@ const papers: Paper[] = [
     id: "ursa-code-audit",
     index: "55",
     title: "URSA 代码审计：DiffusionTransformer 与离散 URSA 主干不是同一条路径",
+    titleEn: "URSA Code Audit: DiffusionTransformer and the Discrete URSA Backbone Are Different Paths",
     shortTitle: "URSA Code Audit",
     date: "2026-07-28 · 官方 main 分支核对",
     category: "离散 Diffusion",
@@ -6187,7 +6189,7 @@ const papers: Paper[] = [
     project: "https://stability.ai/research/scaling-rectified-flow-transformers-for-high-resolution-image-synthesis",
     code: "https://github.com/Stability-AI/sd3-ref",
     domain: "图像生成",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -6211,7 +6213,7 @@ const papers: Paper[] = [
     paper: "https://openai.com/index/video-generation-models-as-world-simulators/",
     kind: "Blog",
     domain: "视频生成",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -6238,7 +6240,7 @@ const papers: Paper[] = [
     rollout: "支持实时长时交互式DOOM rollout；未证明通用3D世界迁移、显式规划或真实机器人控制",
     evaluation: "除PSNR/人类区分率外，应报告动作因果性、游戏状态正确率、死亡/奖励事件、horizon drift与策略成功率",
     domain: "World Model",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -6265,7 +6267,7 @@ const papers: Paper[] = [
     evaluation: "作为能力上限参考，需用统一agent和动作协议复测，不能以官方演示替代可复现闭环数据",
     kind: "Blog",
     domain: "World Model",
-    featured: true,
+    featured: false,
     idea: true,
   },
   {
@@ -6291,13 +6293,147 @@ const papers: Paper[] = [
     code: "https://github.com/decoderesearch/circuit-tracer",
     kind: "Blog",
     domain: "可解释性",
-    featured: true,
+    featured: false,
     idea: true,
   },
-
+{
+  "id": "ktp-visual-knowledge-transfer",
+  "index": "248",
+  "title": "Can Visual Generation Expand What Unified Multimodal Models Know?",
+  "shortTitle": "Knowledge Transfer Probing",
+  "date": "2026-10-15 · v1 · curated 2026-10-19",
+  "category": "统一多模态",
+  "domain": "UMM",
+  "paradigm": "Controlled Knowledge Transfer / UMM Diagnostic",
+  "priority": "精读",
+  "paper": "https://arxiv.org/abs/2610.21459",
+  "project": "https://kevinlllee.github.io/Knowledge-Transfer-Probing/",
+  "code": "https://github.com/kevinlllee/Knowledge-Transfer-Probing",
+  "summary": "KTP把虚构实体的属性只放在生成训练图像中，从caption移除答案，再用无输入图像的纯文本QA测知识转移。跨三类UMM，视觉可生成性与语言可调用性之间仍有差距；部分实体的交错图文对齐能改善其他未接受QA监督实体的知识访问。",
+  "why": "它直接检验Qwen3+IBQ‘理解生成统一’是否真实成立，比共享Transformer或CKA升高更有辨别力；GLM-Omni采用X-Omni式离散token，另含MoT与NEO-unify端点，与你的AR/URSA/ELF比较高度相关。建议精读任务构造与信息隔离。",
+  "inspiration": "把OCR字符、牌号、对象身份及风险关系设计成仅视觉监督可见的虚构知识，分别测‘能画出’、‘能读出’、‘能在纯文本回忆’。这是对当前实验的迁移建议，不是论文已证明IBQ或ELF会改善知识转移。",
+  "experiment": "固定Qwen3、IBQ、数据实体、参数量与FLOPs，比较AR/URSA/ELF×无对齐/纯文本对齐/交错图文对齐。alignment与test按实体隔离，答案不得出现在caption。报告visual/text accessibility gap、生成文字OCR、OCRBench/DocVQA/TextVQA及通用T2I退化；QA模板控制相同。",
+  "state": "诊断协议本身不指定生成状态；被测模型包含离散视觉ID、VAE latent和直接像素路线，不能将三模型差异归因于单一范式。",
+  "objective": "保留各模型原T2I目标，增加实体子集的text QA或交错图文监督；不提出新的forward corruption或clean/noise/velocity目标。",
+  "decoding": "测试主体为一次纯文本QA，不插入生成图像；visual accessibility另走各自原生成器。训练步数、NFE、AR初始化和显存须按底座分别核算，不是等预算生成器排名。",
+  "sharing": "比较的是共享知识的可调用性而非强制tokenizer/embedding/vocabulary/head绑权。AR、URSA与ELF可使用相同KTP协议公平评测，但需固定视觉数据与对齐预算。",
+  "open": "已核对官方项目页与仓库：训练/评测JSONL、图像包与scoring scripts公开；不等于三套完整训练代码、数据配方与新checkpoint全部开放。",
+  "featured": true,
+  "idea": true
+},
+{
+  "id": "momentum-persistent-dynamics",
+  "index": "249",
+  "title": "Momentum: Persistent Dynamics for Video World Models",
+  "shortTitle": "Momentum",
+  "date": "2026-10-16 · v1 · curated 2026-10-19",
+  "category": "世界模型",
+  "domain": "World Model",
+  "paradigm": "Persistent Multi-View State / Chunked Latent Diffusion",
+  "priority": "精读",
+  "paper": "https://arxiv.org/abs/2610.23423",
+  "project": "https://arxiv.org/html/2610.23423v1",
+  "summary": "Momentum用相连的多相机rig视频表示会随时间演化的世界。WorldUpdate推进共享动态状态，WorldInteract再按目标相机轨迹生成观察。对象离开当前视野后仍在参考世界中运动，区别于只保存旧图片的静态缓存。",
+  "why": "多帧威胁检测的关键不只是‘记住那辆车’，而是遮挡期间它的位置和风险是否继续变化。此工作把历史保留、动态推进与目标视角渲染拆开，正好补齐ELF renderer不能单独保证的场外动力学。建议精读状态与观测两阶段接口。",
+  "inspiration": "可让IBQ缓存文字/身份外观，另用Qwen hidden或稀疏track推进动态，再由URSA/ELF按需渲染。原文使用多视角视频而非低成本对象state；稀疏state迁移是建议，尚无等价性证明。",
+  "experiment": "固定Qwen3、IBQ/codec、CARLA轨迹、horizon、参数与总FLOPs，比较静态cache、同预算长context、动态track state、动态多视角memory。对相同离开—重返轨迹测遮挡期位置/速度误差、重现身份/OCR、风险AUPRC、1/8/32块误差；分别记WorldUpdate成本和每条相机轨迹摊销成本。",
+  "state": "因果3D VAE连续latent；持久状态是同步参考相机视频的rig graph，每rig八视角，不是离散IBQ ID或显式对象轨迹。",
+  "objective": "WorldUpdate生成同步未来参考视频；WorldInteract对齐时空状态生成目标视角视频。DiT去噪；方法正文未给出可独立核对的epsilon/v/x0公式，此处不强行标成ELF velocity。",
+  "decoding": "块间AR、块内视频diffusion，多rig按图传播；初始化Cosmos Predict 2.5-2B而非AR LLM。新增多视角生成阶段增加算力/显存，可复用同一world rollout服务多条相机轨迹；不能直接与单视角同NFE等成本比较。",
+  "sharing": "不共享Qwen3、IBQ词表或语言head；可作为独立memory/dynamics模块接UMM。公平对照应固定renderer和codec，单独替换memory更新方式，不能同时改底座与场景数据。",
+  "open": "截至2026-10-19，原文称模型与源码将公开；未在已核对原文中找到可验证官方实现/权重链接。项目入口暂指全文，不把承诺发布写成已开源。",
+  "action": "主要可控输入是目标相机轨迹/位姿；参考世界演化不要求给定对象轨迹，不等同真实机器人action或车辆控制策略。",
+  "rollout": "支持chunked多步世界推进、跨视角与重访；论文实验不建立真实闭环规划或控制成功率。相机可控不能直接当作物理行动可控。",
+  "evaluation": "分开静态/动态一致性、相机控制与画质；迁移时增加相反动作、隐藏事件、闭环风险/控制成功和horizon累积误差，FVD/LPIPS不能独立证明动力学正确。",
+  "featured": true,
+  "idea": true
+},
+{
+  "id": "delta-flow-history-source",
+  "index": "250",
+  "title": "Delta Flow Matching for Robot Foundation Models",
+  "shortTitle": "Delta Flow Matching",
+  "date": "2026-10-11 · v1 · curated 2026-10-19",
+  "category": "世界模型",
+  "domain": "World Model",
+  "paradigm": "History-Conditioned Source / Residual Flow Matching",
+  "priority": "精读",
+  "paper": "https://arxiv.org/abs/2610.15794",
+  "project": "https://zuo-kuangji.github.io/delta-flow/",
+  "code": "https://github.com/NTUMARS/delta-flow-matching",
+  "summary": "Delta-flow不再从独立高斯噪声开始预测动作/视觉未来，而以近期history加轻噪声作source，并用velocity matching与一步endpoint consistency学习较小的过去—未来变化。原文在VLA与WAM上报告一步推理；应以论文版本为准，仓库旧宣传数字不与其混用。",
+  "why": "这为URSA→ELF提供了低混杂的source控制：未来预测不必像无条件T2I那样从零造整个网格。但复制过去也容易得到‘平滑却冻结’的假进步，因此必须同时测运动、突发事件和动作因果性。建议精读公式3–5及一步监督消融。",
+  "inspiration": "ELF未来token以历史IBQ embedding+noise初始化，renderer保持不变；另设高噪声分支覆盖新目标/突发威胁。与URSA history-conditioned corruption比较时应匹配source信息，不能让只有ELF看到历史近似答案。",
+  "experiment": "固定Qwen3、IBQ、数据、backbone、horizon和训练FLOPs，做source{Gaussian,history,history+noise}×endpoint loss{off,on}。先固定1 NFE，再画1/2/4/8 NFE曲线。加入打乱/过期history与新目标出现；报告动作shuffle、风险AUPRC、运动冻结率、code coverage、OCR/身份、闭环成功、jerk、延迟与显存。",
+  "state": "连续动作chunk与连续视觉latent；source s=alpha*h+sigma*b*epsilon，不是token ID、simplex或VQ residual code。",
+  "objective": "线性path y_tau=(1-tau)y+tau*s；velocity target为s-y，另加一步预测s-f(s,1)与y的L1 endpoint consistency。仍是velocity而非MeanFlow average velocity。",
+  "decoding": "每branch一步Euler；训练在随机flow time加endpoint监督。可复用已有VLA/WAM权重，部分action-source推理替换无需重训，但不能据此承诺IBQ/ELF无训练即有效；训练收敛与推理收益分别核算。",
+  "sharing": "原底座与视觉/action expert保持，tokenizer/embedding/vocabulary/head无新增统一约束。与ELF同为连续transport、但source和一步loss不同；URSA是离散ID恢复。公平比较须固定source信息量和endpoint loss。",
+  "open": "官方项目页与仓库已核对；仓库明确code not released yet，目前主要README/assets，无完整训练/评测代码或checkpoint。论文和项目页可读，不能标‘完整开源’。",
+  "action": "以最近已执行的真实动作chunk构造action source；视觉source取已观察历史，仍使用各底座原视觉/语言条件。",
+  "rollout": "评测机器人闭环任务与连续action chunk；WAM未来latent可用于action conditioning而不必解码视频。一步成功不是任意长horizon无误差保证。",
+  "evaluation": "结合LIBERO/分布外成功、chunk边界jerk、突变响应、action shuffle及rollout horizon；检查历史惯性是否掩盖碰撞/新目标，另报告视觉分支真实成本。",
+  "featured": true,
+  "idea": true
+},
+{
+  "id": "mist-execution-before-memory",
+  "index": "251",
+  "title": "Execution Before Memory: Diagnosing Memory Failures in Video World Models",
+  "shortTitle": "MIST / M3-Agent",
+  "date": "2026-10-16 · v1 · curated 2026-10-19",
+  "category": "评测诊断",
+  "domain": "评测诊断",
+  "paradigm": "Execution-Gated Memory Evaluation / Frozen-Generator Audit",
+  "priority": "精读",
+  "paper": "https://arxiv.org/abs/2610.23542",
+  "project": "https://hku-mmlab.github.io/MIST/",
+  "code": "https://github.com/HKU-MMLab/MIST",
+  "summary": "MIST把场景设置、隐藏期泄漏、是否执行揭示动作、最终状态正确性分开：没有打开盒子，就不能把看不到内容简单诊断为遗忘。M3-Agent改写失败动作，但项目特别提醒keep-best使用同一评测judge挑样本，是oracle上限，不证明模型记住了状态。",
+  "why": "它能避免多帧威胁/ELF rollout把‘动作未执行、目标未显露、renderer失败’统统解释成memory不足。与你的关键帧选择、身份保持和时序推理同样相关。建议优先读项目的限制说明，而不只引用三倍提升。",
+  "inspiration": "把威胁future分成setup→state change→reveal→risk readout四门：先检查目标进入视野和动作执行，再测身份/OCR状态是否保持。Qwen生成CoT说‘已观察’不算实际视觉证据。",
+  "experiment": "固定Qwen3、IBQ、AR/URSA/ELF、clip和采样总预算。分别做动作显式/隐式、目标答案给出/隐藏、单次/预算匹配best-of-N，并用独立selector和judge。报告每门通过率与P(state correct|executed,revealed)、错误类型、1/8/32块累积与总NFE；禁止把oracle选优当部署成功率。",
+  "state": "评测读取视频帧、动作指令和隐藏目标属性；不引入新的视觉tokenizer或生成latent。",
+  "objective": "冻结生成器；任务分门打分与test-time instruction rewrite，不训练新noise/velocity目标。改写使用的信息及gold-answer泄漏必须显式说明。",
+  "decoding": "沿用原视频generator，多候选重生成增加推理预算而非减少单次NFE；无新增AR权重初始化。显存由底座决定，费用要包含judge/rewriter与所有候选。",
+  "sharing": "可作为任意UMM/AR/URSA/ELF的外部诊断，不要求共享tokenizer、Transformer或head；不能把评测收益归因于动力学模型改进。",
+  "open": "官方仓库有control loop、protocol与tests；README说明原实验树丢失，当前仓库不能重生成论文全部数字。已公开诊断实现，不等于完整实验可复现。",
+  "action": "评测文本指令的动作执行/揭示；不是新的真实action token或latent-action模型。",
+  "rollout": "多shot隐藏—揭示测试和test-time改写；不构成真实闭环规划/控制证明。",
+  "evaluation": "分开setup/leak/reveal/inside；报告oracle和无gold设置、单次与多次预算、独立judge，避免把execution失败算成memory失败。",
+  "featured": true,
+  "idea": true
+},
+{
+  "id": "blog-google-coherent-long-form-video",
+  "index": "252",
+  "title": "Automating Coherent Long-Form Video Generation",
+  "shortTitle": "Google Long-Form Video Blog",
+  "date": "2026-09-24 · official blog · curated 2026-10-19",
+  "category": "视频生成",
+  "domain": "视频生成",
+  "kind": "Blog",
+  "paradigm": "Official Research Blog / Memory-Augmented Video Orchestration",
+  "priority": "泛读",
+  "paper": "https://research.google/blog/coherent-long-form-video-generation/",
+  "summary": "Google官方Blog梳理Co-Director、CANVAS、A2RD与VQQA：将视觉锚点、结构化角色/场景记忆、分段生成和问答式反馈组成长视频编排层。它改进的是跨段规划与test-time优化，而不是提出新的底层diffusion/Flow目标。",
+  "why": "适合给Qwen3+IBQ/ELF长时生成补一个不改权重的外部memory对照。必须把系统层重试和检索收益与tokenizer、静态生成建模、时序动力学训练分开；本篇是近期未收录Blog补读，不伪称今日发布。",
+  "inspiration": "让Qwen维护对象身份/OCR/状态的ledger，并按segment检索visual anchors指导ELF；只重生成失败片段。叙事一致不是物理因果保证：威胁场景还需动作条件状态推进。",
+  "experiment": "固定renderer、codec、prompt、初始场景与总采样FLOPs，比较无memory、静态anchor、状态ledger、ledger+独立QA反馈。所有重试计入预算；用隐藏事件与离开—重返测身份/OCR、事件顺序、轨迹误差、VBench与威胁AUPRC，另记LLM judge调用成本。",
+  "state": "系统层结构化角色/地点/对象状态、visual anchor与视频片段；底层生成器使用自身latent，Blog未给统一tokenizer或embedding规格。",
+  "objective": "检索、storyboard规划、自然语言critique与候选选择；不是noise/velocity/average velocity训练损失，也不定义新forward path。",
+  "decoding": "先全局规划，再retrieve–synthesize–refine–update分段循环；使用现成Gemini/Veo等底座。无统一训练步数/NFE，推理成本包含全部候选及MLLM调用；不从AR权重训练新生成器。",
+  "sharing": "统一的是编排与world-state tracking，不证明共享语言词表、视觉tokenizer、Transformer或head。与URSA/ELF正交，能在同一renderer上作为外部memory公平对照。",
+  "open": "官方Blog、关联论文和benchmark链接公开；本文不证明四框架全部端到端实现/权重开放，Gemini/Veo基础模型也不是完整开放训练基线。",
+  "action": "创作指令、shot计划与prompt更新；不是机器人action或驾驶控制。",
+  "rollout": "分段长视频及非连续重访；feedback closed loop是生成质量优化，不等于环境规划/控制闭环。",
+  "evaluation": "身份、服饰、布局与事件连续性之外，需要物理/动作干预与独立评测；防止同一个MLLM既优化又评分导致奖励自证。",
+  "featured": true,
+  "idea": true
+},
 ];
 
-const shortcuts = ["今日精选", "全部内容", "Blog", "精读清单", "借鉴优先"];
+const shortcuts = ["今日精选", "全部内容", "Blog", "精读清单", "已保存", "借鉴优先"];
 const directions = [
   "UMM",
   "图像生成",
@@ -6307,17 +6443,18 @@ const directions = [
   "评测诊断",
 ];
 const categoryIcons: Record<string, string> = {
-  "今日精选": "★",
-  "全部内容": "▦",
-  "Blog": "B",
-  "精读清单": "◆",
-  "借鉴优先": "↗",
-  "UMM": "◇",
-  "图像生成": "▧",
-  "视频生成": "▶",
-  "World Model": "◉",
-  "可解释性": "⌁",
-  "评测诊断": "✓",
+  "今日精选": "m10 2 2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8Z",
+  "全部内容": "M3 3h5v5H3zM12 3h5v5h-5zM3 12h5v5H3zM12 12h5v5h-5z",
+  "Blog": "M4 2h12v16H4zM7 6h6M7 10h6M7 14h3",
+  "精读清单": "M10 5C7 3 5 3 2 4v12c3-1 5-1 8 1m0-12c3-2 5-2 8-1v12c-3-1-5-1-8 1V5Z",
+  "借鉴优先": "M7 2h6M9 2v6l-5 9h12l-5-9V2M7 12h6",
+  "已保存": "M5 2h10v16l-5-3-5 3Z",
+  "UMM": "M6 3h8v5H6zM2 13h6v5H2zM12 13h6v5h-6zM10 8v3M5 13v-2h10v2",
+  "图像生成": "M2 3h16v14H2zM2 13l5-5 4 4 3-3 4 5M12 6h.1",
+  "视频生成": "M2 3h16v14H2zM8 7l5 3-5 3V7Z",
+  "World Model": "M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0ZM2 10h16M10 2c-4 4-4 12 0 16 4-4 4-12 0-16Z",
+  "可解释性": "M2 10c4-7 12-7 16 0-4 7-12 7-16 0Zm11 0a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z",
+  "评测诊断": "M3 4h3M9 4h8M3 10l2 2 3-4M10 11h7M3 16h3M9 16h8",
 };
 
 const PAGE_SIZE = 10;
@@ -6355,6 +6492,7 @@ const englishLabels: Record<string, string> = {
   "全部内容": "All Resources",
   "精读清单": "Deep Reads",
   "借鉴优先": "Experiment Ideas",
+  "已保存": "Saved Reads",
   "图像生成": "Image Generation",
   "视频生成": "Video Generation",
   "可解释性": "Interpretability",
@@ -6370,6 +6508,73 @@ function englishDomain(paper: Paper) {
 }
 
 const englishOverrides: Record<string, Partial<EnglishPaperCopy>> = {
+"ktp-visual-knowledge-transfer": {
+  "summary": "KTP hides fictional attributes from captions, teaches them only through generation targets, and probes text-only recall. Visual reproduction and linguistic access remain separated; interleaved alignment on some entities helps access knowledge about others.",
+  "why": "This is a direct audit of Qwen3 + IBQ unification, stronger than shared weights or CKA alone. Its model set includes an X-Omni-style discrete tokenizer, MoT, and NEO-unify. Deep-read the information-isolation protocol.",
+  "inspiration": "Proposed adaptation: teach synthetic glyphs, identity tags, and risk relations only visually, then separate drawing, reading, and text-only recall. This is a hypothesis for IBQ/URSA/ELF, not an established result.",
+  "experiment": "Fix Qwen3, IBQ, entities, parameters, and FLOPs. Cross AR/URSA/ELF with no, textual, or interleaved alignment. Split alignment/test entities and prevent caption leakage. Report visual/text access gap, generated-text OCR, OCRBench, DocVQA, TextVQA, and general T2I regression under matched QA templates.",
+  "state": "A diagnostic protocol, not a new generative state; tested systems span discrete IDs, VAE latents, and direct pixels.",
+  "objective": "Retain each T2I objective; add textual or interleaved supervision for selected entities. No new corruption process or clean/noise/velocity parameterization.",
+  "decoding": "Main evaluation uses text-only QA without an intermediate generated image. Visual access uses each original sampler. Account for training steps, NFE, initialization, and memory separately; this is not a compute-matched generator ranking.",
+  "sharing": "Tests callable knowledge rather than enforced tokenizer, embedding, vocabulary, Transformer, or head tying. Apply the same protocol to AR/URSA/ELF with matched supervision budgets.",
+  "open": "Official repository exposes data JSONL, image archives, and scoring scripts. This does not establish full training code or new checkpoints for all three models."
+},
+"momentum-persistent-dynamics": {
+  "summary": "Momentum advances synchronized reference-camera videos as a persistent world state, then renders a target trajectory through WorldInteract. Moving content remains represented outside the current view instead of being stored as stale images.",
+  "why": "Threat prediction needs hidden objects to advance, not merely remain remembered. Deep-read the separation between state transition and observation rendering before extending ELF video generation.",
+  "inspiration": "Proposed adaptation: retain IBQ appearance/OCR while Qwen features or sparse tracks advance dynamics; render with URSA/ELF on demand. The paper uses multi-view video, so a sparse-state replacement remains an untested hypothesis.",
+  "experiment": "Fix Qwen3, IBQ/codec, CARLA trajectories, horizon, parameters, and total FLOPs. Compare static cache, matched long context, dynamic tracks, and evolving multi-view memory. Measure hidden-position/velocity error, revisit identity/OCR, threat AUPRC, 1/8/32-chunk drift, update cost, and per-camera amortized cost.",
+  "state": "Continuous causal-3D-VAE latents; the persistent state is a graph of synchronized eight-camera rigs, not discrete IDs or explicit object tracks.",
+  "objective": "Generate future reference views, then denoise target-camera video conditioned on that evolving state. The method text does not specify an independently verifiable epsilon/v/x0 equation; do not relabel it as ELF velocity.",
+  "decoding": "AR across chunks, diffusion within chunks, graph propagation across rigs. Initializes from Cosmos Predict 2.5-2B, not an AR LLM. Multi-view updates add compute/memory but can serve multiple target trajectories; equal NFE alone is not equal cost.",
+  "sharing": "No shared Qwen, IBQ vocabulary, or language head. For fair UMM controls, fix codec and renderer and vary only memory advancement.",
+  "open": "As checked on 2026-10-19, the paper promises model/code release; no verifiable official implementation or weight link was found in the checked primary source. Full-text link is not a code release.",
+  "action": "Target-camera trajectory/poses; not a robot-control policy or prescribed object-motion interface.",
+  "rollout": "Chunked world evolution, cross-view consistency, and revisits; real closed-loop planning/control success is not established.",
+  "evaluation": "Separate static/dynamic consistency, camera control, and appearance. Add hidden-event and intervention tests, horizon error, and downstream closed-loop success; FVD/LPIPS alone are insufficient."
+},
+"delta-flow-history-source": {
+  "summary": "Delta-flow transports mildly perturbed visual/action history toward the future instead of starting from independent Gaussian noise. It combines velocity matching with one-step endpoint consistency; use paper-version results rather than mixing older repository headline numbers.",
+  "why": "It isolates source design for an ELF future predictor. History can reduce transport but can also reward copying and freezing. Deep-read equations 3–5 and endpoint-loss controls.",
+  "inspiration": "Proposed IBQ experiment: initialize future embedding transport from history plus noise while retaining the renderer. Keep a high-noise branch for novel events. Give URSA equal historical information so source privilege does not masquerade as a paradigm gain.",
+  "experiment": "Fix Qwen3, IBQ, data, backbone, horizon, and training FLOPs. Cross Gaussian/history/history-plus-noise sources with endpoint loss off/on. Compare at one NFE, then sweep 1/2/4/8. Add shuffled/stale history and emerging objects. Report action sensitivity, threat AUPRC, freezing, code coverage, OCR/identity, closed-loop success, jerk, latency, and memory.",
+  "state": "Continuous action chunks and visual latents; source s = alpha*h + sigma*b*epsilon, not IDs, simplex states, or residual VQ codes.",
+  "objective": "Linear path y_tau = (1-tau)*y + tau*s; velocity target s-y plus L1 consistency of s-f(s,1) with y. This is velocity, not MeanFlow average velocity.",
+  "decoding": "One Euler update per branch. Random-time flow training plus endpoint supervision; reuse pretrained VLA/WAM weights. Some action-source inference substitutions require no retraining, but this does not prove zero-training transfer to IBQ/ELF.",
+  "sharing": "Retains existing visual/action experts without new tokenizer, embedding, vocabulary, or head tying. Like ELF it transports continuous states, but changes source and endpoint loss; URSA restores discrete IDs. Match source information and losses for fairness.",
+  "open": "Official page/repository checked: README explicitly says code is not released yet. Available assets do not constitute full training/evaluation code or checkpoints.",
+  "action": "Executed real-action history forms the action source; observed visual history forms the visual source under original conditioning.",
+  "rollout": "Closed-loop robot tasks and action chunks; WAM features may condition action without decoding a future video. One-step performance does not guarantee arbitrary-horizon stability.",
+  "evaluation": "Task/OOD success, action jerk, abrupt changes, shuffled controls, horizon drift, and visual-branch cost; detect historical inertia that misses novel threats."
+},
+"mist-execution-before-memory": {
+  "summary": "MIST separates setup, hidden-state leakage, reveal execution, and final-state correctness. M3-Agent rewrites failed instructions. Crucially, the project labels same-judge keep-best selection an oracle ceiling, not evidence of stored memory.",
+  "why": "A failed threat rollout may reflect an unexecuted move, missing reveal, or renderer failure rather than forgetting. Deep-read the primary-source limitations before citing headline gains.",
+  "inspiration": "Proposed threat audit: gate setup, state change, reveal, then risk readout. Verify visibility and execution before identity/OCR persistence; a CoT statement is not visual evidence.",
+  "experiment": "Fix Qwen3, IBQ, AR/URSA/ELF, clips, and total sampling budget. Cross explicit/implicit actions, named/withheld target, and single/budget-matched best-of-N. Use independent selection and judging. Report gate rates, conditional state accuracy, error types, 1/8/32-chunk drift, and total NFE; do not report oracle selection as deployed success.",
+  "state": "Video frames, instructions, and hidden attributes; no new visual tokenizer or generative latent.",
+  "objective": "Frozen-generator gate scoring and instruction rewriting, not a new noise/velocity objective. Declare gold-answer access and leakage.",
+  "decoding": "Original video sampler plus regenerated candidates; count every candidate, judge, and rewriter call. No new AR initialization; backbone memory cost remains.",
+  "sharing": "External diagnostic for any UMM/AR/URSA/ELF; no required shared tokenizer, Transformer, or head. Evaluation gains are not automatically dynamics improvements.",
+  "open": "Control-loop/protocol/tests are public. README states the original experiment tree was lost and the repository cannot regenerate every reported result; full experimental reproducibility is not established.",
+  "action": "Tests execution of textual reveal instructions, not a new real-action or latent-action model.",
+  "rollout": "Multi-shot hidden/reveal tests and test-time rewriting; no established physical closed-loop planner.",
+  "evaluation": "Separate setup/leak/reveal/inside, oracle/no-gold settings, and single/multi-try budgets with independent judges."
+},
+"blog-google-coherent-long-form-video": {
+  "summary": "This official Google Research blog connects Co-Director, CANVAS, A2RD, and VQQA through story planning, persistent visual anchors, segment generation, and QA feedback. It is orchestration, not a new diffusion/Flow objective.",
+  "why": "A useful weight-frozen memory baseline for Qwen3 + IBQ/ELF. Separate retrieval/retry gains from tokenizer quality, static generation, and learned dynamics. This is a previously unlisted recent blog, not a publication from today.",
+  "inspiration": "Proposed adaptation: Qwen maintains an identity/OCR/state ledger and retrieves visual anchors for ELF segments, regenerating only failures. Narrative consistency does not establish physical causality.",
+  "experiment": "Fix renderer, codec, prompts, initial scenes, and total sampling FLOPs. Compare no memory, static anchors, state ledger, and ledger plus independent QA feedback. Count all retries. Measure revisit identity/OCR, hidden events, event order, trajectory error, VBench, threat AUPRC, and judge-call cost.",
+  "state": "Structured characters, places, object states, visual anchors, and clips above an existing generator; no common tokenizer/embedding specification.",
+  "objective": "Planning, retrieval, language critique, and candidate selection; not noise, velocity, or average-velocity training and no new forward path.",
+  "decoding": "Global planning followed by retrieve–synthesize–refine–update segment loops using existing backbones. No universal training-step/NFE budget; count candidates and MLLM calls. No newly AR-initialized generator.",
+  "sharing": "Shared orchestration/world-state tracking does not imply shared vocabulary, tokenizer, Transformer, or head. Orthogonal to URSA/ELF and comparable above the same renderer.",
+  "open": "Official blog, papers, and benchmark links are public. This does not establish complete implementations/weights for all four systems or open training for Gemini/Veo.",
+  "action": "Creative instructions, shot plans, and prompt updates, not physical control actions.",
+  "rollout": "Segmented long video and revisits; quality-refinement feedback is not an environment-control loop.",
+  "evaluation": "Identity/layout/event continuity plus independent physical/action interventions; separate optimizer and judge to avoid circular evaluation."
+},
   "vtc-video-token-coding": {
     summary: "Visual Token Coding applies I/P-frame and residual-coding ideas to video MLLMs. Its dynamic variant preserves 100.1% of Qwen3-VL's average benchmark performance at a 50% token budget and 97.8% at a 25% budget, without tuning the MLLM.",
     why: "It supplies the missing temporal-compression control for multi-frame threat analysis. Fixed 2×2 folding compresses space independently in each frame; VTC explicitly removes temporal redundancy, so the two effects can be measured separately.",
@@ -6797,7 +7002,6 @@ const englishOverrides: Record<string, Partial<EnglishPaperCopy>> = {
     sharing: "The method can audit language, vision, and generation features in a shared Qwen Transformer, but released transcoders cover only selected open LMs. Qwen3 requires a separately trained and validated replacement model.",
     open: "Anthropic's official blog, Circuit Tracing and On the Biology methods, open-source circuit-tracer library, frontend, and Neuronpedia interface are public.",
   },
-
 };
 
 function getEnglishCopy(paper: Paper): EnglishPaperCopy {
@@ -6884,12 +7088,41 @@ function sourceLabel(paper: Paper, language: Language) {
   return language === "en" ? "Read Source" : "阅读原文";
 }
 
+function displayDate(value: string, language: Language) {
+  if (language === "zh") return value;
+  const translations: Record<string, string> = {
+    "官方 main 分支核对": "official main branch checked",
+    "世界模型基础": "world-model foundation",
+    "重要基础补读": "key foundational reading",
+    "关键基础补读": "key foundational reading",
+    "周末重点补读": "weekend selected reading",
+    "基础架构补读": "architecture foundation",
+    "近期重点补读": "recent selected reading",
+    "今日新提交": "new submission",
+    "今日新收录": "newly curated",
+    "近期观点文": "recent perspective",
+    "重要补读": "selected reading",
+    "重点补读": "selected reading",
+    "基础补读": "foundational reading",
+    "经典基础": "classic foundation",
+    "版本更新": "version update",
+    "近期补读": "recent reading",
+    "近期新作": "recent work",
+    "新提交": "new submission",
+    "补读": "selected reading",
+  };
+  for (const [zh, en] of Object.entries(translations)) value = value.replaceAll(zh, en);
+  return value;
+}
+
 function EnglishMatrices() {
   return (
     <>
       <section className="matrix-section" id="matrix">
-        <div className="section-heading"><div><p className="eyebrow">CONTROLLED COMPARISON</p><h2>UMM Generation Matrix</h2></div><p>Fix backbone, tokenizer, data, and compute</p></div>
-        <div className="matrix-wrap"><table><thead><tr><th>Route</th><th>State</th><th>Target</th><th>Decoding</th><th>Key control</th></tr></thead><tbody>
+        <div className="section-heading"><div><h2>UMM Generation Matrix</h2></div><p>Fix backbone, tokenizer, data, and compute</p></div>
+        <div className="matrix-wrap" role="region" tabIndex={0} aria-label="Scrollable comparison table"><table><thead><tr><th>Route</th><th>State</th><th>Target</th><th>Decoding</th><th>Key control</th></tr></thead><tbody>
+          <tr><th>Delta-flow</th><td>Continuous visual/action history plus mild noise</td><td>Velocity s-y plus one-step endpoint L1</td><td>One Euler update per branch</td><td>Source information and endpoint supervision versus ELF/URSA</td></tr>
+          <tr><th>KTP</th><td>Protocol across ID, VAE, and pixel UMMs</td><td>Original T2I plus matched alignment supervision</td><td>Text-only recall and separate generation probe</td><td>Callable knowledge versus shared weights; split entities</td></tr>
           <tr><th>TRACK</th><td>Shared video latent routed to compatible large/small denoisers</td><td>Original noise/velocity objective; offline per-step disagreement</td><td>Original schedule with one model selected per step</td><td>Capacity routing versus target, scheduler, and NFE</td></tr>
           <tr><th>Latent Diffusibility</th><td>High-dimensional RAE feature on a low-effective-rank manifold</td><td>Velocity versus clean x0</td><td>Continuous Flow/ODE</td><td>Target parameterization versus latent geometry</td></tr>
           <tr><th>VIVAS</th><td>Unified discrete vision-language vocabulary</td><td>Visual + language next-token CE</td><td>Shared sequential AR</td><td>Dense visual supervision versus text-dominant bias</td></tr>
@@ -6907,8 +7140,8 @@ function EnglishMatrices() {
         </tbody></table></div>
       </section>
       <section className="folding-section" id="folding-matrix">
-        <div className="section-heading"><div><p className="eyebrow">TOKEN FOLDING</p><h2>2×2 Stage-3 Controls</h2></div><p>The merger shortens Qwen context; it does not create a new visual ID</p></div>
-        <div className="matrix-wrap"><table className="folding-table"><thead><tr><th>Head</th><th>Output</th><th>Order</th><th>Inference</th><th>Main question</th></tr></thead><tbody>
+        <div className="section-heading"><div><h2>2×2 Stage-3 Controls</h2></div><p>The merger shortens Qwen context; it does not create a new visual ID</p></div>
+        <div className="matrix-wrap" role="region" tabIndex={0} aria-label="Scrollable comparison table"><table className="folding-table"><thead><tr><th>Head</th><th>Output</th><th>Order</th><th>Inference</th><th>Main question</th></tr></thead><tbody>
           <tr><th>Parallel 4×K</th><td>Four original IBQ IDs</td><td>Parallel slots</td><td>One call</td><td>Is independent slot prediction sufficient?</td></tr>
           <tr><th>Local AR</th><td>Four original IBQ IDs</td><td>TL → TR → BL → BR</td><td>Four local steps</td><td>Does within-block dependency matter?</td></tr>
           <tr><th>URSA four-slot</th><td>Four original IBQ IDs</td><td>Joint metric-path refinement</td><td>2/4/8 local steps</td><td>Does discrete iterative correction help?</td></tr>
@@ -6916,8 +7149,12 @@ function EnglishMatrices() {
         </tbody></table></div>
       </section>
       <section className="world-section" id="world-matrix">
-        <div className="section-heading"><div><p className="eyebrow">WORLD MODEL COMPARISON</p><h2>Understanding → Generation → Prediction → Action</h2></div><p>Do not reduce evaluation to FVD or LPIPS</p></div>
-        <div className="matrix-wrap"><table className="world-table"><thead><tr><th>Model</th><th>Observation state</th><th>Action</th><th>Dynamics target</th><th>Rollout / planning</th><th>UMM connection</th></tr></thead><tbody>
+        <div className="section-heading"><div><h2>Understanding → Generation → Prediction → Action</h2></div><p>Do not reduce evaluation to FVD or LPIPS</p></div>
+        <div className="matrix-wrap" role="region" tabIndex={0} aria-label="Scrollable comparison table"><table className="world-table"><thead><tr><th>Model</th><th>Observation state</th><th>Action</th><th>Dynamics target</th><th>Rollout / planning</th><th>UMM connection</th></tr></thead><tbody>
+          <tr><th>Momentum</th><td>Evolving multi-view VAE state on a rig graph</td><td>Camera poses; not a physical policy</td><td>Future latent denoising; exact target parameterization unverified</td><td>Chunked updates and revisits; no control planner shown</td><td>Separate state advancement from renderer; count multi-view cost</td></tr>
+          <tr><th>Delta-flow</th><td>Continuous visual and executed-action history</td><td>Real action chunks</td><td>Residual velocity plus endpoint consistency</td><td>One-step policy/WAM with closed-loop task evaluation</td><td>History-source control, not a tokenizer improvement</td></tr>
+          <tr><th>MIST</th><td>Hidden/revealed video evidence</td><td>Textual execution/reveal instructions</td><td>Evaluation: setup, leak, reveal, state</td><td>Multi-shot diagnostic; oracle selection is not deployed memory</td><td>Execution and renderer gates for any UMM future</td></tr>
+          <tr><th>Google Long-Video Blog</th><td>State ledger, anchors, and clips</td><td>Creative instructions, not physical controls</td><td>Planning/retrieval/QA, not a new diffusion loss</td><td>Segmented generation; quality loop, not control</td><td>External memory above the same renderer</td></tr>
           <tr><th>GameNGen</th><td>Autoregressive VAE gameplay latent</td><td>Discrete player action</td><td>Next-frame diffusion denoising; parameterization undisclosed</td><td>Real-time interactive rollout; no explicit planner</td><td>Continuous free-running control for ELF-style video futures</td></tr>
           <tr><th>Genie 2 Blog</th><td>Autoencoded latent frames + generated history</td><td>Keyboard / mouse / agent action</td><td>Autoregressive latent diffusion; parameterization undisclosed</td><td>Interactive counterfactuals and out-of-view memory</td><td>Closed capability ceiling, not a reproducible UMM baseline</td></tr>
           <tr><th>Sora Report</th><td>Variable-resolution spacetime latent patches</td><td>Text/image/video conditions; no public action interface</td><td>Clean spacetime-patch prediction</td><td>Open-loop video generation, not closed-loop planning</td><td>Renderer/simulator boundary for IBQ/ELF evaluation</td></tr>
@@ -6949,6 +7186,26 @@ function ArrowIcon() {
   return <span aria-hidden="true">↗</span>;
 }
 
+function selectResources(active: string, query: string, sourceType: string, sortOrder: string, saved: string[]) {
+  const q = query.trim().toLowerCase();
+  const result = papers.filter((paper) => {
+    const categoryMatch = (active === "今日精选" && paper.featured) || active === "全部内容"
+      || (active === "Blog" && paper.kind === "Blog")
+      || (active === "精读清单" && paper.priority === "精读")
+      || (active === "借鉴优先" && paper.idea)
+      || (active === "已保存" && saved.includes(paper.id)) || inferDomain(paper) === active;
+    const sourceMatch = sourceType === "all" || (paper.kind ?? "Paper") === sourceType;
+    const en = getEnglishCopy(paper);
+    const queryMatch = !q || [paper.title, paper.titleEn, paper.shortTitle, paper.paradigm,
+      paper.summary, en.summary, en.state, paper.category, inferDomain(paper), englishDomain(paper),
+      paper.paper, paper.date].join(" ").toLowerCase().includes(q);
+    return categoryMatch && sourceMatch && queryMatch;
+  });
+  if (sortOrder === "published") result.sort((a, b) => b.date.slice(0, 10).localeCompare(a.date.slice(0, 10)));
+  else if (active !== "今日精选") result.sort((a, b) => Number(b.index) - Number(a.index));
+  return result;
+}
+
 export default function Home() {
   const [active, setActive] = useState("今日精选");
   const [language, setLanguage] = useState<Language>("en");
@@ -6956,13 +7213,17 @@ export default function Home() {
   const [page, setPage] = useState(1);
   const [saved, setSaved] = useState<string[]>([]);
   const [expanded, setExpanded] = useState<string[]>([]);
+  const [sourceType, setSourceType] = useState("all");
+  const [sortOrder, setSortOrder] = useState("curated");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const value = window.localStorage.getItem("umm-reading-list");
     if (!value) return;
     const timer = window.setTimeout(() => {
       try {
-        setSaved(JSON.parse(value));
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) setSaved(parsed.filter((id) => typeof id === "string"));
       } catch {
         window.localStorage.removeItem("umm-reading-list");
       }
@@ -6992,8 +7253,12 @@ export default function Home() {
 
   const selectDeepReads = (paperId?: string) => {
     setActive("精读清单");
+    setQuery("");
+    setSourceType("all");
+    setSortOrder("curated");
+    setMenuOpen(false);
     if (paperId) {
-      const deepReadIndex = papers.filter((paper) => paper.priority === "精读").findIndex((paper) => paper.id === paperId);
+      const deepReadIndex = selectResources("精读清单", "", "all", "curated", saved).findIndex((paper) => paper.id === paperId);
       setPage(Math.max(1, Math.floor(deepReadIndex / PAGE_SIZE) + 1));
     } else {
       setPage(1);
@@ -7013,45 +7278,38 @@ export default function Home() {
       : [...current, id]);
   };
 
-  const visiblePapers = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return papers.filter((paper) => {
-      const categoryMatch =
-        (active === "今日精选" && paper.featured) ||
-        active === "全部内容" ||
-        (active === "Blog" && paper.kind === "Blog") ||
-        (active === "精读清单" && paper.priority === "精读") ||
-        (active === "借鉴优先" && paper.idea) ||
-        inferDomain(paper) === active;
-      const queryMatch = !q || [paper.title, paper.paradigm, paper.summary, paper.category, inferDomain(paper)]
-        .join(" ")
-        .toLowerCase()
-        .includes(q);
-      return categoryMatch && queryMatch;
-    });
-  }, [active, query]);
+  const changeActive = (value: string) => { setActive(value); setPage(1); setMenuOpen(false); };
+  const visiblePapers = useMemo(() => selectResources(active, query, sourceType, sortOrder, saved),
+    [active, query, sourceType, sortOrder, saved]);
 
   const pageCount = Math.max(1, Math.ceil(visiblePapers.length / PAGE_SIZE));
   const pagedPapers = visiblePapers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const paginationItems = Array.from({ length: pageCount }, (_, index) => index + 1)
     .filter((value) => value === 1 || value === pageCount || Math.abs(value - page) <= 1);
+  const allExpanded = pagedPapers.length > 0 && pagedPapers.every(paper => expanded.includes(paper.id));
+  const featuredCount = papers.filter(paper => paper.featured).length;
+  const blogCount = papers.filter(paper => paper.kind === "Blog").length;
 
   return (
     <main data-language={language}>
+      <a className="skip-link" href="#papers">{language === "en" ? "Skip to research" : "跳转到论文"}</a>
       <header className="topbar">
         <a className="brand" href="#top" aria-label={language === "en" ? "Back to top" : "返回顶部"}>
-          <span className="brand-mark">UMM</span>
+          <svg className="brand-mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M5 10v10l11 6 11-6V10L16 4 5 10Z" stroke="currentColor" strokeWidth="1.6"/><path d="m5 10 11 6 11-6M16 16v10M10.5 7 22 13v10" stroke="currentColor" strokeWidth="1.6"/></svg>
           <span>{language === "en" ? "UMM Paper Radar" : "UMM 论文雷达"}</span>
         </a>
+        <button className="mobile-menu" aria-controls="research-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)}>
+          {language === "en" ? (menuOpen ? "Close" : "Filters") : (menuOpen ? "收起" : "筛选")}
+        </button>
         <nav className="topnav" aria-label={language === "en" ? "Primary navigation" : "主导航"}>
           <a className="active" href="#papers">{language === "en" ? "Research" : "建模范式"}</a>
           <a href="#folding-matrix">Token Folding</a>
           <a href="#world-matrix">{language === "en" ? "World Models" : "世界模型"}</a>
-          <a href="#papers" onClick={() => { setActive("Blog"); setPage(1); }}>{language === "en" ? "Research Blogs" : "研究 Blog"}</a>
+          <a href="#papers" onClick={() => changeActive("Blog")}>{language === "en" ? "Research Blogs" : "研究 Blog"}</a>
           <a href="#matrix">{language === "en" ? "Matrices" : "实验矩阵"}</a>
         </nav>
         <label className="search-box">
-          <span aria-hidden="true">⌕</span>
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.5"/><path d="m13 13 4 4" stroke="currentColor" strokeWidth="1.5"/></svg>
           <input
             value={query}
             onChange={(event) => { setQuery(event.target.value); setPage(1); }}
@@ -7064,97 +7322,103 @@ export default function Home() {
             <button className={language === "en" ? "selected" : ""} onClick={() => setLanguage("en")}>EN</button>
             <button className={language === "zh" ? "selected" : ""} onClick={() => setLanguage("zh")}>ZH</button>
           </div>
-          <div className="update-status"><span />{language === "en" ? "Daily" : "每日更新"}</div>
+          <a className="repository-link" href="https://github.com/Lucenova/umm-paper-radar" target="_blank" rel="noreferrer">GitHub ↗</a>
         </div>
       </header>
 
       <div className="issue-strip" id="top">
-        <span>▣</span>
-        <strong>DAILY BRIEF · 2026.09.27</strong>
-        <i />
-        <span>{language === "en" ? "Unified multimodal modeling research index" : "统一多模态建模研究知识库"}</span>
+        <span>{language === "en" ? "Research workspace" : "研究空间"}</span>
+        <span aria-hidden="true">/</span>
+        <span>{language === "en" ? "Issue 053" : "第 053 期"}</span>
+        <time dateTime="2026-10-19">2026.10.19</time>
       </div>
 
       <div className="workspace">
-        <aside className="sidebar">
+        <aside className={`sidebar ${menuOpen ? "is-open" : ""}`} id="research-navigation" aria-label={language === "en" ? "Research filters" : "研究筛选"}>
           <h2>{language === "en" ? "Research Index" : "研究目录"}</h2>
           <div className="side-nav">
             <div className="nav-group">
-              <h3>{language === "en" ? "QUICK ACCESS" : "快捷入口"}</h3>
+              <h3>{language === "en" ? "Library" : "内容索引"}</h3>
               {shortcuts.map((category) => (
                 <button
                   className={active === category ? "selected" : ""}
                   key={category}
-                  onClick={() => { setActive(category); setPage(1); }}
+                  aria-pressed={active === category}
+                  onClick={() => changeActive(category)}
                 >
-                  <span>{categoryIcons[category]}</span>{displayLabel(category, language)}
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d={categoryIcons[category]} stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" strokeLinecap="round"/></svg>{displayLabel(category, language)}
                 </button>
               ))}
             </div>
             <div className="nav-group">
-              <h3>{language === "en" ? "SIX RESEARCH TRACKS" : "六个独立方向"}</h3>
+              <h3>{language === "en" ? "Research tracks" : "研究方向"}</h3>
               {directions.map((category) => (
                 <button
                   className={active === category ? "selected" : ""}
                   key={category}
-                  onClick={() => { setActive(category); setPage(1); }}
+                  aria-pressed={active === category}
+                  onClick={() => changeActive(category)}
                 >
-                  <span>{categoryIcons[category]}</span>{displayLabel(category, language)}
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d={categoryIcons[category]} stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" strokeLinecap="round"/></svg>{displayLabel(category, language)}
                 </button>
               ))}
             </div>
           </div>
           <div className="side-filter">
-            <h3>{language === "en" ? "Current Filters" : "当前筛选"}</h3>
+            <h3>{language === "en" ? "Workspace notes" : "研究设置"}</h3>
             <div className="filter-row"><span>{language === "en" ? "Coverage" : "收录范围"}</span><strong>{language === "en" ? "2025–2026 + foundations" : "2025–2026 + 基础材料"}</strong></div>
             <div className="filter-row"><span>{language === "en" ? "Open-source first" : "开源优先"}</span><strong>{language === "en" ? "Yes" : "是"}</strong></div>
-            <div className="filter-row"><span>{language === "en" ? "Reading list" : "阅读清单"}</span><strong>{saved.length} {language === "en" ? "items" : "篇"}</strong></div>
+            <button className="saved-shortcut" onClick={() => changeActive("已保存")}>{language === "en" ? "Saved reads" : "已保存论文"}<strong>{saved.length}</strong></button>
           </div>
           <p className="side-note">{language === "en" ? "Every recommendation explains why it matters and how it can inform Qwen3, URSA, ELF, and IBQ experiments." : "所有推荐都要回答：为什么值得读，以及能为你的 URSA / ELF / IBQ 实验带来什么。"}</p>
         </aside>
 
         <div className="content">
-          <section className="hero">
-            <div>
-              <p className="eyebrow">[UMM RADAR · ISSUE 052]</p>
-              <h1>{language === "en" ? <>Separate image generation, video rendering,<br />interactive dynamics, and causal explanation.</> : <>把图像生成、视频渲染、交互动力学<br />与因果解释分开比较</>}</h1>
-              <p className="hero-copy">{language === "en" ? "With no new Sunday arXiv batch, this issue fills five foundational gaps: SD3/MMDiT, the Sora technical report, GameNGen, DeepMind's Genie 2 blog, and Anthropic's open circuit-tracing tools. Together they separate Flow objectives, spacetime rendering, action-conditioned rollout, closed interactive capability, and causal feature attribution." : "周日没有新的 arXiv 发布批次，本期补齐五个基础空缺：SD3/MMDiT、Sora 技术报告、GameNGen、DeepMind Genie 2 Blog，以及 Anthropic 开源 attribution graph 工具，分别隔离 Flow 目标、时空渲染、动作条件 rollout、闭源交互能力与因果特征归因。"}</p>
+          <section className="hero" aria-label={language === "en" ? "Research overview" : "研究概览"}>
+            <div className="desk-title">
+              <h1>{language === "en" ? "Your research desk" : "你的研究工作台"}</h1>
+              <p>{language === "en" ? "From a paper worth reading to an experiment worth running." : "从一篇值得读的论文，到一个值得做的实验。"}</p>
+            </div>
+            <div className="stats" aria-label={language === "en" ? "Library statistics" : "内容统计"}>
+              <div><span>{language === "en" ? "Added this issue" : "本期新增"}</span><b>{featuredCount}</b></div>
+              <div><span>{language === "en" ? "Papers & blogs" : "全部内容"}</span><b>{papers.length}</b></div>
+              <div><span>{language === "en" ? "Research blogs" : "研究 Blog"}</span><b>{blogCount}</b></div>
+              <div><span>{language === "en" ? "Research tracks" : "研究方向"}</span><b>{directions.length}</b></div>
+            </div>
+            <div className="issue-focus">
+              <h2>{language === "en" ? "Knowledge that transfers. Worlds that persist." : "让知识跨任务，让世界持续演化。"}</h2>
+              <p>{language === "en" ? "Five new reads on knowledge transfer, persistent dynamics, and memory. Each connects to a concrete Qwen3 + IBQ/URSA/ELF experiment." : "本期五项推荐，聚焦知识迁移、持续动力学与记忆，并对应到具体的 Qwen3 + IBQ/URSA/ELF 控制变量实验。"}</p>
               <div className="hero-actions">
-                <a className="primary-button" href="#papers">{language === "en" ? "View today's picks" : "查看今日精选"}</a>
-                <button className="text-button" onClick={() => selectDeepReads()}>{language === "en" ? "Open deep reads" : "打开精读清单"} <span>→</span></button>
-              </div>
-              <div className="taxonomy-note">
-                <b>{language === "en" ? "Research taxonomy" : "新的分类逻辑"}</b>
-                <span>{language === "en" ? "Separate UMM, image, video, and world-model tracks" : "UMM / 图像 / 视频 / World Model 分轨"}</span>
-                <i>→</i>
-                <span>{language === "en" ? "Papers and blogs are labeled by source type" : "Blog 与论文按来源类型区分"}</span>
-              </div>
-              <div className="stats">
-                <div><b>247</b><span>{language === "en" ? "Papers & blogs" : "论文与 Blog"}</span></div>
-                <div><b>06</b><span>{language === "en" ? "Research tracks" : "独立方向"}</span></div>
-                <div><b>03</b><span>{language === "en" ? "Comparison matrices" : "比较矩阵"}</span></div>
+                <button className="primary-button" onClick={() => { changeActive("今日精选"); setQuery(""); setSourceType("all"); }}>{language === "en" ? "Read this issue" : "阅读本期推荐"} <span aria-hidden="true">↓</span></button>
+                <a className="text-button" href="#matrix">{language === "en" ? "Compare modeling routes" : "比较建模路线"} ↗</a>
               </div>
             </div>
-            <div className="hero-index" aria-label={language === "en" ? "Modeling coordinate map" : "建模坐标索引"}>
-              <p>MODELING COORDINATES</p>
-              <div className="coordinate-map">
-                <span className="axis-label top">{language === "en" ? "Continuous state" : "连续状态"}</span>
-                <span className="axis-label bottom">{language === "en" ? "Discrete state" : "离散状态"}</span>
-                <span className="axis-label left">{language === "en" ? "Parallel refinement" : "并行修正"}</span>
-                <span className="axis-label right">{language === "en" ? "Sequential generation" : "顺序生成"}</span>
-                <i className="dot elf">ELF</i>
-                <i className="dot ursa">URSA</i>
-                <i className="dot xomni">X-Omni</i>
-                <i className="dot toklip">TokLIP</i>
-              </div>
-              <p className="map-caption">{language === "en" ? "First identify the state space; then compare training and decoding." : "先区分“在哪里建模”，再比较“如何学习与解码”。"}</p>
-            </div>
+            <aside className="research-questions" aria-label={language === "en" ? "Questions to investigate" : "本期研究问题"}>
+              <h2>{language === "en" ? "Start with a question" : "从问题出发"}</h2>
+              <button onClick={() => selectDeepReads("ktp-visual-knowledge-transfer")}><span>{language === "en" ? "Can knowledge transfer?" : "知识能跨任务吗？"}</span><small>KTP ↗</small></button>
+              <button onClick={() => selectDeepReads("momentum-persistent-dynamics")}><span>{language === "en" ? "Does the hidden world move?" : "画面外如何演化？"}</span><small>Momentum ↗</small></button>
+              <button onClick={() => selectDeepReads("delta-flow-history-source")}><span>{language === "en" ? "Start Flow from history?" : "从历史开始Flow？"}</span><small>Delta-flow ↗</small></button>
+            </aside>
           </section>
 
           <section className="papers-section" id="papers">
             <div className="section-heading">
-              <div><p className="eyebrow">{language === "en" ? "CURATED RESEARCH" : "TODAY'S SELECTION"}</p><h2>{displayLabel(active, language)}</h2></div>
-              <p>{language === "en" ? `${visiblePapers.length} matches · Page ${Math.min(page, pageCount)} of ${pageCount}` : `${visiblePapers.length} 项匹配 · 第 ${Math.min(page, pageCount)} / ${pageCount} 页`}</p>
+              <h2>{displayLabel(active, language)}</h2>
+              <p aria-live="polite">{visiblePapers.length ? `${(page - 1) * PAGE_SIZE + 1}–${Math.min(page * PAGE_SIZE, visiblePapers.length)} / ${visiblePapers.length}` : "0"} {language === "en" ? "resources" : "项内容"}</p>
+            </div>
+            <div className="research-toolbar">
+              <label>{language === "en" ? "Source" : "来源"}<select value={sourceType} onChange={event => { setSourceType(event.target.value); setPage(1); }}>
+                <option value="all">{language === "en" ? "All sources" : "全部来源"}</option>
+                <option value="Paper">{language === "en" ? "Papers" : "论文"}</option>
+                <option value="Blog">Blog</option>
+              </select></label>
+              <label>{language === "en" ? "Order" : "排序"}<select value={sortOrder} onChange={event => { setSortOrder(event.target.value); setPage(1); }}>
+                <option value="curated">{language === "en" ? "Recently curated" : "最近收录"}</option>
+                <option value="published">{language === "en" ? "Latest publication" : "最新发布"}</option>
+              </select></label>
+              <button className="expand-page" onClick={() => setExpanded(current => allExpanded ? current.filter(id => !pagedPapers.some(paper => paper.id === id)) : [...new Set([...current, ...pagedPapers.map(paper => paper.id)])])}>
+                {language === "en" ? (allExpanded ? "Collapse notes" : "Expand notes") : (allExpanded ? "收起笔记" : "展开笔记")}
+              </button>
             </div>
             <div className="paper-list">
               {pagedPapers.map((paper) => {
@@ -7162,16 +7426,16 @@ export default function Home() {
                 const copy = language === "en" ? english : paper;
                 return (
                 <article className="paper-card" id={`paper-${paper.id}`} key={paper.id}>
-                  <div className="paper-number">[{paper.index}]</div>
+                  <div className="paper-number" aria-label={language === "en" ? "Archive ID" : "归档编号"}>{paper.index}</div>
                   <div className="paper-main">
                     <div className="paper-title-row">
                       <div>
-                        <h3>{paper.title}</h3>
-                        <div className="tags"><span>{language === "en" ? (/[\u3400-\u9fff]/.test(paper.paradigm) ? englishDomain(paper) : paper.paradigm) : paper.paradigm}</span><span>{language === "en" ? englishDomain(paper) : inferDomain(paper)}</span><span>{paper.kind === "Blog" ? "BLOG" : (language === "en" ? englishDomain(paper) : paper.category)}</span><span>{paper.date}</span></div>
+                        <h3>{language === "en" ? (paper.titleEn ?? paper.title) : paper.title}</h3>
+                        <div className="tags"><span className="domain-tag">{language === "en" ? englishDomain(paper) : inferDomain(paper)}</span><span className="source-kind">{paper.kind === "Blog" ? "Blog" : (language === "en" ? "Paper" : "论文")}</span><span className="resource-date">{displayDate(paper.date, language)}</span></div>
                       </div>
                       <button
                         className={`priority ${paper.priority === "精读" ? "high" : ""}`}
-                        onClick={paper.priority === "精读" ? () => selectDeepReads(paper.id) : undefined}
+                        onClick={() => toggleExpanded(paper.id)}
                         title={language === "en"
                           ? (paper.priority === "精读" ? "Open the full recommendation" : "Recommended for a quick read")
                           : (paper.priority === "精读" ? "展开论文完整推荐" : "建议泛读")}
@@ -7179,37 +7443,39 @@ export default function Home() {
                         {language === "en" ? (paper.priority === "精读" ? "Deep read" : "Skim") : paper.priority}
                       </button>
                     </div>
+                    <p className="paradigm-line">{language === "en" ? (/[\u3400-\u9fff]/.test(paper.paradigm) ? englishDomain(paper) : paper.paradigm) : paper.paradigm}</p>
                     <p className="summary">{copy.summary}</p>
                     <button
                       className="mobile-read-toggle"
                       onClick={() => toggleExpanded(paper.id)}
                       aria-expanded={expanded.includes(paper.id)}
+                      aria-controls={`notes-${paper.id}`}
                     >
-                      {language === "en" ? (expanded.includes(paper.id) ? "Hide full notes" : "View full notes") : (expanded.includes(paper.id) ? "收起完整推荐" : "查看完整推荐")}
+                      {language === "en" ? (expanded.includes(paper.id) ? "Close research notes" : "Read research notes") : (expanded.includes(paper.id) ? "收起研究笔记" : "阅读研究笔记")}
                       <span>{expanded.includes(paper.id) ? "↑" : "↓"}</span>
                     </button>
-                    <div className={`paper-details ${expanded.includes(paper.id) ? "expanded" : ""}`}>
+                    <div id={`notes-${paper.id}`} className={`paper-details ${expanded.includes(paper.id) ? "expanded" : ""}`} hidden={!expanded.includes(paper.id)}>
                       <div className="reason-grid">
                         <section><h4>{language === "en" ? "Why it matters" : "为什么推荐"}</h4><p>{copy.why}</p></section>
                         <section><h4>{language === "en" ? "How it can inform your work" : "可能给你的启发"}</h4><p>{copy.inspiration}</p></section>
                       </div>
-                      <div className="experiment-note"><strong>{language === "en" ? "CONTROL" : "建议实验"}</strong><p>{copy.experiment}</p></div>
+                      <div className="experiment-note"><strong>{language === "en" ? "Controlled experiment" : "控制变量实验"}</strong><p>{copy.experiment}</p></div>
                       <div className="paper-specs">
-                        <span><b>{language === "en" ? "STATE" : "建模状态"}</b>{copy.state}</span>
-                        <span><b>{language === "en" ? "OBJECTIVE" : "训练目标"}</b>{copy.objective}</span>
-                        <span><b>{language === "en" ? "DECODING" : "解码方式"}</b>{copy.decoding}</span>
-                        <span><b>{language === "en" ? "SHARING" : "共享结构"}</b>{copy.sharing}</span>
+                        <span><b>{language === "en" ? "State" : "建模状态"}</b>{copy.state}</span>
+                        <span><b>{language === "en" ? "Objective" : "训练目标"}</b>{copy.objective}</span>
+                        <span><b>{language === "en" ? "Decoding & cost" : "解码与开销"}</b>{copy.decoding}</span>
+                        <span><b>{language === "en" ? "Sharing" : "共享结构"}</b>{copy.sharing}</span>
                       </div>
                       {(language === "en" ? english.action : paper.action) && (
                         <div className="world-specs">
-                          <span><b>{language === "en" ? "ACTION INTERFACE" : "动作接口"}</b>{language === "en" ? english.action : paper.action}</span>
-                          <span><b>{language === "en" ? "ROLLOUT / CLOSED LOOP" : "Rollout / 闭环"}</b>{language === "en" ? english.rollout : paper.rollout}</span>
-                          <span><b>{language === "en" ? "WORLD-MODEL EVALUATION" : "世界模型评价"}</b>{language === "en" ? english.evaluation : paper.evaluation}</span>
+                          <span><b>{language === "en" ? "Action interface" : "动作接口"}</b>{language === "en" ? english.action : paper.action}</span>
+                          <span><b>{language === "en" ? "Rollout / closed loop" : "Rollout / 闭环"}</b>{language === "en" ? english.rollout : paper.rollout}</span>
+                          <span><b>{language === "en" ? "World-model evaluation" : "世界模型评价"}</b>{language === "en" ? english.evaluation : paper.evaluation}</span>
                         </div>
                       )}
+                      <p className="open-status"><strong>{language === "en" ? "Release status" : "开放状态"}</strong>{copy.open}</p>
                     </div>
                     <div className="paper-footer">
-                      <span className="open-status"><i />{copy.open}</span>
                       <div>
                         <button onClick={() => toggleSaved(paper.id)}>{language === "en" ? (saved.includes(paper.id) ? "Saved" : "Add to reading list") : (saved.includes(paper.id) ? "已加入清单" : "加入阅读清单")}</button>
                         <a className={paper.paper.includes("arxiv.org") ? "arxiv-link" : "source-link"} href={paper.paper} target="_blank" rel="noreferrer">{sourceLabel(paper, language)} <ArrowIcon /></a>
@@ -7221,7 +7487,7 @@ export default function Home() {
                 </article>
                 );
               })}
-              {visiblePapers.length === 0 && <div className="empty-state">{language === "en" ? "No matching resources. Try another keyword or research track." : "没有找到匹配内容，请尝试其他关键词或研究方向。"}</div>}
+              {visiblePapers.length === 0 && <div className="empty-state"><h3>{language === "en" ? (active === "已保存" ? "Your reading list is ready" : "No matching research") : (active === "已保存" ? "从一篇论文开始收藏" : "没有匹配的内容")}</h3><p>{language === "en" ? (active === "已保存" ? "Save a paper to keep it here on this device." : "Try a broader query or reset the source filter.") : (active === "已保存" ? "点击论文下方的收藏按钮，即可保存在当前设备。" : "试试更宽泛的关键词，或重置来源筛选。")}</p><button onClick={() => { changeActive("全部内容"); setQuery(""); setSourceType("all"); }}>{language === "en" ? "Browse all research" : "浏览全部内容"}</button></div>}
             </div>
             {visiblePapers.length > PAGE_SIZE && (
               <nav className="pagination" aria-label={language === "en" ? "Resource pages" : "内容分页"}>
@@ -7245,14 +7511,16 @@ export default function Home() {
           {language === "zh" ? <>
           <section className="matrix-section" id="matrix">
             <div className="section-heading">
-              <div><p className="eyebrow">CONTROLLED COMPARISON</p><h2>UMM 建模方式实验矩阵</h2></div>
+              <div><h2>UMM 建模方式实验矩阵</h2></div>
               <p>固定主干、tokenizer、数据与预算，只改变生成机制</p>
             </div>
             <p className="scroll-hint">移动端可横向滑动查看完整矩阵 →</p>
-            <div className="matrix-wrap">
+            <div className="matrix-wrap" role="region" tabIndex={0} aria-label="Scrollable comparison table">
               <table>
                 <thead><tr><th>路线</th><th>状态空间</th><th>预测目标</th><th>生成顺序</th><th>最关键变量</th></tr></thead>
                 <tbody>
+                  <tr><th>Delta-flow</th><td>连续视觉/动作history加轻噪声</td><td>velocity s-y + 一步endpoint L1</td><td>每branch一步Euler</td><td>与ELF/URSA匹配source信息和endpoint监督</td></tr>
+                  <tr><th>KTP</th><td>ID/VAE/pixel UMM共用诊断协议</td><td>原T2I + 匹配对齐监督</td><td>纯文本回忆与独立生成probe</td><td>实体隔离，验证知识调用而非共享参数</td></tr>
                   <tr><th>TRACK</th><td>同一视频latent在兼容的大/小denoiser之间路由</td><td>原noise/velocity目标不变；离线测逐step分歧</td><td>原scheduler逐步执行，每步只调用一个模型</td><td>固定target/scheduler/NFE，隔离容量路由与模型蒸馏</td></tr>
                   <tr><th>Latent Diffusibility</th><td>高维RAE连续feature；重建微调后有效秩下降</td><td>标准velocity vs clean x0 prediction</td><td>连续Flow/ODE并行采样</td><td>固定latent/path，分离目标参数化与表示几何；迁移到IBQ前先测有效秩</td></tr>
                   <tr><th>VIVAS</th><td>统一文本—视觉离散词表</td><td>视觉细节 + 语言next-token CE</td><td>同一Transformer顺序AR</td><td>固定Qwen3/IBQ与FLOPs，隔离密集视觉监督和文本主导偏置</td></tr>
@@ -7405,7 +7673,7 @@ export default function Home() {
 
           <section className="folding-section" id="folding-matrix">
             <div className="section-heading">
-              <div><p className="eyebrow">DISCRETE TOKEN FOLDING</p><h2>离散 image-token 合并后，head 到底预测什么？</h2></div>
+              <div><h2>离散 image-token 合并后，head 到底预测什么？</h2></div>
               <p>区分“Transformer 序列压缩”与“tokenizer 空间下采样”</p>
             </div>
             <div className="audit-callout">
@@ -7417,7 +7685,7 @@ export default function Home() {
               <p>2×2 merge只压缩Qwen3处理的全局位置，不产生新的“merged ID”。把原始目标整理为<code>[B, M, 4]</code>，使用<code>&lt;boi&gt;/前一block hidden</code>预测下一block；局部概率按<code>TL → TR → BL → BR</code>因果分解，四个槽位共享16384-way classifier。必须确保<code>hᵢ → blockᵢ₊₁</code>，否则当前block的GT merge embedding会泄漏到预测中。</p>
             </div>
             <p className="scroll-hint">移动端可横向滑动查看完整 head 与块内顺序 →</p>
-            <div className="matrix-wrap">
+            <div className="matrix-wrap" role="region" tabIndex={0} aria-label="Scrollable comparison table">
               <table className="folding-table">
                 <thead><tr><th>路线</th><th>如何压缩</th><th>全局 Transformer 长度</th><th>输出 head</th><th>块内预测顺序</th><th>对 URSA 的意义</th></tr></thead>
                 <tbody>
@@ -7480,14 +7748,18 @@ export default function Home() {
 
           <section className="world-section" id="world-matrix">
             <div className="section-heading">
-              <div><p className="eyebrow">WORLD MODEL COMPARISON</p><h2>世界模型：状态、动作与动力学矩阵</h2></div>
+              <div><h2>世界模型：状态、动作与动力学矩阵</h2></div>
               <p>不只比较画质：同时检查因果可控性、闭环成功率与 horizon error</p>
             </div>
             <p className="scroll-hint">移动端可横向滑动查看状态、动作与闭环列 →</p>
-            <div className="matrix-wrap">
+            <div className="matrix-wrap" role="region" tabIndex={0} aria-label="Scrollable comparison table">
               <table className="world-table">
                 <thead><tr><th>路线</th><th>观测状态</th><th>动作接口</th><th>动力学目标</th><th>建模方式</th><th>Rollout / 规划</th><th>与 UMM 的关系</th></tr></thead>
                 <tbody>
+                  <tr><th>Momentum</th><td>rig graph中的演化多视角VAE state</td><td>相机pose；非物理policy</td><td>未来latent去噪；精确目标参数化未核实</td><td>块间AR + 块内diffusion + 图传播</td><td>动态重访；未证明控制规划</td><td>state推进与IBQ/ELF renderer分离，计多视角成本</td></tr>
+                  <tr><th>Delta-flow</th><td>视觉与已执行动作连续history</td><td>真实action chunks</td><td>残差velocity + endpoint consistency</td><td>history-source线性Flow</td><td>一步policy/WAM闭环任务</td><td>source变量，不误判成tokenizer收益</td></tr>
+                  <tr><th>MIST</th><td>隐藏/揭示视频证据</td><td>文本执行/reveal指令</td><td>仅评测setup/leak/reveal/state</td><td>冻结generator + test-time改写</td><td>oracle选优不等于部署记忆</td><td>独立执行/renderer门控</td></tr>
+                  <tr><th>Google长视频Blog</th><td>state ledger、anchor与片段</td><td>创作指令，非物理控制</td><td>规划/检索/QA；非新diffusion loss</td><td>底座外编排</td><td>画质反馈不等于控制闭环</td><td>同renderer之上的外部memory对照</td></tr>
                   <tr><th>GameNGen</th><td>自回灌的连续VAE gameplay latent</td><td>离散玩家action</td><td>下一帧diffusion denoising；参数化未公开</td><td>动作条件AR latent diffusion + history corruption</td><td>实时交互rollout；无显式planner</td><td>ELF视频future的free-running连续基线；不共享LLM词表/head</td></tr>
                   <tr><th>Genie 2（官方Blog）</th><td>autoencoder latent frames + 自生成历史</td><td>键盘/鼠标/agent action</td><td>AR latent diffusion；精确参数化未公开</td><td>causal Transformer + action CFG</td><td>反事实交互、视野外记忆与约一分钟一致性</td><td>作为能力上限，不是可复现IBQ/URSA/ELF基线</td></tr>
                   <tr><th>Sora（技术报告）</th><td>可变时长/分辨率的spacetime latent patches</td><td>文本/图像/视频条件；无公开真实action接口</td><td>clean spacetime-patch prediction</td><td>大规模视频Diffusion Transformer</td><td>开放环视频生成；未证明闭环规划</td><td>用于划分视频renderer与因果world model边界</td></tr>

@@ -1,6 +1,7 @@
 # UMM 论文雷达
 
-面向统一多模态模型（UMM）的中文研究雷达，持续整理并比较：
+双语研究雷达，默认英文，保留 EN/ZH、分页、Blog、arXiv 链接与三张比较矩阵。
+完整的持续维护规范见 [MAINTENANCE.md](MAINTENANCE.md)；每次更新先读取当前源码并去重，不依赖聊天历史。
 
 - Encoder-free / Omni 多模态模型
 - 统一理解与生成、视觉 Token 与语义对齐
@@ -10,7 +11,7 @@
 
 在线网站：<https://lucenova.github.io/umm-paper-radar/>
 
-当前版本（2026-08-12）：139 篇精选论文、5 个研究方向、3 张控制变量比较矩阵。
+当前条目、日期与统计以 `app/page.tsx` 为准，避免文档中保留过期快照。
 
 ## 本地开发
 
@@ -19,6 +20,7 @@
 ```bash
 npm ci
 npm run dev
+node --test tests/research-content.test.mjs
 ```
 
 GitHub Pages 静态构建：
