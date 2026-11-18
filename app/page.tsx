@@ -6565,7 +6565,7 @@ const papers: Paper[] = [
   "domain": "UMM",
   "paradigm": "Masked Next-Scale Continuous Representation Prediction",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "paper": "https://arxiv.org/abs/2611.18668",
   "summary": "补录近期材料。将生成预训练目标从合成code/latent改为理解路径使用的连续感知表征；像素renderer后接。论文报告16项视觉均值51.71，对照46.36；更依赖视觉证据不等于更抗遮挡。",
@@ -6588,7 +6588,7 @@ const papers: Paper[] = [
   "domain": "UMM",
   "paradigm": "Hybrid MoT / AR Text + Latent Flow",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "paper": "https://arxiv.org/abs/2611.16517",
   "project": "https://lucaria-academy.github.io/UniSpark/",
@@ -6612,7 +6612,7 @@ const papers: Paper[] = [
   "domain": "World Model",
   "paradigm": "Multimodal Flow / Diffusion Forcing",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "paper": "https://arxiv.org/abs/2611.14440",
   "project": "https://ugg-model.github.io/",
@@ -6640,7 +6640,7 @@ const papers: Paper[] = [
   "domain": "World Model",
   "paradigm": "Frozen Dynamics Experts / Error-Driven Fast-Slow Memory",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "paper": "https://arxiv.org/abs/2611.15215",
   "summary": "近期补录。冻结动力学expert，以预测误差更新快/慢memory与expert组合权重：快项响应后衰减、慢项积累并保持。推理不做参数梯度更新，用于未知payload、摩擦及motor变化。",
@@ -6655,6 +6655,107 @@ const papers: Paper[] = [
   "action": "真实连续控制动作；未知物理参数不作为输入。不是文本指令或latent action。",
   "rollout": "40步open-loop预测；另有joint-failure控制任务。五个模拟数据和真实ALFA飞行数据，不等于任意环境可交互视频生成。",
   "evaluation": "区分持续改变与瞬态扰动，测响应延迟、误更新及40步保持；核心state误差与control return，无FVD证据。视觉/语义迁移与真实闭环仍待验证。"
+},
+{
+  "id": "dwd-separate-pixel-head",
+  "index": "262",
+  "title": "Decoding Without a Decoder: Direct Pixel Prediction from Diffusion Transformers",
+  "shortTitle": "DWD",
+  "date": "2026-11-17 · v1 · checked/curated 2026-11-18",
+  "category": "生成建模与诊断",
+  "domain": "图像生成",
+  "paradigm": "Latent Flow / Separate Final Pixel Readout",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2611.22287",
+  "project": "https://hanshengchen.com/dwd",
+  "code": "https://github.com/Lakonik/LakonLab",
+  "summary": "保留原denoising head驱动采样，另用最终hidden的linear head直接输出pixel patch；只微调后段block并用trajectory anchor保持原速度预测。该方法同时覆盖图像和视频，不是把所有去噪步骤改到pixel空间。",
+  "why": "Qwen3+IBQ→ELF的文字或细粒度错误，可能来自末端embedding回投和codec decoder，而非Flow轨迹。它提供把动力学与最终读出分开的诊断；不能据此跳过IBQ训练或断言连续表示更优。",
+  "inspiration": "研究假设：固定ELF轨迹，比较IBQ最近ID→decoder、hidden→原ID logits、hidden→pixel head；OCR文本和小目标若只在pixel head改善，应把提升归于读出，而非URSA/ELF范式。",
+  "experiment": "固定Qwen3、IBQ encoder、ELF checkpoint、数据、NFE及总适配FLOPs，比较codec decoder、同预算latent-to-pixel adapter、DWD、DWD无trajectory anchor。报告生成文字OCR、GenEval、OCRBench/DocVQA/TextVQA保持、ID coverage、trajectory偏移、视频warping/动态性、端到端显存吞吐；单列discriminator训练成本。",
+  "state": "采样仍是原VAE连续latent或pixel-model原状态；最终linear head从hidden读pixel，非ID/one-hot。不会自动共享理解用视觉词表。",
+  "objective": "原Gaussian Flow/denoising目标保留，以冻结teacher预测做trajectory anchor；pixel head用L1+LPIPS+adversarial监督clean像素，pixel与trajectory各采不同t。",
+  "decoding": "沿原sampler采样，最终一次conditional-only DWD读出替代decoder；原NFE与最终读出调用需分别计数。后段常微调4–8 blocks；Wan14B示例40k适配步、估计4300 H100小时。由预训练DiT初始化，不是直接LLM初始化。",
+  "sharing": "同一DiT hidden供denoising与pixel两个head，prefix冻结、后段与modulation适配；不共享文本/IBQ输出head。与ELF可同轨迹比较末端读出，与URSA不同state；需匹配训练预算和renderer容量。",
+  "open": "原文、官方项目与LakonLab仓库可核验；仓库README把DWD列为Upcoming，不能称实现或权重已发布。精读双head、t采样与成本附录；不把warping提升称为真实物理控制提升。"
+},
+{
+  "id": "inertial-world-carriers",
+  "index": "263",
+  "title": "Inertial Video World Models",
+  "shortTitle": "InertialWorld",
+  "date": "2026-11-17 · v1 · checked/curated 2026-11-18",
+  "category": "世界模型",
+  "domain": "World Model",
+  "paradigm": "Discrete FSQ Dynamics / Transported Recurrent Memory",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2611.22314",
+  "code": "https://github.com/YuanGao-YG/InertialWorld",
+  "summary": "用dense Eulerian grid和16个persistent Lagrangian carriers保留场景证据；动作条件carry先搬运已有内容，再预测完整下一Dynamic code并gated commit。训练只回灌预测state而非GT刷新，逐步扩展8/16/32步horizon。",
+  "why": "IBQ多帧威胁中，大量静态背景和身份应被保留，真正要预测的是运动与新出现内容。它比单纯加长上下文更具体，也可分离palette收缩与时序记忆遗忘。",
+  "inspiration": "研究假设：保持IBQ原始ID不变，在Qwen dynamics旁加对象/文字region carriers，先预测位置/可见性，再由URSA或ELF补innovation；carry失败与renderer失败分别记录，避免静态冻结得到好分。",
+  "experiment": "固定Qwen3、IBQ、数据、action、参数与FLOPs，比较plain AR、同容量recurrent memory、dense-only、dense+carriers；之后固定memory只换AR-ID/URSA/ELF。报告遮挡重现身份/OCR、action-shuffle、运动区域误差、1/8/32/64步drift、闭环policy排序/成功校准、NFE、显存与吞吐；先做codec-only匹配。",
+  "state": "冻结video tokenizer区分Context与Dynamic：Context 2560 tokens固定，Dynamic每帧320 tokens；每token五个FSQ digits=(7,5,5,5,5)，4375 joint states，另有连续carrier/memory。不是VAE Flow latent。",
+  "objective": "完整Dynamic joint-ID/digit CE，加decoded帧与时序变化损失、binding/transport/contact一致性；hard内部决策用straight-through。无Gaussian diffusion或metric corruption，carrier物理velocity不等于ELF probability velocity。",
+  "decoding": "时间上AR，完整下一Dynamic state并行预测；predicted-only recurrent rollout全程反传，context不GT刷新。tokenizer训练60k步，matched memory消融30k步；总world-model训练FLOPs/真实部署时延本次未核验。主干非Qwen/AR LLM。",
+  "sharing": "自定义frozen FSQ codec与专用predictor；无语言词表/head共享。可把carry机制接Qwen+IBQ，但保持codec不变才可公平比较；与URSA共享离散端点但无diffusion，与ELF生成空间不同。",
+  "open": "官方仓库可访问，但README仅标题，不能称代码已发布；权重与完整实现未核验。精读matched persistence消融与Real2Sim协议，不能把外部真实成功率aggregate当成逐轨迹配对验证。",
+  "action": "RT-1原始13维、CSGO 51维action；RECON局部xy位移+relative yaw。真实动作而非纯文本，carrier motion为内部隐状态。",
+  "rollout": "RT-1/CSGO/RECON多步预测；Real2Sim中四个冻结policy以生成帧闭环回灌，最多113 control steps。不是新真实机器人部署或显式BFS/MPC planner。",
+  "evaluation": "看长存内容、遮挡重现、late-track误差及运动；Real2Sim与外部SIMPLER真实aggregate差距用于policy级校准，不是paired physical fidelity；物理/因果控制仍需action干预。"
+},
+{
+  "id": "eyeheight-camera-regression",
+  "index": "264",
+  "title": "Every Camera Grows Up: Camera-Height Regression in Interactive Video World Models",
+  "shortTitle": "EyeHeight",
+  "date": "2026-11-16 · v1 · checked/curated 2026-11-18",
+  "category": "世界模型",
+  "domain": "World Model",
+  "paradigm": "World-Model Geometry Audit / Guidance Schedule",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2611.21782",
+  "summary": "六个open-weight视频world model在转身/前进后把非人眼高度拉回默认视角；初帧仍在context也不能保证高度。EyeHeight用多高度起点、恒高轨迹和多视角重建区分floor optical flow与全局scene-scale漂移。",
+  "why": "无人机和低位传感器的威胁距离、碰撞风险可能随虚假视角漂移而改变；FVD或局部光流好看不足以证明动作忠实。也提示ELF CFG影响不只外观，还有几何先验。",
+  "inspiration": "研究假设：固定Qwen3+IBQ/ELF，按early/late denoising分别施加CFG；把相机高度、pitch和目标距离作为可干预state，测是否只是忽略几何condition，而非head不够大。",
+  "experiment": "固定checkpoint、codec、初帧、camera/action轨迹、seed与NFE，比较恒CFG、前半无guidance、后半无guidance、全无guidance；再独立做height-balanced finetune。报告height retention、ATE/RPE、尺度漂移、OCR/身份、GenEval/MUSIQ、风险/TTC偏差和导航成功；多horizon与action-shuffle共同评估。",
+  "state": "审计不同底座的视频连续/latent状态，显式测重建camera height；未引入共享IBQ tokenizer。各底座精确noise目标应分别记录，不能统一叫velocity。",
+  "objective": "无新通用生成loss；主要改变测试轨迹、相机高度和CFG时间窗口，另有SANA-WM height-balanced LoRA/RL消融。原各底座forward path不变。",
+  "decoding": "沿各底座原AR/streaming或diffusion协议；160帧turn/walk审计。SANA-WM分析60步denoising窗口，非所有模型统一60 NFE；总调用和CFG双分支必须计入。",
+  "sharing": "评测与guidance机制可套用ELF/URSA，不证明共享embedding/vocabulary/Transformer/head；没有训练统一LLM。公平对照用同checkpoint仅改guidance窗口，独立报告fine-tune数据成本。",
+  "open": "原文说明将发布EyeHeight和代码；本次未核验官方实现/数据/权重链接。精读尺度估计交叉检查与导航反事实，避免把估计器误差当真实高度变化。",
+  "action": "恒高度camera水平平移与yaw，另测45/90/135/180/360度；这不是机器人动力学action闭环。",
+  "rollout": "长turn/walk与导航policy反事实；证明视角偏差可改变policy输出，未证明通用planner或真实闭环成功率。",
+  "evaluation": "高度retention、默认高度、跨帧尺度/重建，配floor homography与其他估计器交叉验证；导航endpoint偏移与画质/文本对齐一起报告。"
+},
+{
+  "id": "sketch-dont-paint",
+  "index": "265",
+  "title": "Sketch, Don’t Paint: Allocating Test-Time Compute in Generative Visual Reasoning",
+  "shortTitle": "Sketch, Don’t Paint",
+  "date": "2026-11-16 · v1 · checked/curated 2026-11-18",
+  "category": "生成建模与诊断",
+  "domain": "UMM",
+  "paradigm": "Inference Allocation / Few-Step Sketch and Vote",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2611.21812",
+  "summary": "固定模型和pre-thought文本，仅省略/替换/改变视觉thought采样，区分causal、decorative和harmful中间图。需要画图的任务用8步sketch多seed投票；不是所有任务都应生成视觉思考。",
+  "why": "对Qwen3+IBQ/URSA→ELF，应先测生成图是否真正改变OCR/空间/威胁判断，再投入更长采样。视觉CoT流畅或图像逼真并不意味着忠实、有用或可执行。",
+  "inspiration": "研究假设：在多帧威胁任务比较direct/text-only/visual tiers，并用blank/noise/wrong-image反事实测因果依赖；critical trajectory只需可读草图，文字细笔画则可能需要更高NFE，不能套统一8步结论。",
+  "experiment": "固定Qwen3、IBQ、checkpoint、prompt、数据与总denoiser FLOPs，比较单50步、多个8步sketch投票、text-only、direct；同seed和跨seed都测。报告OCRBench/DocVQA/TextVQA、威胁召回/校准、计划合法性/闭环成功、abstention、错误相关、总NFE/CFG、读取/投票成本、吞吐显存。tier选择只用独立validation labels。",
+  "state": "沿底座连续image/video latent采样；最终读出离散答案或轨迹，非新的ID/one-hot probability path。URSA离散sketch是迁移假设而非原文结论。",
+  "objective": "无新训练目标；重离散原sampler为少步，保持底座noise/velocity head；用省略/blank/noise/原图等干预审计thought因果价值。",
+  "decoding": "先direct/text/draw路由；draw用k=8独立seed，某答案m=3票停止并忽略abstain。8步用无标签agreement定，tier用10个label/pair，不能称整个方法完全无标签；多次尝试与解码计入成本。",
+  "sharing": "不改变底座tokenizer/embedding/vocabulary/Transformer/head，因而适合固定ELF的推理预算实验；不是ELF或URSA替代训练范式。Qwen3 direct与visual路径仍需匹配信息/读取器预算。",
+  "open": "原文公开；未在原文核验官方代码/权重链接。精读intervention、停止规则与真实wall-clock；maze视频执行不等于现实机器人规划，多seed相关错误会使投票饱和。"
 },
 
 ];
@@ -7339,6 +7440,56 @@ const englishOverrides: Record<string, Partial<EnglishPaperCopy>> = {
   "rollout": "40-step open-loop prediction and a joint-failure control task; five simulation datasets and real ALFA flight data, not arbitrary interactive video generation.",
   "evaluation": "Separate persistent changes and transient disturbances, measuring response, false updates, retention and control return. Visual/semantic transfer and real closed-loop validation remain open."
 },
+"dwd-separate-pixel-head": {
+  "summary": "Keeps the denoising head for sampling and adds a final hidden-to-pixel linear head. Late-block adaptation and trajectory anchoring preserve the original field. Covers images and videos without moving every denoising step into pixel space.",
+  "why": "ELF text/detail errors may come from IBQ projection or decoding rather than the trajectory. Separating transport and final readout helps locate this bottleneck, without establishing continuous superiority.",
+  "inspiration": "Hypothesis: hold ELF trajectories fixed and compare nearest-ID decoding, hidden-to-ID logits and hidden-to-pixel output. Attribute pixel-only OCR improvements to readout rather than to URSA versus ELF.",
+  "experiment": "Fix Qwen3, IBQ encoder, ELF, data, NFE and adaptation FLOPs. Compare codec decoder, equal-budget latent-to-pixel adapter, DWD and DWD without anchoring. Measure generated OCR, GenEval, OCRBench/DocVQA/TextVQA retention, coverage, field drift, video motion/warping, end-to-end memory and throughput; include discriminator training.",
+  "state": "Original continuous VAE latent or pixel-model state during sampling; final hidden-to-pixel readout, not categorical IDs/simplex.",
+  "objective": "Original Gaussian Flow/denoising parameterization, frozen-teacher trajectory anchoring, and clean-pixel L1/LPIPS/adversarial supervision with separately sampled times.",
+  "decoding": "Original sampler then one conditional-only DWD readout in place of decoding; count both costs. Typically adapts 4–8 late blocks; Wan14B example: 40k adaptation steps and estimated 4300 H100 hours. Pretrained DiT initialization, not direct LLM initialization.",
+  "sharing": "Shared DiT hidden with separate denoising/pixel heads; frozen prefix and adapted late blocks/modulation. No shared language/IBQ head. Fair ELF readout controls need matched renderer capacity and training cost; URSA has a different state.",
+  "open": "Original paper, project and LakonLab repo verified; its README lists DWD as Upcoming, not a released implementation or checkpoint. Deep-read dual heads, time sampling and cost appendix. Warping is not physical-control success."
+},
+"inertial-world-carriers": {
+  "summary": "A dense Eulerian grid and 16 persistent Lagrangian carriers retain evidence. Action-conditioned transport precedes complete next-code prediction and gated commit. Predicted-only training expands rollout horizons from 8 to 16 to 32.",
+  "why": "IBQ threat videos should preserve static appearance, identity and text while predicting motion and innovation. Explicit carry separates temporal forgetting from codec or palette failures.",
+  "inspiration": "Hypothesis: retain original IBQ IDs and add region carriers beside Qwen dynamics. Predict position/visibility first, then use URSA or ELF for innovation; score transport and rendering errors separately.",
+  "experiment": "Fix Qwen3, IBQ, actions, data, parameters and FLOPs. Compare plain AR, capacity-matched recurrent memory, dense-only and carrier memory; then fix memory while varying AR-ID/URSA/ELF. Measure occlusion identity/OCR, shuffled actions, motion errors, 1/8/32/64-step drift, closed-loop policy ranking/calibration, NFE, memory and throughput, with codec-matched controls.",
+  "state": "Frozen codec: 2560 fixed Context tokens and 320 Dynamic tokens per frame; five FSQ digits (7,5,5,5,5), or 4375 joint states, plus continuous carrier memory. Not VAE Flow state.",
+  "objective": "Complete Dynamic joint-ID/digit CE plus decoded appearance/temporal losses and binding/transport/contact consistency; hard decisions use straight-through gradients. No diffusion path; carrier motion velocity is not ELF probability velocity.",
+  "decoding": "AR across time, parallel complete next-state prediction; backpropagate through predicted-only recurrence without GT refresh. Codec: 60k steps; matched memory ablations: 30k. Total dynamics FLOPs and deployment latency not verified; no Qwen/LLM initialization.",
+  "sharing": "Custom frozen FSQ codec and dedicated predictor, no shared language vocabulary/head. Transfer carry to Qwen+IBQ under a fixed codec. Discrete endpoints resemble URSA, but there is no diffusion; ELF uses a different state.",
+  "open": "Official repository accessible but README contains only a title; implementation and weights not verified. Deep-read persistence ablations and Real2Sim protocol, not a claim of paired real-trajectory validation.",
+  "action": "Raw RT-1 13-D and CSGO 51-D actions; RECON local xy displacement and relative yaw. Carrier motion is an internal state, not a text instruction.",
+  "rollout": "Multi-step RT-1/CSGO/RECON prediction; four frozen policies interact with generated frames for up to 113 control steps in Real2Sim. No new real-robot deployment or explicit MPC/BFS planner.",
+  "evaluation": "Long-lived/reappearing content, late-track and motion error, plus policy-level calibration to external SIMPLER physical aggregates. Add causal action interventions and horizon accumulation."
+},
+"eyeheight-camera-regression": {
+  "summary": "Six open-weight video world models regress nonhuman camera heights toward a default viewpoint. EyeHeight uses fixed-height motion and multiview reconstruction to separate local floor flow from global scene-scale drift, even with the start frame retained.",
+  "why": "False viewpoint changes can bias UAV or low-sensor distance and threat judgments despite plausible video. ELF guidance can amplify geometric priors, not only appearance.",
+  "inspiration": "Hypothesis: intervene on camera height, pitch and target distance in Qwen3+IBQ/ELF, applying CFG in early versus late denoising to distinguish ignored geometry from head capacity.",
+  "experiment": "Fix checkpoint, codec, starts, camera/actions, seeds and NFE. Compare constant CFG, early-off, late-off and all-off; separately add height-balanced fine-tuning. Report retention, ATE/RPE, scale drift, OCR/identity, GenEval/MUSIQ, TTC/risk bias, navigation success, horizons and shuffled actions.",
+  "state": "Audit of differing video latent/state backbones with explicit camera-height reconstruction; no shared IBQ state. Record each backbone target separately rather than calling every target velocity.",
+  "objective": "No universal new generative loss. Intervene on height, motion and CFG windows, with separate SANA-WM LoRA/RL ablations; original forward paths remain.",
+  "decoding": "Native AR/streaming/diffusion protocols; 160-frame turn/walk audit. SANA-WM window analysis uses 60 denoising steps, not a common NFE for all models. Count both CFG branches.",
+  "sharing": "Audit/guidance transfers to ELF/URSA, without demonstrating common tokenizer, vocabulary, embedding, Transformer or heads. Same-checkpoint window changes are fair controls; fine-tuning data/cost are separate.",
+  "open": "Paper says EyeHeight/code will be released; official implementation/data/weights not verified. Deep-read height-estimator cross-checks and policy counterfactuals.",
+  "action": "Horizontal camera translation/yaw at constant elevation, including rotation-angle sweeps; not robot-dynamics closed-loop action.",
+  "rollout": "Long turn/walk rollouts and policy counterfactuals demonstrate output bias, not a general planner or real closed-loop success.",
+  "evaluation": "Height retention/default height, scale and multiview geometry cross-checked with floor homography and alternative estimators; pair navigation endpoint shifts with quality/alignment."
+},
+"sketch-dont-paint": {
+  "summary": "Interventions holding model and pre-thought text fixed separate causal, decorative and harmful visual thoughts. Where drawing helps, multiple 8-step sketches vote; generating visual thoughts is not always useful.",
+  "why": "Before spending on longer Qwen3+IBQ/ELF sampling, test whether generated evidence actually changes OCR, spatial or threat decisions. Visual polish and fluent CoT do not establish faithfulness.",
+  "inspiration": "Hypothesis: compare direct/text/visual tiers for threats and intervene with blank, noise and wrong images. Coarse plans may be readable early while glyphs need more NFE; do not generalize an eight-step result to OCR.",
+  "experiment": "Fix Qwen3, IBQ, checkpoint, prompts/data and total denoiser FLOPs. Compare one 50-step sample, repeated 8-step sketch votes, text-only and direct, with matched and independent seeds. Report OCRBench/DocVQA/TextVQA, threat recall/calibration, legal plans/closed-loop success, abstention, correlated errors, all NFE/CFG/readout costs, throughput and memory; tune tiers on held-out validation only.",
+  "state": "Native continuous image/video latent sampling with discrete answer/trajectory readout; no new ID/simplex path. URSA sketching is an adaptation hypothesis.",
+  "objective": "No new training loss; re-discretize the native sampler with its existing noise/velocity head. Omission/blank/noise/input substitutions audit causal use.",
+  "decoding": "Direct/text/draw tiering; independent k=8 sketches until m=3 matching votes, excluding abstentions. Step choice is label-free agreement, but tier selection uses ten labels per pair. Count retries and readout.",
+  "sharing": "Unchanged native tokenizer, embedding, vocabulary, Transformer and heads. A fair ELF inference-budget control, not a replacement URSA/ELF training paradigm. Match information and reader budgets.",
+  "open": "Original public; official code/weights not verified. Deep-read interventions, stopping and wall-clock. Maze rollouts are not real-robot planning; correlated errors can saturate voting."
+},
 };
 
 function getEnglishCopy(paper: Paper): EnglishPaperCopy {
@@ -7458,7 +7609,9 @@ function EnglishMatrices() {
       <section className="matrix-section" id="matrix">
         <div className="section-heading"><div><h2>UMM Generation Matrix</h2></div><p>Fix backbone, tokenizer, data, and compute</p></div>
         <div className="matrix-wrap" role="region" tabIndex={0} aria-label="Scrollable comparison table"><table><thead><tr><th>Route</th><th>State</th><th>Target</th><th>Decoding</th><th>Key control</th></tr></thead><tbody>
-          <tr><th>UMM-JEPA</th><td>Continuous perceptual features</td><td>Masked next-scale cosine + text CE</td><td>Parallel children, recursive scales; separate renderer</td><td>Hold codec/backbone fixed; distinguish target alignment from rendering</td></tr>
+          <tr><th>DWD</th><td>Original continuous sampling state</td><td>Denoising anchor + final pixel loss</td><td>Original sampler, separate final pixel head</td><td>Fix trajectory; isolate codec/readout from Flow gains</td></tr>
+<tr><th>Sketch-and-vote</th><td>Native image/video latent</td><td>No new training loss; causal thought interventions</td><td>Few-step independent seeds + abstention/voting</td><td>Match ALL denoiser and readout costs, not per-sample NFE</td></tr>
+<tr><th>UMM-JEPA</th><td>Continuous perceptual features</td><td>Masked next-scale cosine + text CE</td><td>Parallel children, recursive scales; separate renderer</td><td>Hold codec/backbone fixed; distinguish target alignment from rendering</td></tr>
 <tr><th>UniSpark</th><td>Semantic features + VAE latents</td><td>Text CE + instantaneous Flow velocity</td><td>AR blocks; private noisy scratch state</td><td>Rollback noisy recurrent updates; commit clean context only</td></tr>
 <tr><th>GAFU</th><td>Continuous generation features compressed to G tokens</td><td>Reconstruction + answer CE + shuffled-memory DPO/KL</td><td>One-pass memory injection; AR text answer</td><td>Matched versus shuffled generation evidence under a fixed token budget</td></tr>
           <tr><th>Cross-modal retention</th><td>SigLIP understanding features + VQ generation IDs</td><td>Task CE plus current/all-head KL anchors</td><td>Original text and image AR decoding</td><td>Sequential stages, prior-head retention, and replay budget</td></tr>
@@ -7493,7 +7646,9 @@ function EnglishMatrices() {
       <section className="world-section" id="world-matrix">
         <div className="section-heading"><div><h2>Understanding → Generation → Prediction → Action</h2></div><p>Do not reduce evaluation to FVD or LPIPS</p></div>
         <div className="matrix-wrap" role="region" tabIndex={0} aria-label="Scrollable comparison table"><table className="world-table"><thead><tr><th>Model</th><th>Observation state</th><th>Action</th><th>Dynamics target</th><th>Rollout / planning</th><th>UMM connection</th></tr></thead><tbody>
-          <tr><th>UGG</th><td>RGB/depth VAE + packed rays</td><td>Camera/text; not robot actions</td><td>Multimodal velocity; per-time noise masks</td><td>Geometry completion; no verified control loop</td><td>Share attention, separate representation and search cost</td></tr>
+          <tr><th>InertialWorld</th><td>FSQ Context/Dynamic IDs + carriers</td><td>Raw physical actions / local motion</td><td>Next-code CE + decoded/memory losses</td><td>Temporal AR with transported recurrent state</td><td>Real2Sim policy calibration; separate codec and carry</td></tr>
+<tr><th>EyeHeight</th><td>Video states + reconstructed height</td><td>Fixed-elevation camera trajectories</td><td>Audit/guidance windows; native model targets</td><td>160-frame turn/walk, not physical closed-loop proof</td><td>Geometry retention alongside quality and policy bias</td></tr>
+<tr><th>UGG</th><td>RGB/depth VAE + packed rays</td><td>Camera/text; not robot actions</td><td>Multimodal velocity; per-time noise masks</td><td>Geometry completion; no verified control loop</td><td>Share attention, separate representation and search cost</td></tr>
 <tr><th>AFTER-WM</th><td>Physical state + fast/slow memory</td><td>Real continuous actions</td><td>Next-state mixture/MSE; frozen experts</td><td>40-step rollout; simulated control</td><td>Adaptation mechanism only; visual UMM transfer unproven</td></tr>
 <tr><th>VQ-WM</th><td>Frozen V-JEPA state → FPT-quantized state/action codes</td><td>Latent action code + physical feedback controller</td><td>Categorical next-state CE + VQ/controller losses</td><td>Discrete BFS planning and closed-loop execution</td><td>Reachability geometry beside IBQ reconstruction IDs</td></tr>
           <tr><th>Anchor-WM</th><td>Compact continuous state; DINO patches are training teachers</td><td>Real continuous actions</td><td>Next-latent MSE + DINO feature distillation</td><td>Latent rollout and action-sequence optimization</td><td>Semantic teacher separated from deployed dynamics state</td></tr>
@@ -7675,8 +7830,8 @@ export default function Home() {
       <div className="issue-strip" id="top">
         <span>{language === "en" ? "Research workspace" : "研究空间"}</span>
         <span aria-hidden="true">/</span>
-        <span>{language === "en" ? "Issue 055" : "第 055 期"}</span>
-        <time dateTime="2026-11-17">2026.11.17</time>
+        <span>{language === "en" ? "Issue 056" : "第 056 期"}</span>
+        <time dateTime="2026-11-18">2026.11.18</time>
       </div>
 
       <div className="workspace">
@@ -7732,8 +7887,8 @@ export default function Home() {
               <div><span>{language === "en" ? "Research tracks" : "研究方向"}</span><b>{directions.length}</b></div>
             </div>
             <div className="issue-focus">
-              <h2>{language === "en" ? "Align generation targets. Preserve clean context." : "对齐生成目标，保留干净上下文。"}</h2>
-              <p>{language === "en" ? "Four verified reads on perceptual prediction, hybrid context, generative geometry and adaptive dynamics. Publication and curation dates are separate." : "本期四项聚焦感知表征预测、混合上下文、生成几何和动力学适应，分别标注发表与收录日期。"}</p>
+              <h2>{language === "en" ? "Separate transport, memory and readout." : "分离生成轨迹、动态记忆与最终读出。"}</h2>
+              <p>{language === "en" ? "Four reads on direct pixel readout, transported memory, geometric drift and the causal value of visual thoughts." : "本期四项聚焦直接像素读出、搬运式记忆、几何漂移与视觉思考的因果价值。"}</p>
               <div className="hero-actions">
                 <button className="primary-button" onClick={() => { changeActive("今日精选"); setQuery(""); setSourceType("all"); }}>{language === "en" ? "Read this issue" : "阅读本期推荐"} <span aria-hidden="true">↓</span></button>
                 <a className="text-button" href="#matrix">{language === "en" ? "Compare modeling routes" : "比较建模路线"} ↗</a>
@@ -7741,9 +7896,9 @@ export default function Home() {
             </div>
             <aside className="research-questions" aria-label={language === "en" ? "Questions to investigate" : "本期研究问题"}>
               <h2>{language === "en" ? "Start with a question" : "从问题出发"}</h2>
-              <button onClick={() => selectDeepReads("umm-jepa-next-scale")}><span>{language === "en" ? "Which target helps understanding?" : "什么生成目标有助理解？"}</span><small>UMM-JEPA ↗</small></button>
-              <button onClick={() => selectDeepReads("unispark-hybrid-context")}><span>{language === "en" ? "Which states should persist?" : "哪些状态应进入长期上下文？"}</span><small>UniSpark ↗</small></button>
-              <button onClick={() => selectDeepReads("after-wm-fast-slow")}><span>{language === "en" ? "Can dynamics changes persist?" : "动力学改变能否被持续记住？"}</span><small>AFTER-WM ↗</small></button>
+              <button onClick={() => selectDeepReads("dwd-separate-pixel-head")}><span>{language === "en" ? "Where are details lost?" : "细节在哪个环节丢失？"}</span><small>DWD ↗</small></button>
+              <button onClick={() => selectDeepReads("inertial-world-carriers")}><span>{language === "en" ? "Can memory move with objects?" : "记忆能否随对象运动？"}</span><small>InertialWorld ↗</small></button>
+              <button onClick={() => selectDeepReads("sketch-dont-paint")}><span>{language === "en" ? "Does drawing change the answer?" : "画图是否真正改变答案？"}</span><small>Sketch ↗</small></button>
             </aside>
           </section>
 
@@ -7865,7 +8020,9 @@ export default function Home() {
               <table>
                 <thead><tr><th>路线</th><th>状态空间</th><th>预测目标</th><th>生成顺序</th><th>最关键变量</th></tr></thead>
                 <tbody>
-                  <tr><th>UMM-JEPA</th><td>连续感知feature</td><td>masked next-scale cosine + 文本CE</td><td>尺度内并行/尺度间递归；renderer独立</td><td>固定codec主干，分离目标对齐与渲染收益</td></tr>
+                  <tr><th>DWD</th><td>原连续采样state</td><td>denoising anchor + pixel loss</td><td>原sampler + 独立最终pixel head</td><td>固定轨迹，分离codec读出与Flow收益</td></tr>
+<tr><th>Sketch-and-vote</th><td>底座image/video latent</td><td>无新loss，视觉thought因果干预</td><td>少步多seed + abstention投票</td><td>匹配全部NFE/读取成本，而非单样本步数</td></tr>
+<tr><th>UMM-JEPA</th><td>连续感知feature</td><td>masked next-scale cosine + 文本CE</td><td>尺度内并行/尺度间递归；renderer独立</td><td>固定codec主干，分离目标对齐与渲染收益</td></tr>
 <tr><th>UniSpark</th><td>semantic feature + VAE latent</td><td>文本CE + 瞬时Flow velocity</td><td>block AR；noisy scratch state不保留</td><td>仅提交clean context，隔离recurrent污染</td></tr>
 <tr><th>GAFU</th><td>生成侧连续feature压缩为G tokens</td><td>重建/对齐 + 答案CE + shuffle-memory DPO/KL</td><td>一次memory注入；文本答案AR</td><td>固定token预算下比较matched/shuffled生成证据</td></tr>
                   <tr><th>跨模态保持</th><td>SigLIP理解feature + VQ生成ID</td><td>任务CE + 当前/全部旧head KL锚定</td><td>原文本与图像AR解码</td><td>顺序训练、旧head保持与replay预算</td></tr>
@@ -8107,7 +8264,9 @@ export default function Home() {
               <table className="world-table">
                 <thead><tr><th>路线</th><th>观测状态</th><th>动作接口</th><th>动力学目标</th><th>建模方式</th><th>Rollout / 规划</th><th>与 UMM 的关系</th></tr></thead>
                 <tbody>
-                  <tr><th>UGG</th><td>RGB/depth VAE + ray packing</td><td>camera/text，非robot action</td><td>多模态Flow velocity</td><td>time/modality noise masking</td><td>几何补全，未证实控制闭环</td><td>共享attention；表示/搜索成本分开</td></tr>
+                  <tr><th>InertialWorld</th><td>FSQ Context/Dynamic + carriers</td><td>真实action/局部位移</td><td>next-code CE + decoded损失</td><td>carry + temporal AR</td><td>Real2Sim policy校准</td><td>固定codec隔离carry与生成方式</td></tr>
+<tr><th>EyeHeight</th><td>video state + height重建</td><td>恒高camera轨迹</td><td>原目标 + guidance窗口干预</td><td>160帧turn/walk审计</td><td>不等于物理闭环成功</td><td>几何保持/画质/policy偏差同时报告</td></tr>
+<tr><th>UGG</th><td>RGB/depth VAE + ray packing</td><td>camera/text，非robot action</td><td>多模态Flow velocity</td><td>time/modality noise masking</td><td>几何补全，未证实控制闭环</td><td>共享attention；表示/搜索成本分开</td></tr>
 <tr><th>AFTER-WM</th><td>物理state + 快慢memory</td><td>真实连续action</td><td>next-state mixture/MSE</td><td>冻结expert + error memory</td><td>40步rollout与模拟control</td><td>视觉UMM迁移未证实，单测适应机制</td></tr>
 <tr><th>VQ-WM</th><td>冻结V-JEPA连续state→FPT量化state/action codes</td><td>latent action code + 物理feedback controller</td><td>next-state categorical CE + VQ/controller losses</td><td>离散graph search + 连续闭环追踪</td><td>BFS长时规划与扰动恢复</td><td>可达性几何与IBQ重建ID分离</td></tr>
                   <tr><th>Anchor-WM</th><td>紧凑连续state；DINO patch只作训练teacher</td><td>真实连续action</td><td>next-latent MSE + DINO feature distillation</td><td>确定性latent transition</td><td>latent rollout + action sequence优化</td><td>语义teacher与部署dynamics state分离</td></tr>
