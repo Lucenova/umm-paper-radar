@@ -37,11 +37,11 @@ function loadPage({ language = "en", active = "全部内容", page = 1 } = {}) {
 }
 
 const data = loadPage();
-const newIds = ["dwd-separate-pixel-head", "inertial-world-carriers", "eyeheight-camera-regression", "sketch-dont-paint"];
+const newIds = ["vilflow-parallel-readout", "avm-retrieved-views", "wherebits-layer-selection", "blog-pi-h3-dwd"];
 const preservedBlogId = "blog-google-coherent-long-form-video";
 
 test("archive is retained and new resources are unique and complete", () => {
-  assert.ok(data.papers.length >= 265);
+  assert.ok(data.papers.length >= 269);
   assert.equal(new Set(data.papers.map(p => p.id)).size, data.papers.length);
   assert.equal(new Set(data.papers.map(p => p.index)).size, data.papers.length);
   const featured = data.papers.filter(p => p.featured);
@@ -84,7 +84,7 @@ test("Chinese branch, Blog source, explicit arXiv links, and six tracks remain",
   const blogHtml = renderToStaticMarkup(React.createElement(zhBlogs.default));
   assert.match(html, /为什么推荐/);
   assert.match(html, /世界模型：状态、动作与动力学矩阵/);
-  assert.match(html, /arXiv · 2611\.22287/);
+  assert.match(html, /arXiv · 2611\.24240/);
   assert.match(blogHtml, /阅读 Blog/);
   const tracks = new Set(data.papers.map(data.inferDomain));
   for (const track of ["UMM", "图像生成", "视频生成", "World Model", "可解释性", "评测诊断"]) {
@@ -104,8 +104,8 @@ test("source, category, bilingual search, saved reads, and publication sorting c
   assert.ok(world.every(p => data.inferDomain(p) === "World Model" && p.kind !== "Blog"));
   assert.ok(world.every((p, i) => i === 0 || world[i - 1].date.slice(0, 10) >= p.date.slice(0, 10)));
   assert.deepEqual(data.selectResources("已保存", "", "all", "curated", [newIds[0]]).map(p => p.id), [newIds[0]]);
-  assert.ok(data.selectResources("全部内容", "2611.22287", "all", "curated", []).some(p => p.id === newIds[0]));
-  assert.ok(data.selectResources("全部内容", "Eulerian", "all", "curated", []).some(p => p.id === newIds[1]));
-  assert.ok(data.selectResources("全部内容", "dense Eulerian", "all", "curated", []).some(p => p.id === newIds[1]));
+  assert.ok(data.selectResources("全部内容", "2611.24240", "all", "curated", []).some(p => p.id === newIds[0]));
+  assert.ok(data.selectResources("全部内容", "bounded active context", "all", "curated", []).some(p => p.id === newIds[1]));
+  assert.ok(data.selectResources("全部内容", "N-in-1-out", "all", "curated", []).some(p => p.id === newIds[1]));
   assert.equal(data.selectResources("全部内容", "no-such-paper-837521", "all", "curated", []).length, 0);
 });

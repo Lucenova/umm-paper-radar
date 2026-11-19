@@ -6666,7 +6666,7 @@ const papers: Paper[] = [
   "domain": "图像生成",
   "paradigm": "Latent Flow / Separate Final Pixel Readout",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "paper": "https://arxiv.org/abs/2611.22287",
   "project": "https://hanshengchen.com/dwd",
@@ -6691,7 +6691,7 @@ const papers: Paper[] = [
   "domain": "World Model",
   "paradigm": "Discrete FSQ Dynamics / Transported Recurrent Memory",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "paper": "https://arxiv.org/abs/2611.22314",
   "code": "https://github.com/YuanGao-YG/InertialWorld",
@@ -6718,7 +6718,7 @@ const papers: Paper[] = [
   "domain": "World Model",
   "paradigm": "World-Model Geometry Audit / Guidance Schedule",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "paper": "https://arxiv.org/abs/2611.21782",
   "summary": "六个open-weight视频world model在转身/前进后把非人眼高度拉回默认视角；初帧仍在context也不能保证高度。EyeHeight用多高度起点、恒高轨迹和多视角重建区分floor optical flow与全局scene-scale漂移。",
@@ -6744,7 +6744,7 @@ const papers: Paper[] = [
   "domain": "UMM",
   "paradigm": "Inference Allocation / Few-Step Sketch and Vote",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "paper": "https://arxiv.org/abs/2611.21812",
   "summary": "固定模型和pre-thought文本，仅省略/替换/改变视觉thought采样，区分causal、decorative和harmful中间图。需要画图的任务用8步sketch多seed投票；不是所有任务都应生成视觉思考。",
@@ -6756,6 +6756,106 @@ const papers: Paper[] = [
   "decoding": "先direct/text/draw路由；draw用k=8独立seed，某答案m=3票停止并忽略abstain。8步用无标签agreement定，tier用10个label/pair，不能称整个方法完全无标签；多次尝试与解码计入成本。",
   "sharing": "不改变底座tokenizer/embedding/vocabulary/Transformer/head，因而适合固定ELF的推理预算实验；不是ELF或URSA替代训练范式。Qwen3 direct与visual路径仍需匹配信息/读取器预算。",
   "open": "原文公开；未在原文核验官方代码/权重链接。精读intervention、停止规则与真实wall-clock；maze视频执行不等于现实机器人规划，多seed相关错误会使投票饱和。"
+},
+{
+  "id": "vilflow-parallel-readout",
+  "index": "266",
+  "title": "ViLFlow: Parallel Vision-Language Generation with Continuous Latent Flows",
+  "shortTitle": "ViLFlow",
+  "date": "2026-11-18 · v1 · checked/curated 2026-11-19",
+  "category": "建模与机制诊断",
+  "domain": "UMM",
+  "paradigm": "ELF Initialization / Image-Guided Text Embedding Flow",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2611.24240",
+  "summary": "直接从ELF初始化，以冻结图像feature条件化连续文本embedding生成；蒸馏image-present/image-zeroed差异，把双分支guidance折入单次预测。随后冻结denoiser，单独训练读取其预测状态的并行token decoder。",
+  "why": "它与URSA→ELF最直接相关：clean embedding重建好不代表自由生成状态能可靠回投ID。可用分阶段实验拆开IBQ几何、velocity质量、guidance和Stage3读出，不能把captioning方法当T2I UMM。",
+  "inspiration": "研究假设：保持Qwen3+IBQ/ELF不变，采集不同t的teacher-forced prediction与free-running terminal state，单独训练ID decoder；比较clean-only、prediction-only和mixed输入，测是否恢复低频code及文字笔画。",
+  "experiment": "固定Qwen3、IBQ、数据、denoiser、NFE与总适配FLOPs，做clean/prediction/mixed decoder × 无/有late feedback；另独立蒸馏CFG。报告ID回投、coverage、OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、校准/幻觉、decoder额外参数、总NFE、吞吐显存。retrieval选择单列并计成本。",
+  "state": "冻结T5文本encoder产生normalized连续输出embedding；冻结SigLIP视觉feature作condition。生成的是答案/caption，不是图像ID、VAE latent或visual Flow。",
+  "objective": "Z_t=tX+(1-t)*sigma*noise；head预测clean X，经(Xhat-Z)/(1-t)转换velocity回归，加token CE；第二阶段蒸馏image guidance，第三阶段对prediction与clean embedding混合做CE。",
+  "decoding": "所有输出位置并行迭代，默认32步；VQA方法节写final-only readout，caption可在末10步decode→T5 re-encode反馈。Table1 caption与VQA描述不一致，应复现时核对。直接ELF-B初始化，非本次由Qwen AR等预算转换。",
+  "sharing": "stage1 denoiser/reconstruction共享Transformer；stage3复制独立Transformer和vocabulary head，冻结原denoiser/projector。视觉encoder与文本tokenizer分离，无统一IBQ词表。ELF同源，URSA为离散路径；GPT2/MDLM基线参数、预训练及guidance预算不同，非严格因果证明。",
+  "open": "原文公开，未核验官方代码/权重链接。精读prediction-adapted decoder及matched controls；111.16 CIDEr只胜sampled AR，greedy AR为114.66，retrieval后114.69须独立报告。训练步数/硬件总预算本次未核验。"
+},
+{
+  "id": "avm-retrieved-views",
+  "index": "267",
+  "title": "Autoregressive View Model",
+  "shortTitle": "AVM",
+  "date": "2026-11-17 · v1 · checked/curated 2026-11-19",
+  "category": "世界模型",
+  "domain": "World Model",
+  "paradigm": "Temporal AR / Few-Step Latent Flow / View Retrieval",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2611.23417",
+  "project": "https://autoregressive-view-model.github.io/",
+  "summary": "无显式3D场景表示，以N-in-1-out视频Flow生成camera path上的短clip；把输入prefill与已生成history统一检索，保持active context有界。先TF/DF causal初始化，再在自身rollout做DMD与adversarial tuning。",
+  "why": "多帧威胁不是只要最近60帧：遮挡前身份、OCR、场景重访证据应离开窗口后仍能按视角/时间重新读取。它可与InertialWorld的内部carrier记忆分离比较。",
+  "inspiration": "研究假设：Qwen3+IBQ保留带pose/time的原始视觉code与KV档案，在URSA/ELF预测新block前检索；固定检索后只换生成方式，避免把更好memory误判为Flow优势。",
+  "experiment": "固定Qwen3、IBQ、数据、action/camera、参数和总FLOPs，比较recent-only、随机history、pose/time retrieval、retrieval+student-rollout tuning。报告遮挡重现OCR/身份、revisit几何、1/8/32-block漂移、height保持、动作干预、规划闭环成功（若实现）、检索CPU/GPU传输、NFE显存吞吐。",
+  "state": "Wan2.1-I2V-14B初始化，连续VAE latent每cell编码8×8×4视频块；memory为prefill/history视图与KV，不是统一离散IBQ ID或显式3DGS。",
+  "objective": "Gaussian线性path z_t=(1-t)z0+t*noise，target noise-z0 velocity/MSE；error recycling污染训练state/context，causal阶段TF+DF后转on-policy DMD+adversarial。",
+  "decoding": "clip/block间AR，block内latent denoising；base50步Euler+双CFG，causal4步DDPM-style且guidance折入；新block额外一次clean pass写KV，检索KV可CPU offload。约6M labeled scenes+2M clips；累计训练步数/时延本次未核验。",
+  "sharing": "context/target共享video Transformer和VAE，文本T5 cross-attention；无共享Qwen/IBQ词表或语言head。与ELF均continuous Flow但state不同；URSA离散。公平实验固定memory、codec、rollout分布及采样预算，单独比较target。",
+  "open": "论文与官方项目URL公开；项目下载链接本次尚未核验，不能称代码/权重已发布。精读retrieval和on-policy消融；强camera/revisit指标不等于真实robot planning。",
+  "action": "metric camera pose、ray rotation与timestamp，文本控制事件；不是已证实的joint/torque真实robot action。",
+  "rollout": "支持streaming长history重访、相机控制和动态场景；未核验真实机器人闭环规划。bounded GPU context不等于总history存储有界。",
+  "evaluation": "控制pose、画质、动态和revisit多轴；对无检索与clean KV commit作消融。文本alignment落后部分world baseline，应报告持久性与可编辑性trade-off。"
+},
+{
+  "id": "wherebits-layer-selection",
+  "index": "268",
+  "title": "Bits, Not Boxes: Label-Free Layer Selection for Visual Localization in VLMs",
+  "shortTitle": "WhereBits",
+  "date": "2026-11-17 · v1 · checked/curated 2026-11-19",
+  "category": "建模与机制诊断",
+  "domain": "可解释性",
+  "paradigm": "Attention Routing KL / Layer Prior / Zoom-In",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2611.23432",
+  "code": "https://github.com/fengyurenpingsheng/BitsNotBoxes",
+  "summary": "把问题相对generic prompt造成的attention变化拆成whether-to-look总视觉质量与where-to-look路由分布；用后者的bits建立layer prior，抑制sink并生成局部放大crop。新模型只需无标签问题，但三个常数曾用标注COCO固定。",
+  "why": "可为Qwen3/NEO层重要性、OCR区域保留和2×2 folding提供更具体的head/layer选择信号；也直接提醒定位得准不等于答案真正依赖此区域。",
+  "inspiration": "研究假设：先用WhereBits定位OCR/小目标证据，再对decode保留层或visual KV做可干预稀疏化；与原32–35层规则、norm/attention mass相比，单测prefill和decode，不把probe当机制证明。",
+  "experiment": "固定Qwen3、IBQ、输入分辨率与token预算，比较mean attention、mass-weighted contrast、固定深层、WhereBits prior；同crop尺寸/额外forward预算测试OCRBench、DocVQA、TextVQA、多帧威胁定位与风险召回。做deletion/insertion、equal-pixel与codec-bit budget、wrong-frame与equal-norm head干预，报告吞吐/KV显存。",
+  "state": "现有MLLM的answer-start attention rows与visual-token路由分布；非新生成latent或tokenizer。灰图保持相同shape，避免token数量混杂。",
+  "objective": "无需生成训练或加噪；四条件真/灰image × question/generic prompt，KL bits估计分布重排；layer prior由无标签校准集得到，不能把全流程称零标注。",
+  "decoding": "attention-map/crop后再次回答，非新AR/diffusion顺序；缓存gray+generic条件，其他forward与second-pass crop均需计成本。精确部署latency本次未核验；无新增LLM权重初始化。",
+  "sharing": "保持现有tokenizer、embedding、vocabulary、Transformer与head，方法只改证据读取/选择；可套Qwen3+IBQ理解路径，与ELF/URSA生成loss正交。attention显式读取可能增加内存。",
+  "open": "官方仓库包含wherebits、scripts/tests/data及依赖清单，非仅README；未运行其复现实验。精读faithfulness附录：TextVQA中CARVE常优于WhereBits，不能把COCO定位优势外推为OCR忠实性优势。"
+},
+{
+  "id": "blog-pi-h3-dwd",
+  "index": "269",
+  "title": "pi-H3: Video Generation in 2–4 Steps Without a VAE Decoder",
+  "shortTitle": "pi-H3 Blog",
+  "date": "2026-11-10 · author Blog backfill · checked/curated 2026-11-19",
+  "category": "建模与机制诊断",
+  "domain": "视频生成",
+  "paradigm": "Few-Step Distillation / DWD / FP8",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "paper": "https://hanshengchen.com/blog/pi-h3/",
+  "project": "https://huggingface.co/Lakonik/MiniMax-H3-piFlowV2-DWD",
+  "code": "https://github.com/Lakonik/LakonLab",
+  "kind": "Blog",
+  "summary": "补录作者官方Blog。pi-H3结合pi-Flow v2少步蒸馏、DWD末步pixel输出与FP8系统优化；作者报告B200上5秒768p音视频2步3.8秒。性能是组合结果，不能全归给Flow或decoder移除。",
+  "why": "它延续DWD的实用问题：当ELF降到2/4步后，IBQ/视频decoder和输出head可能占主要延迟；应优化端到端路径，而不是只看denoiser NFE。",
+  "inspiration": "研究假设：将Qwen3+IBQ/ELF加速拆成2/4/8步蒸馏、末端decoder替换、FP8三个独立因素；OCR笔画、跨帧文字与威胁动作幅度作为退化检查，不能只按静态画质选模型。",
+  "experiment": "固定teacher、prompt/seed、数据、video形状、训练预算，做NFE × codec/DWD × BF16/FP8；同一latent比较decoder，另在同硬件/attention栈比较few-step teacher/student。报告生成文字OCR、动态性、身份/几何与horizon误差、T2I/理解保持、真实请求延迟/显存/吞吐；计text/audio与RGB转换，单列compile/warmup/MP4。",
+  "state": "MiniMax H3连续音视频latent，DWD从最终denoiser hidden读pixel；没有变成IBQ ID或encoder-free理解模型。",
+  "objective": "Blog称pi-Flow v2为data-free few-step distillation，简化轨迹，完整新loss暂未披露；DWD保留denoising路径与独立pixel目标。不能自行补成MeanFlow average velocity或URSA metric path。",
+  "decoding": "2或4步，最终DWD替代video VAE decoder，音频仍需decoder；FP8/Sol-Attn组合优化。B200请求级中位数与H100分stage中位数求和是不同统计；冷启动/编译/warmup/MP4不在报告延迟内。",
+  "sharing": "视频DiT与DWD复用hidden，输出head独立，原H3 checkpoint初始化；无Qwen/语言/IBQ词表或理解head统一。与ELF少步连续推理相关，非离散URSA；公平控制分离蒸馏、输出和量化。",
+  "open": "Blog列demo可用、weights/inference计划11月16–22、training稍后发布；LakonLab先前列Upcoming，计划日期不等于已发布，本次模型API返回401，未能验证权重文件可下载。泛读系统计时，精读成本分解与质量对照；不是动作world-model闭环。"
 },
 
 ];
@@ -7490,6 +7590,53 @@ const englishOverrides: Record<string, Partial<EnglishPaperCopy>> = {
   "sharing": "Unchanged native tokenizer, embedding, vocabulary, Transformer and heads. A fair ELF inference-budget control, not a replacement URSA/ELF training paradigm. Match information and reader budgets.",
   "open": "Original public; official code/weights not verified. Deep-read interventions, stopping and wall-clock. Maze rollouts are not real-robot planning; correlated errors can saturate voting."
 },
+"vilflow-parallel-readout": {
+  "summary": "Initializes from ELF, conditions continuous text generation on frozen visual features, and distills image guidance into one conditioned prediction. A separate parallel token decoder then learns to read predictions from the frozen denoiser.",
+  "why": "Clean reconstruction does not ensure reliable IBQ-ID readout from generated states. Separate geometry, velocity, guidance and Stage-3 readout; this is image-to-text generation, not a T2I UMM.",
+  "inspiration": "Hypothesis: fix Qwen3+IBQ/ELF and adapt only the ID decoder using clean, teacher-forced predicted and free-running terminal states. Test low-frequency coverage and glyph recovery.",
+  "experiment": "Fix Qwen3, IBQ, data, denoiser, NFE and adaptation FLOPs. Compare clean/prediction/mixed decoder training with and without late feedback; distill CFG separately. Report ID projection, coverage, OCRBench/DocVQA/TextVQA, generated OCR, GenEval, hallucination/calibration, decoder parameters and total NFE/latency/memory. Separate retrieval selection cost.",
+  "state": "Normalized continuous T5 text embeddings with frozen SigLIP image conditioning. Outputs answers/captions, not image IDs or visual VAE latents.",
+  "objective": "Gaussian interpolation Z_t=tX+(1-t)*sigma*noise; predict clean embeddings, convert to velocity using remaining time, and combine regression with token CE. Then guidance distillation and prediction/clean mixture decoder CE.",
+  "decoding": "Parallel whole-response refinement, default 32 steps. Method says final-only VQA readout; captioning may decode/re-encode in the last ten steps. Table-1 caption conflicts with the VQA description and needs replication checks. Direct ELF-B initialization, not equal-budget Qwen conversion.",
+  "sharing": "Shared stage-1 transformer; stage 3 copies a separate decoder transformer/head and freezes denoiser/projector. Separate visual encoder/text tokenizer, no IBQ vocabulary. ELF-derived, unlike URSA categorical transport. GPT2/MDLM comparisons differ in size/pretraining/guidance.",
+  "open": "Paper public; official code/weights not verified. Deep-read decoder and matched controls. Base 111.16 CIDEr beats sampled AR, not greedy AR 114.66; retrieval 114.69 is separate. Total training/hardware budget not verified."
+},
+"avm-retrieved-views": {
+  "summary": "An N-in-1-out video Flow generates camera-path clips without explicit 3D scenes. Bounded active context retrieves input prefill and generated history. TF/DF causal initialization precedes on-policy DMD/adversarial tuning.",
+  "why": "Threat evidence such as pre-occlusion identity and OCR must remain retrievable beyond a recent-frame window. External view retrieval is a distinct variable from InertialWorld carriers.",
+  "inspiration": "Hypothesis: archive IBQ codes/KV with pose/time, retrieve before URSA/ELF future blocks, then vary generators under identical retrieval to isolate memory gains.",
+  "experiment": "Fix Qwen3, IBQ, data, camera/actions, parameters and FLOPs. Compare recent-only, random history, pose/time retrieval and retrieval plus student-rollout tuning. Measure reappearance OCR/identity, revisit geometry, 1/8/32-block drift, height, action interventions, closed-loop success if implemented, CPU/GPU transfers, all NFE, memory and throughput.",
+  "state": "Wan2.1-I2V-14B initialization and continuous VAE latents representing 8x8x4 pixel blocks. Memory is views/KV, not IBQ IDs or explicit 3DGS.",
+  "objective": "Linear Gaussian path and noise-minus-data velocity MSE; error recycling perturbs states/context. TF/DF initialization then on-policy DMD and adversarial tuning.",
+  "decoding": "AR across clips/blocks with within-block denoising. Base: 50 Euler steps plus CFG; causal: four DDPM-style steps with folded guidance. Extra clean-block KV pass and optional CPU history offload count. About 6M labeled scenes and 2M clips; total optimizer budget/latency not verified.",
+  "sharing": "Video Transformer/VAE shared across context and targets, with T5 text cross-attention; no Qwen/IBQ vocabulary or language head. ELF-like continuous transport in a different state; unlike URSA. Match memory, codec, rollout distribution and cost for fair comparisons.",
+  "open": "Paper and official project URL public; code/weight download not verified. Deep-read retrieval and on-policy ablations. Camera/revisit scores do not establish robot planning.",
+  "action": "Metric camera poses, ray rotation and timestamps plus event text; no verified robot torque/joint-action interface.",
+  "rollout": "Streaming history retrieval, revisits and dynamic scenes; no verified real-robot closed-loop planner. Bounded GPU context is not bounded total archive storage.",
+  "evaluation": "Camera control, quality, dynamics and revisit metrics; isolate retrieval and clean-KV commit. Report weaker text alignment beside persistence gains."
+},
+"wherebits-layer-selection": {
+  "summary": "Separates question-induced attention change into total visual mass and within-image routing. Routing bits form a layer prior that suppresses sinks and supports zoom-in. New models use unlabeled questions, but three constants were fixed on labeled COCO.",
+  "why": "A useful layer/head signal for Qwen3/NEO, OCR evidence retention and 2x2 folding, with a clear warning that localization and answer dependence differ.",
+  "inspiration": "Hypothesis: use routing to select OCR/small-target evidence, then causally test decode-layer or KV sparsification against fixed deep layers and attention mass. Separate prefill from decode.",
+  "experiment": "Fix Qwen3, IBQ, resolution and tokens. Compare mean attention, mass-weighted contrast, fixed layers and WhereBits with matched crop/forward budgets on OCRBench, DocVQA, TextVQA and threat localization/recall. Add deletion/insertion under pixel and codec-bit budgets, wrong-frame and equal-norm head interventions; report throughput and KV memory.",
+  "state": "Existing MLLM answer-start attention rows and visual routing distributions, not a new latent/tokenizer. Gray controls preserve image shape and token count.",
+  "objective": "No generative training/corruption; real/gray image crossed with question/generic prompt and routing KL. Unlabeled layer calibration follows labeled constant selection, not a wholly label-free pipeline.",
+  "decoding": "Map/crop followed by another answer pass, not a new generation order. Cache gray-generic inputs; count remaining condition forwards and zoom-in. Deployment latency not verified; no new LLM initialization.",
+  "sharing": "Unchanged tokenizer, embeddings, vocabulary, Transformer and heads; evidence readout is orthogonal to ELF/URSA losses. Materializing attention can add memory cost.",
+  "open": "Official repo contains wherebits, scripts/tests/data and dependencies, beyond a README; not reproduced. Deep-read faithfulness: CARVE often wins on TextVQA, so COCO localization gains do not imply OCR causal superiority."
+},
+"blog-pi-h3-dwd": {
+  "summary": "Author-blog backfill. Combines pi-Flow v2 distillation, final-step DWD and FP8. Reports a 5-second 768p audiovisual request in 3.8 seconds on B200 at two steps; this is a combined system result.",
+  "why": "After ELF reaches 2–4 steps, IBQ/video decoding and readout can dominate cost. Optimize the end-to-end path rather than denoiser NFE alone.",
+  "inspiration": "Hypothesis: isolate distillation steps, decoder replacement and FP8 in Qwen3+IBQ/ELF, checking glyphs, temporal text and threat-motion amplitude rather than static quality alone.",
+  "experiment": "Fix teacher, seeds/prompts, data, video shape and training budget. Factor NFE x codec/DWD x BF16/FP8; compare decoders on identical latents and students on the same hardware/attention stack. Report generated OCR, motion/identity/geometry/horizon errors, T2I/understanding retention, request latency/memory/throughput. Include text/audio/RGB stages and list compilation, warmup and MP4 separately.",
+  "state": "Continuous MiniMax H3 audiovisual latents; DWD reads final hidden states into pixels. Not IBQ IDs or encoder-free understanding.",
+  "objective": "Blog describes data-free pi-Flow v2 distillation with simpler trajectories but does not disclose its full new loss. DWD retains denoising plus separate pixel supervision; do not infer MeanFlow average velocity or URSA paths.",
+  "decoding": "Two/four steps, final DWD instead of video VAE decoding, separate audio decoding and FP8/Sol-Attn. B200 request medians and H100 sums of stage medians are different measurements. Excludes loading, compilation, warmup and MP4 encoding.",
+  "sharing": "DWD shares video-DiT hidden states with a separate output head, initialized from H3. No Qwen/IBQ vocabulary or understanding-head unification. Related to ELF few-step inference, unlike URSA; disentangle distillation, readout and quantization.",
+  "open": "Blog announces demo availability and scheduled weights/inference for Nov 16–22, training later. A date promise is not release evidence; the model API returned 401, so downloadable weight files were not verified. Skim system timing, deep-read cost/quality controls. No action-conditioned closed-loop world model."
+},
 };
 
 function getEnglishCopy(paper: Paper): EnglishPaperCopy {
@@ -7609,7 +7756,9 @@ function EnglishMatrices() {
       <section className="matrix-section" id="matrix">
         <div className="section-heading"><div><h2>UMM Generation Matrix</h2></div><p>Fix backbone, tokenizer, data, and compute</p></div>
         <div className="matrix-wrap" role="region" tabIndex={0} aria-label="Scrollable comparison table"><table><thead><tr><th>Route</th><th>State</th><th>Target</th><th>Decoding</th><th>Key control</th></tr></thead><tbody>
-          <tr><th>DWD</th><td>Original continuous sampling state</td><td>Denoising anchor + final pixel loss</td><td>Original sampler, separate final pixel head</td><td>Fix trajectory; isolate codec/readout from Flow gains</td></tr>
+          <tr><th>ViLFlow</th><td>Continuous T5 output embeddings</td><td>Clean prediction → velocity + guidance distillation + decoder CE</td><td>Parallel refinement; separate prediction-adapted decoder</td><td>Hold generator fixed, vary readout and feedback; count decoder copies</td></tr>
+<tr><th>pi-H3 Blog</th><td>Continuous audiovisual latents</td><td>Distillation details partly undisclosed; DWD pixel output</td><td>2/4 steps + FP8/Sol-Attn</td><td>Factor distillation, decoding and quantization; same hardware</td></tr>
+<tr><th>DWD</th><td>Original continuous sampling state</td><td>Denoising anchor + final pixel loss</td><td>Original sampler, separate final pixel head</td><td>Fix trajectory; isolate codec/readout from Flow gains</td></tr>
 <tr><th>Sketch-and-vote</th><td>Native image/video latent</td><td>No new training loss; causal thought interventions</td><td>Few-step independent seeds + abstention/voting</td><td>Match ALL denoiser and readout costs, not per-sample NFE</td></tr>
 <tr><th>UMM-JEPA</th><td>Continuous perceptual features</td><td>Masked next-scale cosine + text CE</td><td>Parallel children, recursive scales; separate renderer</td><td>Hold codec/backbone fixed; distinguish target alignment from rendering</td></tr>
 <tr><th>UniSpark</th><td>Semantic features + VAE latents</td><td>Text CE + instantaneous Flow velocity</td><td>AR blocks; private noisy scratch state</td><td>Rollback noisy recurrent updates; commit clean context only</td></tr>
@@ -7646,7 +7795,8 @@ function EnglishMatrices() {
       <section className="world-section" id="world-matrix">
         <div className="section-heading"><div><h2>Understanding → Generation → Prediction → Action</h2></div><p>Do not reduce evaluation to FVD or LPIPS</p></div>
         <div className="matrix-wrap" role="region" tabIndex={0} aria-label="Scrollable comparison table"><table className="world-table"><thead><tr><th>Model</th><th>Observation state</th><th>Action</th><th>Dynamics target</th><th>Rollout / planning</th><th>UMM connection</th></tr></thead><tbody>
-          <tr><th>InertialWorld</th><td>FSQ Context/Dynamic IDs + carriers</td><td>Raw physical actions / local motion</td><td>Next-code CE + decoded/memory losses</td><td>Temporal AR with transported recurrent state</td><td>Real2Sim policy calibration; separate codec and carry</td></tr>
+          <tr><th>AVM</th><td>VAE views + archived view/KV memory</td><td>Camera pose/ray/time, event text</td><td>Velocity FM then on-policy DMD/adversarial</td><td>Temporal AR, four-step blocks, retrieved context</td><td>Revisit quality is not physical closed-loop success; count retrieval/KV commit</td></tr>
+<tr><th>InertialWorld</th><td>FSQ Context/Dynamic IDs + carriers</td><td>Raw physical actions / local motion</td><td>Next-code CE + decoded/memory losses</td><td>Temporal AR with transported recurrent state</td><td>Real2Sim policy calibration; separate codec and carry</td></tr>
 <tr><th>EyeHeight</th><td>Video states + reconstructed height</td><td>Fixed-elevation camera trajectories</td><td>Audit/guidance windows; native model targets</td><td>160-frame turn/walk, not physical closed-loop proof</td><td>Geometry retention alongside quality and policy bias</td></tr>
 <tr><th>UGG</th><td>RGB/depth VAE + packed rays</td><td>Camera/text; not robot actions</td><td>Multimodal velocity; per-time noise masks</td><td>Geometry completion; no verified control loop</td><td>Share attention, separate representation and search cost</td></tr>
 <tr><th>AFTER-WM</th><td>Physical state + fast/slow memory</td><td>Real continuous actions</td><td>Next-state mixture/MSE; frozen experts</td><td>40-step rollout; simulated control</td><td>Adaptation mechanism only; visual UMM transfer unproven</td></tr>
@@ -7830,8 +7980,8 @@ export default function Home() {
       <div className="issue-strip" id="top">
         <span>{language === "en" ? "Research workspace" : "研究空间"}</span>
         <span aria-hidden="true">/</span>
-        <span>{language === "en" ? "Issue 056" : "第 056 期"}</span>
-        <time dateTime="2026-11-18">2026.11.18</time>
+        <span>{language === "en" ? "Issue 057" : "第 057 期"}</span>
+        <time dateTime="2026-11-19">2026.11.19</time>
       </div>
 
       <div className="workspace">
@@ -7887,8 +8037,8 @@ export default function Home() {
               <div><span>{language === "en" ? "Research tracks" : "研究方向"}</span><b>{directions.length}</b></div>
             </div>
             <div className="issue-focus">
-              <h2>{language === "en" ? "Separate transport, memory and readout." : "分离生成轨迹、动态记忆与最终读出。"}</h2>
-              <p>{language === "en" ? "Four reads on direct pixel readout, transported memory, geometric drift and the causal value of visual thoughts." : "本期四项聚焦直接像素读出、搬运式记忆、几何漂移与视觉思考的因果价值。"}</p>
+              <h2>{language === "en" ? "Read generated states. Retrieve relevant evidence." : "读出生成状态，检索关键证据。"}</h2>
+              <p>{language === "en" ? "Three papers and an author blog on ELF-based VQA, persistent views, attention routing and few-step video cost." : "三篇论文与一篇作者Blog，聚焦ELF视觉问答、持久视图、注意力路由和少步视频成本。"}</p>
               <div className="hero-actions">
                 <button className="primary-button" onClick={() => { changeActive("今日精选"); setQuery(""); setSourceType("all"); }}>{language === "en" ? "Read this issue" : "阅读本期推荐"} <span aria-hidden="true">↓</span></button>
                 <a className="text-button" href="#matrix">{language === "en" ? "Compare modeling routes" : "比较建模路线"} ↗</a>
@@ -7896,9 +8046,9 @@ export default function Home() {
             </div>
             <aside className="research-questions" aria-label={language === "en" ? "Questions to investigate" : "本期研究问题"}>
               <h2>{language === "en" ? "Start with a question" : "从问题出发"}</h2>
-              <button onClick={() => selectDeepReads("dwd-separate-pixel-head")}><span>{language === "en" ? "Where are details lost?" : "细节在哪个环节丢失？"}</span><small>DWD ↗</small></button>
-              <button onClick={() => selectDeepReads("inertial-world-carriers")}><span>{language === "en" ? "Can memory move with objects?" : "记忆能否随对象运动？"}</span><small>InertialWorld ↗</small></button>
-              <button onClick={() => selectDeepReads("sketch-dont-paint")}><span>{language === "en" ? "Does drawing change the answer?" : "画图是否真正改变答案？"}</span><small>Sketch ↗</small></button>
+              <button onClick={() => selectDeepReads("vilflow-parallel-readout")}><span>{language === "en" ? "Can generated embeddings be read?" : "生成embedding能否可靠回投？"}</span><small>ViLFlow ↗</small></button>
+              <button onClick={() => selectDeepReads("avm-retrieved-views")}><span>{language === "en" ? "Can old evidence be retrieved?" : "旧证据能否被重新读取？"}</span><small>AVM ↗</small></button>
+              <button onClick={() => selectDeepReads("wherebits-layer-selection")}><span>{language === "en" ? "Does localization imply faithfulness?" : "定位准确是否等于解释忠实？"}</span><small>WhereBits ↗</small></button>
             </aside>
           </section>
 
@@ -8020,7 +8170,9 @@ export default function Home() {
               <table>
                 <thead><tr><th>路线</th><th>状态空间</th><th>预测目标</th><th>生成顺序</th><th>最关键变量</th></tr></thead>
                 <tbody>
-                  <tr><th>DWD</th><td>原连续采样state</td><td>denoising anchor + pixel loss</td><td>原sampler + 独立最终pixel head</td><td>固定轨迹，分离codec读出与Flow收益</td></tr>
+                  <tr><th>ViLFlow</th><td>连续T5输出embedding</td><td>clean prediction转velocity + guidance蒸馏 + decoder CE</td><td>并行迭代，独立prediction-adapted读出</td><td>固定generator单测readout/feedback，计复制decoder成本</td></tr>
+<tr><th>pi-H3 Blog</th><td>连续音视频latent</td><td>蒸馏loss部分未披露 + DWD</td><td>2/4步 + FP8/Sol-Attn</td><td>同硬件拆分蒸馏、解码与量化收益</td></tr>
+<tr><th>DWD</th><td>原连续采样state</td><td>denoising anchor + pixel loss</td><td>原sampler + 独立最终pixel head</td><td>固定轨迹，分离codec读出与Flow收益</td></tr>
 <tr><th>Sketch-and-vote</th><td>底座image/video latent</td><td>无新loss，视觉thought因果干预</td><td>少步多seed + abstention投票</td><td>匹配全部NFE/读取成本，而非单样本步数</td></tr>
 <tr><th>UMM-JEPA</th><td>连续感知feature</td><td>masked next-scale cosine + 文本CE</td><td>尺度内并行/尺度间递归；renderer独立</td><td>固定codec主干，分离目标对齐与渲染收益</td></tr>
 <tr><th>UniSpark</th><td>semantic feature + VAE latent</td><td>文本CE + 瞬时Flow velocity</td><td>block AR；noisy scratch state不保留</td><td>仅提交clean context，隔离recurrent污染</td></tr>
@@ -8264,7 +8416,8 @@ export default function Home() {
               <table className="world-table">
                 <thead><tr><th>路线</th><th>观测状态</th><th>动作接口</th><th>动力学目标</th><th>建模方式</th><th>Rollout / 规划</th><th>与 UMM 的关系</th></tr></thead>
                 <tbody>
-                  <tr><th>InertialWorld</th><td>FSQ Context/Dynamic + carriers</td><td>真实action/局部位移</td><td>next-code CE + decoded损失</td><td>carry + temporal AR</td><td>Real2Sim policy校准</td><td>固定codec隔离carry与生成方式</td></tr>
+                  <tr><th>AVM</th><td>VAE views + view/KV档案</td><td>camera/ray/time与文本</td><td>velocity FM后DMD/adversarial</td><td>时间AR、4步block、context检索</td><td>重访而非物理闭环</td><td>计检索/KV commit；固定memory再换生成方式</td></tr>
+<tr><th>InertialWorld</th><td>FSQ Context/Dynamic + carriers</td><td>真实action/局部位移</td><td>next-code CE + decoded损失</td><td>carry + temporal AR</td><td>Real2Sim policy校准</td><td>固定codec隔离carry与生成方式</td></tr>
 <tr><th>EyeHeight</th><td>video state + height重建</td><td>恒高camera轨迹</td><td>原目标 + guidance窗口干预</td><td>160帧turn/walk审计</td><td>不等于物理闭环成功</td><td>几何保持/画质/policy偏差同时报告</td></tr>
 <tr><th>UGG</th><td>RGB/depth VAE + ray packing</td><td>camera/text，非robot action</td><td>多模态Flow velocity</td><td>time/modality noise masking</td><td>几何补全，未证实控制闭环</td><td>共享attention；表示/搜索成本分开</td></tr>
 <tr><th>AFTER-WM</th><td>物理state + 快慢memory</td><td>真实连续action</td><td>next-state mixture/MSE</td><td>冻结expert + error memory</td><td>40步rollout与模拟control</td><td>视觉UMM迁移未证实，单测适应机制</td></tr>
