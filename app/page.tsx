@@ -6767,7 +6767,7 @@ const papers: Paper[] = [
   "domain": "UMM",
   "paradigm": "ELF Initialization / Image-Guided Text Embedding Flow",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "paper": "https://arxiv.org/abs/2611.24240",
   "summary": "直接从ELF初始化，以冻结图像feature条件化连续文本embedding生成；蒸馏image-present/image-zeroed差异，把双分支guidance折入单次预测。随后冻结denoiser，单独训练读取其预测状态的并行token decoder。",
@@ -6790,7 +6790,7 @@ const papers: Paper[] = [
   "domain": "World Model",
   "paradigm": "Temporal AR / Few-Step Latent Flow / View Retrieval",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "paper": "https://arxiv.org/abs/2611.23417",
   "project": "https://autoregressive-view-model.github.io/",
@@ -6817,7 +6817,7 @@ const papers: Paper[] = [
   "domain": "可解释性",
   "paradigm": "Attention Routing KL / Layer Prior / Zoom-In",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "paper": "https://arxiv.org/abs/2611.23432",
   "code": "https://github.com/fengyurenpingsheng/BitsNotBoxes",
@@ -6841,7 +6841,7 @@ const papers: Paper[] = [
   "domain": "视频生成",
   "paradigm": "Few-Step Distillation / DWD / FP8",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "paper": "https://hanshengchen.com/blog/pi-h3/",
   "project": "https://huggingface.co/Lakonik/MiniMax-H3-piFlowV2-DWD",
@@ -6856,6 +6856,107 @@ const papers: Paper[] = [
   "decoding": "2或4步，最终DWD替代video VAE decoder，音频仍需decoder；FP8/Sol-Attn组合优化。B200请求级中位数与H100分stage中位数求和是不同统计；冷启动/编译/warmup/MP4不在报告延迟内。",
   "sharing": "视频DiT与DWD复用hidden，输出head独立，原H3 checkpoint初始化；无Qwen/语言/IBQ词表或理解head统一。与ELF少步连续推理相关，非离散URSA；公平控制分离蒸馏、输出和量化。",
   "open": "Blog列demo可用、weights/inference计划11月16–22、training稍后发布；LakonLab先前列Upcoming，计划日期不等于已发布，本次模型API返回401，未能验证权重文件可下载。泛读系统计时，精读成本分解与质量对照；不是动作world-model闭环。"
+},
+
+{
+  "id": "univep-noise-targets",
+  "title": "UniVEP: Unifying Velocity and Endpoint Prediction for Robot Manipulation",
+  "shortTitle": "UniVEP",
+  "index": "270",
+  "date": "2026-11-19 · v1 · checked/curated 2026-11-20",
+  "category": "世界模型",
+  "domain": "World Model",
+  "paradigm": "Action Flow / Joint Endpoint-Velocity / Noise-Dependent Modes",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2611.26103",
+  "summary": "在同一action Transformer中用mode embedding联合训练clean endpoint与velocity，并以一致性loss对齐两种隐含clean action。高噪声选endpoint、低噪声选velocity；每步仅一次调用。它研究动作生成目标，不是独立的视觉动力学模型。",
+  "why": "最贴近URSA→ELF当前的目标参数化问题：相同连续path中，clean embedding、velocity及loss weighting并不等价。论文显示velocity预训练的FastWAM是重要反例，不能假设endpoint普遍更好，也不能把动作空间结果直接当IBQ生成证据。",
+  "inspiration": "研究假设：Qwen3+IBQ/ELF可共享一个denoiser，用mode区分clean-code embedding与velocity；高噪声恢复code语义，低噪声修正glyph/小目标。先冻结codec与回投head，再检查palette、OCR和细节是否受益。",
+  "experiment": "固定Qwen3、IBQ、数据、path、参数和总训练FLOPs，比较V、X、velocity-weighted X、双模式无/有一致性；分别测试X-only、V-only、X→V、反序，扫描1/2/4/8/16 NFE。报告code coverage/回投、GenEval、生成文字OCR、OCRBench/DocVQA/TextVQA、稳定性、吞吐显存。联合训练按额外FLOPs缩减updates；action实验另固定动作接口并报闭环成功。",
+  "state": "连续H×D动作chunk，z_t=t*x+(1-t)*epsilon；不是visual token ID、one-hot或VAE图像latent。LiLa-WAM同时预测未来DINO语义特征；各host视觉表征不同，跨host分数不能当同表示对照。",
+  "objective": "V为x-epsilon回归；X回归clean action；X–V按1/(1-t)^2加权endpoint误差。UniVEP用delta=0.05截断权重并加X与z_t+(1-t)*V一致性；不是average velocity/MeanFlow。",
+  "decoding": "Euler并行动作chunk refinement，sigma*=0.5；默认uniform grid下1 NFE=1X、2 NFE=2X、4 NFE=3X+1V，所以少步收益包含联合训练而非已发生的切换。StarVLA训练75k RoboTwin/120k LIBERO updates，原生4 NFE；LiLa/Fast原生10，扫描1–16。",
+  "sharing": "两mode共享action Transformer及输出形状，改变mode embedding；host VLM/tokenizer、视觉embedding、语言词表/head与动作I/O不能视为全绑权。可保留VLM/视频预训练；FastWAM action初始化显著影响排序。与ELF同属连续运输但状态为action，与URSA离散CE路径不同；固定IBQ后迁移才是公平UMM对照。",
+  "open": "原文和作者项目页可访问；本次未核验可下载实现/权重，不把项目页当完整开源。精读§3–5与AppendixB/C/D。StarVLA测得训练114.47→122.40 TFLOPs、44.65→47.44 GiB、2.110→2.439s/update（指定A800配置），共享参数不等于免费联合训练。",
+  "action": "真实连续机器人action chunk，由图像、文本指令和可选proprioception条件化；不是latent action或文本即动作。",
+  "rollout": "host策略进行多次观测—动作chunk执行闭环；WAM host可联合未来feature/video，UniVEP本身不新增长视频rollout或planner。RoboTwin/LIBERO及真实双臂测试，不能据此宣称长时物理一致性已解决。",
+  "evaluation": "精读one/two-call与同host同预算对照；StarVLA RoboTwin Clean 1次61.36%对最佳单目标16次59.96%。保留FastWAM反例、三seed统计、训练数据差异与端到端延迟；迁移需单列未来预测、动作干预、horizon误差和控制成功。",
+  "project": "https://tutuliang904.github.io/UniVEP/"
+},
+{
+  "id": "affect-action-effects",
+  "title": "Learning What Actions Change: Action Effect Matching for Dynamics-Faithful World Models",
+  "shortTitle": "AFFECT",
+  "index": "271",
+  "date": "2026-11-19 · v1 · checked/curated 2026-11-20",
+  "category": "世界模型",
+  "domain": "World Model",
+  "paradigm": "Action-Effect Moment Matching / Conditional Rectified Flow",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2611.25980",
+  "summary": "对play policy注入时间相关动作扰动，记录其噪声与真实未来；用冻结feature bank匹配中心化扰动与生成/真实video变化的交叉矩。无需从同一状态重复执行，也不改变部署架构或sampler。",
+  "why": "世界模型可以视频清晰却不响应微小动作，导致策略排序错误。AFFECT比仅FVD/LPIPS更接近多帧威胁因果分析：需要判断速度/避让变化是否改变未来风险，而不是背景和身份是否稳定。",
+  "inspiration": "研究假设：在Qwen3+IBQ/URSA或ELF未来预测上，固定静态codec与generator，只加动作—未来变化统计监督；用OCR/身份作为保持变量，轨迹、距离及碰撞事件作为动力学变量。无随机动作日志时不能把观测相关性冒充因果监督。",
+  "experiment": "固定Qwen3、IBQ、动作接口、扰动数据、参数和总FLOPs，比较base、未中心化moment、中心化AFFECT、打乱动作/扰动负控；再在相同设置切换URSA/ELF。报告反事实响应方向/幅值、policy真实/模拟成功率相关、闭环成功、1/4/16/32 horizon误差、OCR/身份、GenEval及NFE/吞吐/显存；所有candidate、judge和梯度rollout计成本，分离静态重建与动力学增益。",
+  "state": "冻结causal video tokenizer的连续VAE latent。FR3 H=12、10Hz为1.2s窗口，时间压缩4得到4 latent帧。DreamDojo2B与Cosmos3-Edge4B采用不同channel/空间压缩，不是IBQ ID实验。",
+  "objective": "线性Gaussian path O_tau=(1-tau)*O+tau*epsilon，预测epsilon-O velocity；加中心化扰动feature×未来latent feature的moment loss。只约束所选feature可见的响应，不证明完整conditional distribution、因果事件或物理定律全被恢复。",
+  "decoding": "DreamDojo窗口Flow，Cosmos3 latent-frame因果AR+Flow。shift5 Euler，附录S=2与部署sampler相同；训练每8步额外从fresh noise做2步可微rollout并checkpoint。GT未来加噪后的clean prediction不能替代该自由生成监督。扰动数据约UR5e10h、FR3/ALOHA各5h；完整WM优化预算未披露。",
+  "sharing": "初始化released DreamDojo/Cosmos3；各自视频codec/Transformer沿用，Cosmos3冻结reasoning tower训练generation/action I/O，不等于共享Qwen/IBQ词表、embedding或head。与ELF均为连续velocity但在VAE视频空间；与URSA离散路径不同，辅助loss可迁移是待验证假设。",
+  "open": "原文含方法、feature bank、数据采集及planning协议；未核验官方代码、扰动数据或权重发布，不把基础模型开源当AFFECT已开源。精读§3与AppendixA/B；额外2步梯度rollout增加训练计算/激活，部署无新增结构但仍须计全部候选。",
+  "action": "真实执行关节命令，按chunk做relative delta和标准化；扰动时间平滑并记录预clipping噪声与已声明scale，gripper不扰动。不是文本指令或latent action。",
+  "rollout": "支持多窗口未来；planning从5个policy checkpoints提出动作，预测各候选24未来帧，以成功head选chunk、open-loop执行，再观测重选。构成chunk-level反馈规划，并非逐步oracle或任意长时稳定性证明。",
+  "evaluation": "DROID DreamDojo真实/模拟policy成功率Pearson 0.468→0.790；ALOHA并非所有像素指标都改善。规划最多+8.3%按原文定义；需要动作shuffle、真实闭环、horizon增长、物理/动作一致性与成功head误差，不能只看FVD。"
+},
+{
+  "id": "visalloc-paired-evidence",
+  "title": "VisAlloc: Allocating Visual Supervision for On-Policy Self-Distillation",
+  "shortTitle": "VisAlloc",
+  "index": "272",
+  "date": "2026-11-18 · v1 · checked/curated 2026-11-20",
+  "category": "建模与机制诊断",
+  "domain": "可解释性",
+  "paradigm": "Paired Visual Counterfactuals / Token-Weighted On-Policy Distillation",
+  "priority": "泛读",
+  "featured": true,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2611.25069",
+  "summary": "固定paired teacher先筛选正证据crop答对、空间错位crop答错的样本；同一EMA teacher在两种view下评分同一student response，以logprob差及JSD分配token监督，正teacher始终是唯一蒸馏目标。",
+  "why": "对Qwen3+IBQ的OCR/小目标问题，比全答案均匀蒸馏更能定位依赖视觉证据的token。但view sensitivity并不证明CoT忠实或因果机制，crop选择还依赖训练期特权证据。",
+  "inspiration": "研究假设：为DocVQA/TextVQA构造真实文字框positive、同尺寸错位negative，给字形/数量/方向token分配监督；多帧威胁任务用关键帧/对象轨迹对照。保持IBQ和URSA/ELF生成器不变，先验证理解端证据使用是否提升。",
+  "experiment": "固定Qwen3、IBQ、训练例、更新参数和FLOPs，做样本筛选on/off × token reweight on/off；对照随机/错位/同位置遮挡negative与仅positive。固定microbatch、packing、top100支持和rollout预算，计offline筛选/双teacher scoring/8 rollouts及judge。报OCRBench/DocVQA/TextVQA、POPE、关键框删除/文字替换的因果效应、罕见token、GenEval回归、延迟与显存，多seed复核。",
+  "state": "视觉输入仍为host连续feature，答案为离散文本ID/logits。反事实view只影响训练筛选与权重；无visual token corruption、VAE采样或新的图像生成状态。",
+  "objective": "positive teacher JSD蒸馏，student top100加residual bucket；abs logprob差及teacher JSD作门控，inverse-frequency重分配。microbatch系数和守恒不代表loss值、梯度范数或总计算守恒，不是Flow/noise/velocity目标。",
+  "decoding": "student正常AR全文图推理，不做推理crop或第二条student轨迹。训练96 prompts×8 rollouts，cap1024，EMA0.05；官方launcher60 actor updates。每更新多一个negative teacher scoring pass，固定筛选成本另计。",
+  "sharing": "从Qwen3.5-4B/9B初始化，EMA复制同架构，视觉入口和文本head沿用host，无统一视觉生成词表或IBQ解码证明。与URSA/ELF正交，可作为固定两种生成方式时相同理解后训练；不可把teacher副本忽略作等显存比较。",
+  "open": "Apache-2.0官方库可见verl actor、weighting工具、scripts、eval与tests，不只README；4B/9B模型和5795/6241样本subset链接公开，本次未下载完整权重。单seed八任务均值相对匹配Vision-OPD复现+0.97/+0.52点；泛读结果，精读权重门控与预算定义，不能外推为OCR已验证提升。",
+  "code": "https://github.com/Kaelyn01/VisAlloc"
+},
+{
+  "id": "egopass-passage-relevance",
+  "title": "EgoPass-Bench: Identifying Objects That May Affect the Wearer's Passage in Egocentric Video",
+  "shortTitle": "EgoPass-Bench",
+  "index": "273",
+  "date": "2026-11-18 · v1 · checked/curated 2026-11-20",
+  "category": "建模与机制诊断",
+  "domain": "评测诊断",
+  "paradigm": "Observer-Relative Passage / Temporal Evidence Diagnostics",
+  "priority": "泛读",
+  "featured": true,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2611.24995",
+  "summary": "284段真实眼镜视频、2201个问题，分开评测观察者平移、视角/路径转向、外部物体运动、指定对象通行约束及无候选提示的相关实体发现。运动识别正确并不代表能判断物体是否影响自己的通行。",
+  "why": "直接对应多帧威胁检测的误报根因：接近、显著或运动不等于威胁，静止物也可能阻塞路径。比通用video QA更适合验证Qwen3+IBQ是否把身份/轨迹连到观察者相对风险。",
+  "inspiration": "研究假设：Qwen3先输出wearer motion、对象轨迹与时间证据，再判断两时刻通行约束变化；用URSA/ELF想象未来仅作可撤销辅助，与无生成及oracle轨迹分开，防止逼真未来放大误报。OCR标牌只能作为场景证据，不能代替冲突几何。",
+  "experiment": "固定Qwen3、IBQ、输入帧/分辨率、token预算及推理FLOPs，比last-frame、2fps时序、同帧乱序、相机运动补偿、oracle轨迹与等预算URSA/ELF未来。报对象发现precision/recall、空集误报、motion正确但constraint错误、证据不足校准、关键帧删除/对象遮挡、OCR保持、延迟显存；生成分支另报horizon错误/动作干预，离线QA分数不能当闭环成功。",
+  "state": "真实RGB视频或时间戳采样帧，主要frame-based设置名义2fps、median观测2.5s。实体/时刻标签是评测监督；不是预测式latent、可执行action或生成token空间。",
+  "objective": "五类离线判断/自由实体发现，标签基于视觉证据与相对运动；通行相关定义包含约2s内潜在冲突或需立即开始调整的更晚冲突。无训练加噪、denoising或velocity目标。",
+  "decoding": "评测frame-based与native-video配置；MCQ和free response，不规定模型采样器。每任务独立回答，不把前题GT输入后题；多历史条件应固定视频/帧与语言token成本。",
+  "sharing": "不训练UMM，也不要求tokenizer/embedding/词表/Transformer/head共享；可作为同Qwen3+IBQ下URSA/ELF未来辅助的共同评测，不能用不同输入历史证明建模优势。",
+  "open": "论文与标注定义公开；作者称接受后发布脱敏clips/questions/reference/scoring，当前未核验官方数据/代码下载，不能标数据已开源。泛读结果，精读§3和证据不足/实体发现协议；小规模离线数据及两人human baseline限制外推。"
 },
 
 ];
@@ -7637,6 +7738,57 @@ const englishOverrides: Record<string, Partial<EnglishPaperCopy>> = {
   "sharing": "DWD shares video-DiT hidden states with a separate output head, initialized from H3. No Qwen/IBQ vocabulary or understanding-head unification. Related to ELF few-step inference, unlike URSA; disentangle distillation, readout and quantization.",
   "open": "Blog announces demo availability and scheduled weights/inference for Nov 16–22, training later. A date promise is not release evidence; the model API returned 401, so downloadable weight files were not verified. Skim system timing, deep-read cost/quality controls. No action-conditioned closed-loop world model."
 },
+"univep-noise-targets": {
+  "summary": "A mode embedding jointly trains clean endpoints and velocities in one action Transformer, with consistency between their implied clean actions. Sampling chooses endpoints at high noise and velocity near clean actions, one call per step. This is an action-target study, not a standalone visual dynamics model.",
+  "why": "Directly tests the target-parameterization issue in URSA-to-ELF: clean embeddings, velocity and loss weighting are different learning problems on the same path. Velocity-pretrained FastWAM is an important counterexample; action results do not establish IBQ image-generation gains.",
+  "inspiration": "Hypothesis: share a Qwen3+IBQ/ELF denoiser across clean-code-embedding and velocity modes. Recover semantics at high noise and refine glyphs/small objects near clean states. Freeze codec/readout first and measure palette and OCR.",
+  "experiment": "Fix Qwen3, IBQ, data, path, parameters and total training FLOPs. Compare V, X, velocity-weighted X, and dual modes without/with consistency; separately test X-only, V-only, X-to-V and reversed sampling at 1/2/4/8/16 NFE. Report code coverage/projection, GenEval, generated OCR, OCRBench/DocVQA/TextVQA, stability, throughput and memory. Reduce dual-mode updates to match FLOPs; hold action interfaces fixed in a separate control task.",
+  "state": "Continuous H-by-D action chunks, z_t=t*x+(1-t)*epsilon; not visual IDs, simplex states or image VAE latents. LiLa-WAM also predicts future DINO features. Host representations differ, preventing a cross-host same-representation claim.",
+  "objective": "V regresses x-epsilon; X regresses clean actions; X-V weights endpoint error by inverse squared remaining time. UniVEP floors remaining time at 0.05 and aligns X with z_t+(1-t)*V. No average-velocity/MeanFlow target.",
+  "decoding": "Parallel chunk Euler refinement with sigma*=0.5. On the uniform grid: 1 call=1X, 2 calls=2X, 4 calls=3X+1V. Few-call gains therefore include joint training, not an executed mode switch. StarVLA: 75k RoboTwin/120k LIBERO updates and native 4 NFE; LiLa/Fast native 10; sweep 1-16.",
+  "sharing": "Modes share the action Transformer and output shape, with a different mode embedding. Host visual tokenizer/embedding, language vocabulary/head and action I/O are not all tied. VLM/video pretraining is retained; action initialization changes rankings. ELF-like continuous transport over actions, unlike URSA categorical CE. An IBQ adaptation is needed for a fair UMM comparison.",
+  "open": "Paper and author project page accessible; downloadable implementation/weights not verified. Deep-read Sections 3-5 and Appendices B/C/D. In the specified A800 StarVLA setup, training costs rise 114.47 to 122.40 TFLOPs, 44.65 to 47.44 GiB, and 2.110 to 2.439 seconds/update. Shared parameters do not make joint training free.",
+  "action": "Real continuous robot action chunks conditioned on images, instructions and optional proprioception; neither latent actions nor text treated as executable control.",
+  "rollout": "Host policies repeatedly observe and execute action chunks in closed-loop tasks. WAM hosts may jointly predict features/video; UniVEP adds no long-video rollout mechanism or planner. RoboTwin/LIBERO and real bimanual tests do not settle long-horizon physical consistency.",
+  "evaluation": "StarVLA RoboTwin Clean: 61.36% at one call versus 59.96% for the best single-target sixteen-call baseline. Retain FastWAM counterexamples, three-seed results, data differences and end-to-end latency. Adaptations need future prediction, action interventions, horizon error and control success."
+},
+"affect-action-effects": {
+  "summary": "Adds temporally correlated noise to a play policy and logs perturbations with observed futures. Frozen feature banks match cross-moments between centered perturbation features and real/generated video changes, without repeated executions from the same state or deployment changes.",
+  "why": "A visually sharp model may ignore small action changes and rank policies incorrectly. This directly supports causal multi-frame threat analysis: speed or avoidance changes must affect future risk, beyond stable identity/background and FVD/LPIPS.",
+  "inspiration": "Hypothesis: freeze static codec/generator choices in Qwen3+IBQ/URSA or ELF future prediction and add action-change statistics. Preserve OCR/identity while evaluating tracks, distance and collision events. Without randomized action logs, observational correlations are not equivalent causal supervision.",
+  "experiment": "Fix Qwen3, IBQ, action interface, perturbation data, parameters and total FLOPs. Compare base, uncentered moments, centered AFFECT and shuffled-action/perturbation controls; then vary URSA versus ELF. Report response direction/magnitude, real/simulated policy-success correlation, closed-loop success, 1/4/16/32-horizon error, OCR/identity, GenEval, NFE, throughput and memory. Count every proposal, judge and gradient rollout; separate static reconstruction from dynamics.",
+  "state": "Continuous VAE latents from a frozen causal video tokenizer. FR3 uses H=12 at 10 Hz, a 1.2-second window, temporally compressed by four to four latent frames. DreamDojo-2B and Cosmos3-Edge-4B use different channel/spatial compression, not an IBQ-ID comparison.",
+  "objective": "Linear Gaussian O_tau=(1-tau)*O+tau*epsilon and epsilon-minus-data velocity regression, plus moments of centered perturbation features times future latent features. Only responses visible to the chosen bank are constrained; full conditional distributions, causal events and physical laws are not guaranteed.",
+  "decoding": "Window Flow in DreamDojo; causal latent-frame AR plus Flow in Cosmos3. Shift-5 Euler, S=2 in the appendix and deployed sampler. Every eight updates, two extra differentiable calls generate from fresh noise with checkpointing. Clean prediction from a noised ground-truth future is not a substitute. Perturbation data: about 10h UR5e, 5h each FR3/ALOHA; complete WM optimizer budget undisclosed.",
+  "sharing": "Warm-starts released DreamDojo/Cosmos3; retains host codecs/Transformers. Cosmos3 freezes its reasoner and trains generation/action I/O, not tied Qwen/IBQ vocabulary/embeddings/heads. ELF-like velocity in VAE video space, unlike URSA categorical paths; porting the auxiliary loss remains a hypothesis.",
+  "open": "Paper specifies feature banks, collection and planning; official AFFECT code/data/weights not verified. Base-model availability does not imply AFFECT release. Deep-read Section 3 and Appendices A/B. Extra differentiable rollouts cost training compute/activation memory; unchanged deployment still incurs all candidate costs.",
+  "action": "Executed real joint commands with chunk-relative deltas and standardization. Smooth perturbations log pre-clipping noise and declared scales; grippers are unperturbed. Not text or latent actions.",
+  "rollout": "Multi-window prediction and chunk-level feedback planning: five policy checkpoints propose actions, predict 24 future frames per candidate, rank with a success head, execute one chunk open-loop, then observe and repeat. No arbitrary-horizon stability or per-step oracle claim.",
+  "evaluation": "DROID DreamDojo real/simulated policy-success Pearson correlation rises 0.468 to 0.790; not every ALOHA pixel metric improves. Audit the paper-defined planning gain up to 8.3%, action shuffle, actual closed-loop success, growing-horizon error, physics/control and success-head errors, not FVD alone."
+},
+"visalloc-paired-evidence": {
+  "summary": "A fixed paired-teacher filter retains examples solved from positive evidence crops but not displaced crops. One EMA teacher scores the same student response under both views; log-probability gaps and JSD allocate token weights. Only the positive teacher supplies the distillation target.",
+  "why": "For Qwen3+IBQ OCR and small objects, visually sensitive response tokens may deserve more supervision than uniform answer distillation. View sensitivity alone proves neither faithful CoT nor a causal mechanism, and training crops use privileged evidence.",
+  "inspiration": "Hypothesis: pair true text-box crops with equal-size displaced crops for DocVQA/TextVQA; emphasize glyph/count/direction tokens. Use key-frame/object-track controls for threats. Freeze IBQ and URSA/ELF generation first to isolate evidence-use improvements.",
+  "experiment": "Fix Qwen3, IBQ, examples, trainable parameters and FLOPs; cross sample filtering on/off with token reweighting on/off. Compare random/displaced/same-location masked negatives and positive-only. Match microbatch, packing, top-100 support and rollouts; count offline filtering, both teacher passes, eight rollouts and judges. Report OCRBench/DocVQA/TextVQA, POPE, box removal/text replacement effects, rare tokens, GenEval regression, latency/memory and multiple seeds.",
+  "state": "Host continuous visual features condition discrete text IDs/logits. Counterfactual views affect only training selection/weights. No visual-token corruption, VAE sampling or new image-generation state.",
+  "objective": "Positive-teacher JSD on student top-100 support plus residual bucket; absolute log-probability gaps and teacher JSD gate inverse-frequency weights. Preserving the microbatch coefficient sum does not preserve weighted loss, gradient norm or compute. No flow/noise/velocity target.",
+  "decoding": "Ordinary full-image AR student inference, without inference crops or a second student trajectory. Training: 96 prompts times eight rollouts, 1024 response cap, EMA 0.05; official launcher uses 60 actor updates. Each update adds negative-teacher scoring; offline fixed filtering is extra.",
+  "sharing": "Initializes Qwen3.5-4B/9B with an EMA copy, preserving host visual interface and text head. No shared visual-generation vocabulary or IBQ decoding demonstration. Orthogonal to URSA/ELF: match understanding post-training across generators and count teacher-copy memory.",
+  "open": "Official Apache-2.0 repository contains actor/weighting code, scripts, evaluation and tests, beyond a README. Public links advertise 4B/9B models and 5795 retained examples from 6241; full weights not downloaded here. Single-seed eight-task gains over matched Vision-OPD are 0.97/0.52 points. Skim results; deep-read gates/budgets. OCR gains remain untested adaptation hypotheses."
+},
+"egopass-passage-relevance": {
+  "summary": "Uses 284 real smart-glasses clips and 2201 questions to separate wearer translation, viewpoint/path turns, object motion, specified-object passage constraints and uncued relevant-entity discovery. Correct motion recognition does not ensure correct passage judgments.",
+  "why": "Directly diagnoses multi-frame threat false positives: approaching, salient or moving does not imply a threat, while static objects can block passage. Tests whether Qwen3+IBQ connects identity/tracks to observer-relative constraints.",
+  "inspiration": "Hypothesis: explicitly predict wearer motion, object tracks and timed evidence before comparing passage constraints. Treat URSA/ELF imagined futures as removable assistance, separate from no-generation and oracle tracks. OCR signs are scene evidence, not a substitute for conflict geometry.",
+  "experiment": "Fix Qwen3, IBQ, frames/resolution, tokens and inference FLOPs. Compare last-frame, chronological 2-fps frames, shuffled identical frames, camera-motion compensation, oracle tracks and equal-budget URSA/ELF futures. Report discovery precision/recall, empty-set false alarms, motion-correct/constraint-wrong cases, uncertainty calibration, key-frame removal/object occlusion, OCR preservation and latency/memory. Separately report horizon/action-intervention errors for generation; offline QA is not closed-loop success.",
+  "state": "Observed RGB video or timestamped frames; nominal 2 fps and median 2.5-second observation in the main frame-based setting. Entity/time labels are evaluation targets, not predictive latents, executable actions or generation-token states.",
+  "objective": "Five offline judgment/discovery tasks. Relevance includes visually supported conflict within about two seconds, or a later conflict requiring adjustment to begin within that window. No training corruption, denoising or velocity objective.",
+  "decoding": "Frame-based and native-video evaluations with MCQ/free responses, no prescribed generator. Tasks are answered independently without feeding ground-truth earlier answers downstream. Match video/frame and language-token costs across history conditions.",
+  "sharing": "No UMM training or required shared tokenizer/embedding/vocabulary/Transformer/head. A common evaluation for URSA/ELF future assistance under the same Qwen3+IBQ backbone; different observation histories cannot establish a modeling advantage.",
+  "open": "Paper and annotation definitions public. Authors plan redacted clips, questions, references and scoring after acceptance; current official data/code downloads not verified. Skim results, deep-read Section 3 and uncertainty/discovery protocols. Small offline data and a two-person human baseline limit generalization."
+},
+
 };
 
 function getEnglishCopy(paper: Paper): EnglishPaperCopy {
@@ -7756,6 +7908,7 @@ function EnglishMatrices() {
       <section className="matrix-section" id="matrix">
         <div className="section-heading"><div><h2>UMM Generation Matrix</h2></div><p>Fix backbone, tokenizer, data, and compute</p></div>
         <div className="matrix-wrap" role="region" tabIndex={0} aria-label="Scrollable comparison table"><table><thead><tr><th>Route</th><th>State</th><th>Target</th><th>Decoding</th><th>Key control</th></tr></thead><tbody>
+          <tr><th>UniVEP (action target)</th><td>Continuous action chunk; Gaussian linear path</td><td>Joint endpoint/velocity + consistency; not average velocity</td><td>One mode/call; 1-2 calls are X-only on the default grid</td><td>Match total FLOPs and initialization; IBQ/ELF port is a hypothesis, not an image result</td></tr>
           <tr><th>ViLFlow</th><td>Continuous T5 output embeddings</td><td>Clean prediction → velocity + guidance distillation + decoder CE</td><td>Parallel refinement; separate prediction-adapted decoder</td><td>Hold generator fixed, vary readout and feedback; count decoder copies</td></tr>
 <tr><th>pi-H3 Blog</th><td>Continuous audiovisual latents</td><td>Distillation details partly undisclosed; DWD pixel output</td><td>2/4 steps + FP8/Sol-Attn</td><td>Factor distillation, decoding and quantization; same hardware</td></tr>
 <tr><th>DWD</th><td>Original continuous sampling state</td><td>Denoising anchor + final pixel loss</td><td>Original sampler, separate final pixel head</td><td>Fix trajectory; isolate codec/readout from Flow gains</td></tr>
@@ -7795,6 +7948,7 @@ function EnglishMatrices() {
       <section className="world-section" id="world-matrix">
         <div className="section-heading"><div><h2>Understanding → Generation → Prediction → Action</h2></div><p>Do not reduce evaluation to FVD or LPIPS</p></div>
         <div className="matrix-wrap" role="region" tabIndex={0} aria-label="Scrollable comparison table"><table className="world-table"><thead><tr><th>Model</th><th>Observation state</th><th>Action</th><th>Dynamics target</th><th>Rollout / planning</th><th>UMM connection</th></tr></thead><tbody>
+          <tr><th>AFFECT</th><td>Continuous video VAE; frozen feature bank</td><td>Executed joint commands + logged smooth perturbations</td><td>Velocity FM + centered action/video cross-moments</td><td>Window Flow or latent-frame AR/Flow; two-step fresh-noise training rollout</td><td>Five proposals; 24-frame selection then observe again. Count all candidates; feature moments do not prove complete causal dynamics</td></tr>
           <tr><th>AVM</th><td>VAE views + archived view/KV memory</td><td>Camera pose/ray/time, event text</td><td>Velocity FM then on-policy DMD/adversarial</td><td>Temporal AR, four-step blocks, retrieved context</td><td>Revisit quality is not physical closed-loop success; count retrieval/KV commit</td></tr>
 <tr><th>InertialWorld</th><td>FSQ Context/Dynamic IDs + carriers</td><td>Raw physical actions / local motion</td><td>Next-code CE + decoded/memory losses</td><td>Temporal AR with transported recurrent state</td><td>Real2Sim policy calibration; separate codec and carry</td></tr>
 <tr><th>EyeHeight</th><td>Video states + reconstructed height</td><td>Fixed-elevation camera trajectories</td><td>Audit/guidance windows; native model targets</td><td>160-frame turn/walk, not physical closed-loop proof</td><td>Geometry retention alongside quality and policy bias</td></tr>
@@ -7980,8 +8134,8 @@ export default function Home() {
       <div className="issue-strip" id="top">
         <span>{language === "en" ? "Research workspace" : "研究空间"}</span>
         <span aria-hidden="true">/</span>
-        <span>{language === "en" ? "Issue 057" : "第 057 期"}</span>
-        <time dateTime="2026-11-19">2026.11.19</time>
+        <span>{language === "en" ? "Issue 058" : "第 058 期"}</span>
+        <time dateTime="2026-11-20">2026.11.20</time>
       </div>
 
       <div className="workspace">
@@ -8037,8 +8191,8 @@ export default function Home() {
               <div><span>{language === "en" ? "Research tracks" : "研究方向"}</span><b>{directions.length}</b></div>
             </div>
             <div className="issue-focus">
-              <h2>{language === "en" ? "Read generated states. Retrieve relevant evidence." : "读出生成状态，检索关键证据。"}</h2>
-              <p>{language === "en" ? "Three papers and an author blog on ELF-based VQA, persistent views, attention routing and few-step video cost." : "三篇论文与一篇作者Blog，聚焦ELF视觉问答、持久视图、注意力路由和少步视频成本。"}</p>
+              <h2>{language === "en" ? "Choose targets. Test action consequences." : "选择预测目标，检验动作后果。"}</h2>
+              <p>{language === "en" ? "Four papers on action Flow targets, dynamics-faithful futures, visual supervision and passage risk." : "四篇论文聚焦动作Flow目标、动力学响应、视觉证据监督与通行风险。"}</p>
               <div className="hero-actions">
                 <button className="primary-button" onClick={() => { changeActive("今日精选"); setQuery(""); setSourceType("all"); }}>{language === "en" ? "Read this issue" : "阅读本期推荐"} <span aria-hidden="true">↓</span></button>
                 <a className="text-button" href="#matrix">{language === "en" ? "Compare modeling routes" : "比较建模路线"} ↗</a>
@@ -8046,9 +8200,9 @@ export default function Home() {
             </div>
             <aside className="research-questions" aria-label={language === "en" ? "Questions to investigate" : "本期研究问题"}>
               <h2>{language === "en" ? "Start with a question" : "从问题出发"}</h2>
-              <button onClick={() => selectDeepReads("vilflow-parallel-readout")}><span>{language === "en" ? "Can generated embeddings be read?" : "生成embedding能否可靠回投？"}</span><small>ViLFlow ↗</small></button>
-              <button onClick={() => selectDeepReads("avm-retrieved-views")}><span>{language === "en" ? "Can old evidence be retrieved?" : "旧证据能否被重新读取？"}</span><small>AVM ↗</small></button>
-              <button onClick={() => selectDeepReads("wherebits-layer-selection")}><span>{language === "en" ? "Does localization imply faithfulness?" : "定位准确是否等于解释忠实？"}</span><small>WhereBits ↗</small></button>
+              <button onClick={() => selectDeepReads("univep-noise-targets")}><span>{language === "en" ? "Which target works at each noise level?" : "不同噪声阶段该预测什么？"}</span><small>UniVEP ↗</small></button>
+              <button onClick={() => selectDeepReads("affect-action-effects")}><span>{language === "en" ? "Do changed actions change the future?" : "改变动作是否改变未来？"}</span><small>AFFECT ↗</small></button>
+              <button onClick={() => selectDeepReads("egopass-passage-relevance")}><span>{language === "en" ? "Does motion imply passage risk?" : "运动是否意味着通行风险？"}</span><small>EgoPass-Bench ↗</small></button>
             </aside>
           </section>
 
@@ -8170,6 +8324,7 @@ export default function Home() {
               <table>
                 <thead><tr><th>路线</th><th>状态空间</th><th>预测目标</th><th>生成顺序</th><th>最关键变量</th></tr></thead>
                 <tbody>
+                  <tr><th>UniVEP（动作目标）</th><td>连续action chunk，Gaussian线性path</td><td>endpoint/velocity联合与一致性，非average velocity</td><td>每步单mode；默认1/2次均X-only</td><td>匹配总FLOPs与初始化；IBQ/ELF迁移待验证，非图像结果</td></tr>
                   <tr><th>ViLFlow</th><td>连续T5输出embedding</td><td>clean prediction转velocity + guidance蒸馏 + decoder CE</td><td>并行迭代，独立prediction-adapted读出</td><td>固定generator单测readout/feedback，计复制decoder成本</td></tr>
 <tr><th>pi-H3 Blog</th><td>连续音视频latent</td><td>蒸馏loss部分未披露 + DWD</td><td>2/4步 + FP8/Sol-Attn</td><td>同硬件拆分蒸馏、解码与量化收益</td></tr>
 <tr><th>DWD</th><td>原连续采样state</td><td>denoising anchor + pixel loss</td><td>原sampler + 独立最终pixel head</td><td>固定轨迹，分离codec读出与Flow收益</td></tr>
@@ -8416,6 +8571,7 @@ export default function Home() {
               <table className="world-table">
                 <thead><tr><th>路线</th><th>观测状态</th><th>动作接口</th><th>动力学目标</th><th>建模方式</th><th>Rollout / 规划</th><th>与 UMM 的关系</th></tr></thead>
                 <tbody>
+                  <tr><th>AFFECT</th><td>连续video VAE与冻结feature bank</td><td>真实joint command与平滑扰动日志</td><td>velocity FM + 中心化动作/未来交叉矩</td><td>窗口Flow或latent-frame AR/Flow；额外2步训练rollout</td><td>5候选、24帧选chunk后再观测，非完整因果恢复</td><td>固定codec/数据单测loss；计全部候选与训练rollout，报闭环/horizon/动作响应</td></tr>
                   <tr><th>AVM</th><td>VAE views + view/KV档案</td><td>camera/ray/time与文本</td><td>velocity FM后DMD/adversarial</td><td>时间AR、4步block、context检索</td><td>重访而非物理闭环</td><td>计检索/KV commit；固定memory再换生成方式</td></tr>
 <tr><th>InertialWorld</th><td>FSQ Context/Dynamic + carriers</td><td>真实action/局部位移</td><td>next-code CE + decoded损失</td><td>carry + temporal AR</td><td>Real2Sim policy校准</td><td>固定codec隔离carry与生成方式</td></tr>
 <tr><th>EyeHeight</th><td>video state + height重建</td><td>恒高camera轨迹</td><td>原目标 + guidance窗口干预</td><td>160帧turn/walk审计</td><td>不等于物理闭环成功</td><td>几何保持/画质/policy偏差同时报告</td></tr>
