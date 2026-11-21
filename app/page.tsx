@@ -6868,7 +6868,7 @@ const papers: Paper[] = [
   "domain": "World Model",
   "paradigm": "Action Flow / Joint Endpoint-Velocity / Noise-Dependent Modes",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "paper": "https://arxiv.org/abs/2611.26103",
   "summary": "在同一action Transformer中用mode embedding联合训练clean endpoint与velocity，并以一致性loss对齐两种隐含clean action。高噪声选endpoint、低噪声选velocity；每步仅一次调用。它研究动作生成目标，不是独立的视觉动力学模型。",
@@ -6895,7 +6895,7 @@ const papers: Paper[] = [
   "domain": "World Model",
   "paradigm": "Action-Effect Moment Matching / Conditional Rectified Flow",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "paper": "https://arxiv.org/abs/2611.25980",
   "summary": "对play policy注入时间相关动作扰动，记录其噪声与真实未来；用冻结feature bank匹配中心化扰动与生成/真实video变化的交叉矩。无需从同一状态重复执行，也不改变部署架构或sampler。",
@@ -6921,7 +6921,7 @@ const papers: Paper[] = [
   "domain": "可解释性",
   "paradigm": "Paired Visual Counterfactuals / Token-Weighted On-Policy Distillation",
   "priority": "泛读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "paper": "https://arxiv.org/abs/2611.25069",
   "summary": "固定paired teacher先筛选正证据crop答对、空间错位crop答错的样本；同一EMA teacher在两种view下评分同一student response，以logprob差及JSD分配token监督，正teacher始终是唯一蒸馏目标。",
@@ -6945,7 +6945,7 @@ const papers: Paper[] = [
   "domain": "评测诊断",
   "paradigm": "Observer-Relative Passage / Temporal Evidence Diagnostics",
   "priority": "泛读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "paper": "https://arxiv.org/abs/2611.24995",
   "summary": "284段真实眼镜视频、2201个问题，分开评测观察者平移、视角/路径转向、外部物体运动、指定对象通行约束及无候选提示的相关实体发现。运动识别正确并不代表能判断物体是否影响自己的通行。",
@@ -6957,6 +6957,84 @@ const papers: Paper[] = [
   "decoding": "评测frame-based与native-video配置；MCQ和free response，不规定模型采样器。每任务独立回答，不把前题GT输入后题；多历史条件应固定视频/帧与语言token成本。",
   "sharing": "不训练UMM，也不要求tokenizer/embedding/词表/Transformer/head共享；可作为同Qwen3+IBQ下URSA/ELF未来辅助的共同评测，不能用不同输入历史证明建模优势。",
   "open": "论文与标注定义公开；作者称接受后发布脱敏clips/questions/reference/scoring，当前未核验官方数据/代码下载，不能标数据已开源。泛读结果，精读§3和证据不足/实体发现协议；小规模离线数据及两人human baseline限制外推。"
+},
+
+{
+  "id": "hiuni-pixel-shared-space",
+  "index": "274",
+  "title": "HiUni: Harmonizing Understanding and Generation in Shared Visual Space",
+  "shortTitle": "HiUni",
+  "date": "2026-11-19 · v1 · checked/curated 2026-11-21",
+  "category": "建模与机制诊断",
+  "domain": "UMM",
+  "paradigm": "Shared ViT / Dense UMM / Clean-Pixel Flow",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2611.26107",
+  "summary": "以Qwen3-VL-4B-Instruct初始化，理解与生成共用语言对齐ViT和dense backbone，仅输出侧分任务；Pixel Diffusion Head直接生成像素，HiGate把被merger压缩的raw-pixel细节绕接到输出侧。",
+  "why": "它为Qwen3+IBQ的共享边界提供强相关对照：共享视觉入口与Transformer并不要求共享离散visual词表或head。对OCR，语义充分不等于字形充分；但pixel生成与IBQ生成改变了表示，不能直接归因于Flow。",
+  "inspiration": "研究假设：先保留IBQ与URSA/ELF，只给Stage3增加对齐的低层feature残差gate，测试文字笔画和小目标；再独立比较pixel-space head。不要把跨tokenizer的重建收益误认为生成目标收益。",
+  "experiment": "固定Qwen3、IBQ、数据、参数与FLOPs，做无残差/merger前feature/raw-pixel残差 × 固定/学习gate；URSA与ELF分别运行。另列pixel-head表示对照，不混入同codec结论。报tokenizer-only重建OCR、code覆盖、OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、采样步数/CFG调用、吞吐显存及多帧身份/威胁保持。",
+  "state": "Gaussian到连续RGB pixel，非ID/simplex或VAE latent；noisy image也经同一ViT+merger。有效32×32 visual区域来自16×16 patch的2×2合并，HiGate保留该区域原始像素，非创建新的merged ID。",
+  "objective": "x_t=t*x0+(1-t)*scaled-noise；head预测clean x0，经(x0hat-x_t)/max(1-t,0.05)转velocity做MSE，文本CE。noise按token数缩放，logit-normal t。不能把clean参数化写成直接velocity head或MeanFlow。",
+  "decoding": "图像全局迭代、文本AR；30k warmup冻结VLM，310k全量联合预训练，22k SFT加入编辑。OneIG25步CFG6每prompt4图；LongText100步CFG8每prompt4图；编辑50步Euler。head为10层2560维约0.9B，不能忽略额外参数与每步ViT成本。",
+  "sharing": "ViT、merger与dense Transformer共享；文本tokenizer/embedding/vocabulary/LM head不等于视觉pixel输出head。无VAE但有ViT，不是encoder-free。可从VLM初始化；与ELF同连续运输、与URSA不同状态/目标；固定IBQ时只能借其残差/共享策略公平对照。",
+  "open": "官方repo可见Megatron训练与HF inference路径，项目页200，HF模型链接公开；完整权重未下载、原始训练数据未核验公开。精读§3/AppendixA/C。去AdaLN稳定性曲线来自不同开发阶段和分辨率，不是严格单变量证据；理解均值持平不证明每项或双向迁移都改善。",
+  "project": "https://ernie-research.github.io/HiUni/",
+  "code": "https://github.com/ernie-research/HiUni"
+},
+{
+  "id": "specwm-velocity-verification",
+  "index": "275",
+  "title": "SpecWM: Turning Verification into Refinement for Streaming World Models",
+  "shortTitle": "SpecWM",
+  "date": "2026-11-19 · v1 · checked/curated 2026-11-21",
+  "category": "世界模型",
+  "domain": "World Model",
+  "paradigm": "Streaming AR / Latent Flow / Speculative Refinement",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2611.26211",
+  "summary": "小draft先生成chunk，大target在对齐noise状态上做一次末阶段velocity probe，同时得到误差评分与可直接提交的clean correction；阈值决定Accept/Refine/Reject，控制转向时多修正，稳定后减步。",
+  "why": "ELF少步蒸馏后若出现palette/动态收缩，可以按模型自身的局部不一致分配修正预算，不必每chunk完整重采样。但target偏差也会进入verifier，低差异并非正确OCR、物理或风险判断的保证。",
+  "inspiration": "研究假设：同Qwen3+IBQ空间用少步ELF作draft、多步teacher作target；核对末阶段偏差与低频code丢失、glyph、运动幅值的相关性，再决定是否用于触发修正。URSA迁移需重定义categorical disagreement，不可直接套velocity。",
+  "experiment": "固定codec、backbone、数据、teacher/student与总延迟预算，比draft-only、target-only、accept-all、refine-all、阈值路由；把一阶段修图与三阶段恢复相机控制分开。报code覆盖、生成OCR、GenEval、OCRBench/DocVQA/TextVQA、1/8/32chunk漂移、动作shuffle、闭环任务成功若实现、总NFE/重提案/commit、吞吐显存和GPU秒。",
+  "state": "连续video VAE latent与独立draft/target KV历史；draft clean预测按target noise level插值并重新加噪。不是IBQ ID或one-hot。跨模型必须有兼容latent与control接口。",
+  "objective": "不新增训练；沿用基础模型velocity field，probe将noisy state转clean latent，再以归一化L1差作路由。不是概率精确的AR speculative rejection sampling，也不证明保留target分布。",
+  "decoding": "时间chunk AR、chunk内4阶段去噪；Accept/1步Refine均需1次target probe，长Refine另加调用，Reject probe后完整4步，fallback无probe。Refine/Reject需rollback重提下一chunk；clean-context commit有额外forward。连续2次Reject后4chunk target-only。",
+  "sharing": "LingBot-World2.0 draft1.3B/target14B分开权重与cache，无共享文本词表/head的UMM证明；Hy-Nomas可同权重不同步数。与ELF均连续Flow但表示/条件不同，与URSA离散路径不同；先做同表示同teacher公平对照。",
+  "open": "论文公开；本次未核验官方代码/权重/LongSpecBench下载，不把LingBot基础权重等同SpecWM发布。精读§4及成本表。1.63倍为8GPU重叠对4GPU target基线的wall-clock，不是等硬件吞吐或GPU秒节省。训练free不等于显存free。",
+  "action": "WBench相机/导航control与文本condition，非机器人关节动作或latent action。转向切换触发更长refinement，不能把camera following当实体避障安全。",
+  "rollout": "253帧16fps约16s、16chunks，context18与sink6 latent帧；LongSpecBench多turn长rollout。交互生成已展示，但不等于真实环境闭环规划/控制成功。",
+  "evaluation": "158个WBench Navigation案例；NavScore draft75.99→85.63，target85.49。要同时报四类路由占比、真实延迟/显存、长时错误、动作可控性；生成质量、导航跟随与机器人任务成功应分开。"
+},
+{
+  "id": "demoprop-search-scoring",
+  "index": "276",
+  "title": "Search or Scoring? Diagnosing Why Visual World-Model Planners Fail",
+  "shortTitle": "Search or Scoring",
+  "date": "2026-11-19 · v1 · checked/curated 2026-11-21",
+  "category": "世界模型",
+  "domain": "World Model",
+  "paradigm": "Latent Predictive Dynamics / CEM / Planner Failure Diagnosis",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2611.25347",
+  "summary": "把失败分为search没试到cost愿选的解，或scoring把坏预测排在已知可行解之前。执行candidate pool、给known solution打模型cost，并比较预测/真实outcome cost；DemoProp据此选择示范warm-start或不经模型的示范平均。",
+  "why": "对Qwen3+IBQ/URSA/ELF，未来预测更清晰不代表规划cost更可靠；多帧威胁检测也可能候选遗漏或评分误判。先诊断是哪种错误，再决定增加rollout搜索还是改善动力学/风险head。",
+  "inspiration": "研究假设：保存每次避让/威胁预测的候选集与score，分别在预测未来和真实观测上跑同一risk head。先使用带已知解的仿真诊断；真实视频无动作干预时仅能做观测审计，不能推断闭环因果。",
+  "experiment": "固定Qwen3、IBQ、数据、动作接口与风险head，交叉URSA/ELF dynamics × 1x/4x CEM搜索；同candidate pool比较预测cost、真实cost、known-solution诊断和独立可部署选择器。报告候选覆盖、排序AUROC、oracle上界与实际成功、闭环MPC、horizon误差/动作shuffle、OCR身份、GenEval及全部rollout/GPU成本。示范检索单列，杜绝gold泄漏。",
+  "state": "DINO-WM/JEPA-WM冻结DINOv2-S/14的224px→16×16语义patch token及proprioception；还测试V-JEPA-2-AC。连续语义embedding next-state预测，不是VAE像素重建或IBQ ID。",
+  "objective": "不新增统一生成训练目标，沿用host next-feature dynamics；cost为terminal visual/proprioceptive latent距离。无Gaussian/Mask forward path或新增noise/velocity loss，诊断不等于新Flow模型。",
+  "decoding": "未来多步AR预测配CEM，PushT H=6；300samples×30iterations=9000 cost evaluations/plan、10elites，4x搜索需全计。public checkpoints无训练；DemoProp检索/average不执行denoising。硬件/显存依host与candidate并行量，未给统一预算。",
+  "sharing": "host共享观测/goal语义encoder，未证明语言tokenizer、visual词表、Transformer、输出head统一；直接保留已有world checkpoint，不是Qwen AR初始化实验。与ELF/URSA比较应固定codec/cost/pool，仅换dynamics，诊断本身与建模范式正交。",
+  "open": "论文含伪码、数据划分和详细协议；官方DemoProp代码/权重未核验，基础world checkpoint公开不代表本方法完整开源。精读§3–5与limitations。已知解是诊断oracle；示范平均优势依赖密集示范和goal-key，不能泛化为不需要世界模型。",
+  "action": "仿真真实可执行control sequence；示范窗口用于检索提案，不是文本或latent action。known solution只供诊断，不能作为部署期可见gold。",
+  "rollout": "四种sim环境短任务：PushT/Wall/Metaworld/RoboCasa。warm-start和Average主要open-loop单plan；仅Expand另外测试闭环MPC。Metaworld不是官方长时协议，真实机器人成功未展示。",
+  "evaluation": "Metaworld同cost真实outcome AUROC0.94、预测outcome0.54，说明误差可翻转排序。结果依reference和pool定义；同时报目标状态可表征性、搜索/评分错比例、实际成功、horizon与示范覆盖，不只FVD/LPIPS。"
 },
 
 ];
@@ -7789,6 +7867,46 @@ const englishOverrides: Record<string, Partial<EnglishPaperCopy>> = {
   "open": "Paper and annotation definitions public. Authors plan redacted clips, questions, references and scoring after acceptance; current official data/code downloads not verified. Skim results, deep-read Section 3 and uncertainty/discovery protocols. Small offline data and a two-person human baseline limit generalization."
 },
 
+"hiuni-pixel-shared-space": {
+  "summary": "Extends Qwen3-VL-4B-Instruct with shared language-aligned ViT and dense backbone. Task-specific output heads handle language and clean pixels; HiGate bypasses compressed semantics with local raw-pixel detail.",
+  "why": "A direct sharing-boundary reference for Qwen3+IBQ: common visual input and Transformer do not require tied visual vocabulary or heads. Semantic adequacy is not glyph fidelity. Pixel versus IBQ generation changes representation, so gains cannot be attributed to Flow alone.",
+  "inspiration": "Hypothesis: retain IBQ and URSA/ELF, add an aligned low-level residual gate to Stage 3, and test glyphs/small objects. Compare a pixel head separately, isolating reconstruction/representation gains from target choice.",
+  "experiment": "Fix Qwen3, IBQ, data, parameters and FLOPs. Compare no residual, pre-merger features and raw-pixel residuals with fixed/learned gates, separately under URSA and ELF. Keep pixel-head representation controls separate. Report codec-only OCR, coverage, OCRBench/DocVQA/TextVQA, generated OCR, GenEval, NFE/CFG calls, throughput/memory and multi-frame identity/threat preservation.",
+  "state": "Continuous RGB pixels along a Gaussian path, not IDs/simplex/VAE latents. Noisy images use the shared ViT/merger. A 32-by-32 region merges four 16-by-16 patches; HiGate preserves its pixels, not a new merged code ID.",
+  "objective": "Linear pixel/noise interpolation; predict clean x0, convert through (x0hat-x_t)/max(1-t,0.05), and train velocity MSE plus text CE. Token-count-dependent noise and logit-normal time sampling. Not a direct velocity head or MeanFlow.",
+  "decoding": "Parallel image refinement and AR text. 30k frozen-VLM warmup, 310k joint updates, 22k editing-inclusive SFT. OneIG: 25 steps/CFG6/four images; LongText: 100/CFG8/four images; editing: 50 Euler steps. Ten 2560-wide head blocks add about 0.9B parameters; count repeated ViT and CFG cost.",
+  "sharing": "Shares ViT, merger and dense Transformer. Text tokenizer/embeddings/vocabulary/LM head remain distinct from pixel outputs. VAE-free is not encoder-free. VLM initialization is demonstrated. ELF-like continuous transport in a different state; unlike URSA categorical targets. Residual/sharing adaptations under fixed IBQ are the fair controls.",
+  "open": "Official repo exposes Megatron training and HF inference paths; project page returns 200 and model links are public. Full weights not downloaded; raw training-data release unverified. Deep-read Section 3 and Appendices A/C. AdaLN stability curves use different development stages/resolutions, not an isolated causal test; average understanding retention does not prove bidirectional transfer."
+},
+"specwm-velocity-verification": {
+  "summary": "A small draft proposes chunks; one target velocity probe on aligned noisy states yields both a discrepancy score and reusable clean correction. Thresholds accept/refine/reject, with stronger refinement near control transitions.",
+  "why": "For palette/dynamic collapse after few-step ELF distillation, model disagreement can allocate correction calls instead of full regeneration. Target bias is inherited by verification; low discrepancy guarantees neither OCR nor physical/threat correctness.",
+  "inspiration": "Hypothesis: use a few-step ELF draft and stronger teacher in the same Qwen3+IBQ space. First correlate final-stage discrepancy with rare-code loss, glyphs and motion amplitude. URSA needs categorical disagreement, not a copied velocity metric.",
+  "experiment": "Fix codec, backbone, data, teacher/student and latency budget. Compare draft/target-only, accept-all, refine-all and threshold routing; separate one-step appearance repair from longer control repair. Report coverage, generated OCR, GenEval, OCRBench/DocVQA/TextVQA, 1/8/32-chunk drift, action shuffle, closed-loop success if implemented, all NFE/re-proposals/commits, memory and GPU-seconds.",
+  "state": "Continuous video VAE latents and separate draft/target KV histories. Align draft clean predictions to target noise levels and re-noise them. Not IBQ IDs/simplex states; compatible latent/control interfaces are required.",
+  "objective": "No new training; reuses host velocity fields. Probe maps a noisy state to a clean latent, with normalized L1 discrepancy for routing. Not distribution-exact AR speculative rejection sampling, and target-distribution preservation is not established.",
+  "decoding": "Temporal chunk AR with four-stage denoising. Accept/one-step Refine each use one target probe; longer Refine adds calls; Reject adds full four-step target generation after probing. Roll back stale next drafts after corrections and count clean-context commit passes. Two consecutive rejections trigger four target-only chunks.",
+  "sharing": "LingBot-World2.0 uses separate 1.3B/14B weights and caches; no UMM shared-vocabulary/head claim. Hy-Nomas tests shared weights with different budgets. ELF-like Flow in different representations/conditions, unlike URSA; match representation and teacher before comparison.",
+  "open": "Paper public; official SpecWM code/weights/LongSpecBench downloads not verified. Base LingBot availability is separate. Deep-read Section 4 and cost tables. The 1.63x wall-clock result uses eight overlapping GPUs versus four for target-only, not equal-hardware throughput or GPU-second savings.",
+  "action": "Camera/navigation controls and text conditions, not robot-joint or latent actions. Control transitions motivate longer refinement; camera following is not collision-avoidance safety.",
+  "rollout": "253 frames at 16 fps in 16 chunks; context window 18 latent frames plus six sinks. LongSpecBench extends multi-turn rollouts. Interactive generation is demonstrated, not real-environment closed-loop planning success.",
+  "evaluation": "158 WBench Navigation cases: NavScore 75.99 draft, 85.63 SpecWM, 85.49 target. Report routing shares, latency/memory, horizon error and controllability separately from visual quality and actual robot-task success."
+},
+"demoprop-search-scoring": {
+  "summary": "Separates missing a solution preferred by the cost from misranking bad predicted outcomes above a known solution. Execute candidate pools, score a known solution and compare predicted/real-outcome costs; DemoProp chooses demonstration warm-starts or model-free averaging.",
+  "why": "Sharper Qwen3+IBQ/URSA/ELF futures need not yield better planning costs. Multi-frame threat analysis can likewise omit candidates or misrank them. Diagnose the failure before spending more search or changing dynamics/risk heads.",
+  "inspiration": "Hypothesis: log avoidance/threat candidates and scores, then apply the same risk head to predicted and real outcomes. Use simulated known-solution tasks for diagnosis; passive real video supports observational audits, not causal closed-loop claims.",
+  "experiment": "Fix Qwen3, IBQ, data, actions and risk head; cross URSA/ELF dynamics with 1x/4x CEM search. On identical pools compare predicted/real costs, known-solution diagnosis and a deployable selector. Report coverage, ranking AUROC, oracle ceilings versus achieved success, closed-loop MPC, horizon/action-shuffle error, OCR/identity, GenEval and all rollout/GPU costs. Separate retrieval and prevent gold leakage.",
+  "state": "DINO-WM/JEPA-WM use frozen DINOv2-S/14, 224-pixel images to 16-by-16 semantic patch tokens plus proprioception; V-JEPA-2-AC is also tested. Predictive semantic states, not VAE pixels or IBQ IDs.",
+  "objective": "No new unified-generation training target: retains host next-feature dynamics and terminal visual/proprioceptive distance costs. No new Gaussian/mask path or noise/velocity loss; diagnosis is not a new Flow model.",
+  "decoding": "Autoregressive future prediction with CEM: PushT horizon six, 300 samples times 30 iterations equals 9000 cost evaluations/plan, ten elites. Count 4x search fully. Public checkpoints need no training; retrieval/averaging has no denoising. Hardware/memory depend on host and candidate parallelism; no universal budget.",
+  "sharing": "Observation/goal semantic encoders are shared within hosts, not a unified language tokenizer/visual vocabulary/Transformer/head. Uses existing world checkpoints, not a Qwen-AR initialization experiment. Fix codec/cost/pool when varying ELF/URSA dynamics; the diagnostic is orthogonal to paradigm.",
+  "open": "Paper includes pseudocode, splits and detailed protocols; official DemoProp code/weights not verified. Host-checkpoint availability is separate. Deep-read Sections 3-5 and limitations. Known solutions are diagnostic oracles; averaging depends on dense demonstrations and goal-aware keys, not evidence that world models are generally unnecessary.",
+  "action": "Executable simulated control sequences; demonstration windows supply retrieved proposals, not text or latent actions. Known solutions are diagnostic-only, not deployable gold access.",
+  "rollout": "Short simulated tasks in PushT/Wall/Metaworld/RoboCasa. Warm-start and Average mainly execute one open-loop plan; only Expand additionally tests closed-loop MPC. Metaworld is not its official long-horizon protocol; real-robot success is not demonstrated.",
+  "evaluation": "Metaworld cost AUROC is 0.94 on real outcomes versus 0.54 on predictions: model error can invert ranking. Labels depend on reference/pool. Report goal representability, search/scoring fractions, achieved success, horizon and demonstration coverage, not FVD/LPIPS alone."
+},
+
 };
 
 function getEnglishCopy(paper: Paper): EnglishPaperCopy {
@@ -7908,7 +8026,8 @@ function EnglishMatrices() {
       <section className="matrix-section" id="matrix">
         <div className="section-heading"><div><h2>UMM Generation Matrix</h2></div><p>Fix backbone, tokenizer, data, and compute</p></div>
         <div className="matrix-wrap" role="region" tabIndex={0} aria-label="Scrollable comparison table"><table><thead><tr><th>Route</th><th>State</th><th>Target</th><th>Decoding</th><th>Key control</th></tr></thead><tbody>
-          <tr><th>UniVEP (action target)</th><td>Continuous action chunk; Gaussian linear path</td><td>Joint endpoint/velocity + consistency; not average velocity</td><td>One mode/call; 1-2 calls are X-only on the default grid</td><td>Match total FLOPs and initialization; IBQ/ELF port is a hypothesis, not an image result</td></tr>
+          <tr><th>HiUni</th><td>RGB pixels via shared ViT; no VAE/visual IDs</td><td>Clean x0 converted to velocity MSE + text CE</td><td>Parallel image Flow; AR text; 0.9B output head and raw-pixel gate</td><td>Shared backbone is not tied heads/vocabulary; keep IBQ residual controls separate from codec changes</td></tr>
+<tr><th>UniVEP (action target)</th><td>Continuous action chunk; Gaussian linear path</td><td>Joint endpoint/velocity + consistency; not average velocity</td><td>One mode/call; 1-2 calls are X-only on the default grid</td><td>Match total FLOPs and initialization; IBQ/ELF port is a hypothesis, not an image result</td></tr>
           <tr><th>ViLFlow</th><td>Continuous T5 output embeddings</td><td>Clean prediction → velocity + guidance distillation + decoder CE</td><td>Parallel refinement; separate prediction-adapted decoder</td><td>Hold generator fixed, vary readout and feedback; count decoder copies</td></tr>
 <tr><th>pi-H3 Blog</th><td>Continuous audiovisual latents</td><td>Distillation details partly undisclosed; DWD pixel output</td><td>2/4 steps + FP8/Sol-Attn</td><td>Factor distillation, decoding and quantization; same hardware</td></tr>
 <tr><th>DWD</th><td>Original continuous sampling state</td><td>Denoising anchor + final pixel loss</td><td>Original sampler, separate final pixel head</td><td>Fix trajectory; isolate codec/readout from Flow gains</td></tr>
@@ -7948,7 +8067,8 @@ function EnglishMatrices() {
       <section className="world-section" id="world-matrix">
         <div className="section-heading"><div><h2>Understanding → Generation → Prediction → Action</h2></div><p>Do not reduce evaluation to FVD or LPIPS</p></div>
         <div className="matrix-wrap" role="region" tabIndex={0} aria-label="Scrollable comparison table"><table className="world-table"><thead><tr><th>Model</th><th>Observation state</th><th>Action</th><th>Dynamics target</th><th>Rollout / planning</th><th>UMM connection</th></tr></thead><tbody>
-          <tr><th>AFFECT</th><td>Continuous video VAE; frozen feature bank</td><td>Executed joint commands + logged smooth perturbations</td><td>Velocity FM + centered action/video cross-moments</td><td>Window Flow or latent-frame AR/Flow; two-step fresh-noise training rollout</td><td>Five proposals; 24-frame selection then observe again. Count all candidates; feature moments do not prove complete causal dynamics</td></tr>
+          <tr><th>SpecWM / DemoProp</th><td>Video VAE / semantic next-feature</td><td>Camera controls / simulator actions</td><td>Velocity verification / terminal feature cost</td><td>AR-Flow chunks / AR dynamics plus CEM</td><td>Count 8-vs-4 GPU overlap and retries; known-solution diagnosis is oracle, not deployed success</td></tr>
+<tr><th>AFFECT</th><td>Continuous video VAE; frozen feature bank</td><td>Executed joint commands + logged smooth perturbations</td><td>Velocity FM + centered action/video cross-moments</td><td>Window Flow or latent-frame AR/Flow; two-step fresh-noise training rollout</td><td>Five proposals; 24-frame selection then observe again. Count all candidates; feature moments do not prove complete causal dynamics</td></tr>
           <tr><th>AVM</th><td>VAE views + archived view/KV memory</td><td>Camera pose/ray/time, event text</td><td>Velocity FM then on-policy DMD/adversarial</td><td>Temporal AR, four-step blocks, retrieved context</td><td>Revisit quality is not physical closed-loop success; count retrieval/KV commit</td></tr>
 <tr><th>InertialWorld</th><td>FSQ Context/Dynamic IDs + carriers</td><td>Raw physical actions / local motion</td><td>Next-code CE + decoded/memory losses</td><td>Temporal AR with transported recurrent state</td><td>Real2Sim policy calibration; separate codec and carry</td></tr>
 <tr><th>EyeHeight</th><td>Video states + reconstructed height</td><td>Fixed-elevation camera trajectories</td><td>Audit/guidance windows; native model targets</td><td>160-frame turn/walk, not physical closed-loop proof</td><td>Geometry retention alongside quality and policy bias</td></tr>
@@ -8134,8 +8254,8 @@ export default function Home() {
       <div className="issue-strip" id="top">
         <span>{language === "en" ? "Research workspace" : "研究空间"}</span>
         <span aria-hidden="true">/</span>
-        <span>{language === "en" ? "Issue 058" : "第 058 期"}</span>
-        <time dateTime="2026-11-20">2026.11.20</time>
+        <span>{language === "en" ? "Issue 059" : "第 059 期"}</span>
+        <time dateTime="2026-11-21">2026.11.21</time>
       </div>
 
       <div className="workspace">
@@ -8191,8 +8311,8 @@ export default function Home() {
               <div><span>{language === "en" ? "Research tracks" : "研究方向"}</span><b>{directions.length}</b></div>
             </div>
             <div className="issue-focus">
-              <h2>{language === "en" ? "Choose targets. Test action consequences." : "选择预测目标，检验动作后果。"}</h2>
-              <p>{language === "en" ? "Four papers on action Flow targets, dynamics-faithful futures, visual supervision and passage risk." : "四篇论文聚焦动作Flow目标、动力学响应、视觉证据监督与通行风险。"}</p>
+              <h2>{language === "en" ? "Share representations. Audit decisions." : "共享表征，审计决策。"}</h2>
+              <p>{language === "en" ? "Three recent papers on shared pixel generation, speculative world models and search-versus-scoring failures." : "补选三篇近期论文：共享像素生成、推测式世界模型与搜索/评分失败诊断。"}</p>
               <div className="hero-actions">
                 <button className="primary-button" onClick={() => { changeActive("今日精选"); setQuery(""); setSourceType("all"); }}>{language === "en" ? "Read this issue" : "阅读本期推荐"} <span aria-hidden="true">↓</span></button>
                 <a className="text-button" href="#matrix">{language === "en" ? "Compare modeling routes" : "比较建模路线"} ↗</a>
@@ -8200,9 +8320,9 @@ export default function Home() {
             </div>
             <aside className="research-questions" aria-label={language === "en" ? "Questions to investigate" : "本期研究问题"}>
               <h2>{language === "en" ? "Start with a question" : "从问题出发"}</h2>
-              <button onClick={() => selectDeepReads("univep-noise-targets")}><span>{language === "en" ? "Which target works at each noise level?" : "不同噪声阶段该预测什么？"}</span><small>UniVEP ↗</small></button>
-              <button onClick={() => selectDeepReads("affect-action-effects")}><span>{language === "en" ? "Do changed actions change the future?" : "改变动作是否改变未来？"}</span><small>AFFECT ↗</small></button>
-              <button onClick={() => selectDeepReads("egopass-passage-relevance")}><span>{language === "en" ? "Does motion imply passage risk?" : "运动是否意味着通行风险？"}</span><small>EgoPass-Bench ↗</small></button>
+              <button onClick={() => selectDeepReads("hiuni-pixel-shared-space")}><span>{language === "en" ? "Where should visual details enter?" : "视觉细节应该从哪里进入？"}</span><small>HiUni ↗</small></button>
+              <button onClick={() => selectDeepReads("specwm-velocity-verification")}><span>{language === "en" ? "Can verification repair a draft?" : "验证能否直接修正草稿？"}</span><small>SpecWM ↗</small></button>
+              <button onClick={() => selectDeepReads("demoprop-search-scoring")}><span>{language === "en" ? "Did search miss or scoring misrank?" : "是搜索遗漏还是评分误判？"}</span><small>Search or Scoring ↗</small></button>
             </aside>
           </section>
 
@@ -8324,7 +8444,8 @@ export default function Home() {
               <table>
                 <thead><tr><th>路线</th><th>状态空间</th><th>预测目标</th><th>生成顺序</th><th>最关键变量</th></tr></thead>
                 <tbody>
-                  <tr><th>UniVEP（动作目标）</th><td>连续action chunk，Gaussian线性path</td><td>endpoint/velocity联合与一致性，非average velocity</td><td>每步单mode；默认1/2次均X-only</td><td>匹配总FLOPs与初始化；IBQ/ELF迁移待验证，非图像结果</td></tr>
+                  <tr><th>HiUni</th><td>RGB pixels经共享ViT，无VAE/visual ID</td><td>clean x0转velocity MSE + text CE</td><td>图像Flow、文本AR；0.9B head与像素gate</td><td>共享backbone不等于绑head/词表；IBQ残差实验与codec变化分开</td></tr>
+<tr><th>UniVEP（动作目标）</th><td>连续action chunk，Gaussian线性path</td><td>endpoint/velocity联合与一致性，非average velocity</td><td>每步单mode；默认1/2次均X-only</td><td>匹配总FLOPs与初始化；IBQ/ELF迁移待验证，非图像结果</td></tr>
                   <tr><th>ViLFlow</th><td>连续T5输出embedding</td><td>clean prediction转velocity + guidance蒸馏 + decoder CE</td><td>并行迭代，独立prediction-adapted读出</td><td>固定generator单测readout/feedback，计复制decoder成本</td></tr>
 <tr><th>pi-H3 Blog</th><td>连续音视频latent</td><td>蒸馏loss部分未披露 + DWD</td><td>2/4步 + FP8/Sol-Attn</td><td>同硬件拆分蒸馏、解码与量化收益</td></tr>
 <tr><th>DWD</th><td>原连续采样state</td><td>denoising anchor + pixel loss</td><td>原sampler + 独立最终pixel head</td><td>固定轨迹，分离codec读出与Flow收益</td></tr>
@@ -8571,7 +8692,8 @@ export default function Home() {
               <table className="world-table">
                 <thead><tr><th>路线</th><th>观测状态</th><th>动作接口</th><th>动力学目标</th><th>建模方式</th><th>Rollout / 规划</th><th>与 UMM 的关系</th></tr></thead>
                 <tbody>
-                  <tr><th>AFFECT</th><td>连续video VAE与冻结feature bank</td><td>真实joint command与平滑扰动日志</td><td>velocity FM + 中心化动作/未来交叉矩</td><td>窗口Flow或latent-frame AR/Flow；额外2步训练rollout</td><td>5候选、24帧选chunk后再观测，非完整因果恢复</td><td>固定codec/数据单测loss；计全部候选与训练rollout，报闭环/horizon/动作响应</td></tr>
+                  <tr><th>SpecWM / DemoProp</th><td>Video VAE / semantic feature</td><td>相机control / simulator action</td><td>velocity验证 / terminal feature cost</td><td>AR-Flow chunk / AR dynamics+CEM</td><td>交互生成与短任务规划分开；known solution仅诊断</td><td>计8对4GPU、rollback与全candidate；报告实际成功/horizon而非oracle上界</td></tr>
+<tr><th>AFFECT</th><td>连续video VAE与冻结feature bank</td><td>真实joint command与平滑扰动日志</td><td>velocity FM + 中心化动作/未来交叉矩</td><td>窗口Flow或latent-frame AR/Flow；额外2步训练rollout</td><td>5候选、24帧选chunk后再观测，非完整因果恢复</td><td>固定codec/数据单测loss；计全部候选与训练rollout，报闭环/horizon/动作响应</td></tr>
                   <tr><th>AVM</th><td>VAE views + view/KV档案</td><td>camera/ray/time与文本</td><td>velocity FM后DMD/adversarial</td><td>时间AR、4步block、context检索</td><td>重访而非物理闭环</td><td>计检索/KV commit；固定memory再换生成方式</td></tr>
 <tr><th>InertialWorld</th><td>FSQ Context/Dynamic + carriers</td><td>真实action/局部位移</td><td>next-code CE + decoded损失</td><td>carry + temporal AR</td><td>Real2Sim policy校准</td><td>固定codec隔离carry与生成方式</td></tr>
 <tr><th>EyeHeight</th><td>video state + height重建</td><td>恒高camera轨迹</td><td>原目标 + guidance窗口干预</td><td>160帧turn/walk审计</td><td>不等于物理闭环成功</td><td>几何保持/画质/policy偏差同时报告</td></tr>
