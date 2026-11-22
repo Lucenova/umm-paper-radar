@@ -6969,7 +6969,7 @@ const papers: Paper[] = [
   "domain": "UMM",
   "paradigm": "Shared ViT / Dense UMM / Clean-Pixel Flow",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "paper": "https://arxiv.org/abs/2611.26107",
   "summary": "以Qwen3-VL-4B-Instruct初始化，理解与生成共用语言对齐ViT和dense backbone，仅输出侧分任务；Pixel Diffusion Head直接生成像素，HiGate把被merger压缩的raw-pixel细节绕接到输出侧。",
@@ -6994,7 +6994,7 @@ const papers: Paper[] = [
   "domain": "World Model",
   "paradigm": "Streaming AR / Latent Flow / Speculative Refinement",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "paper": "https://arxiv.org/abs/2611.26211",
   "summary": "小draft先生成chunk，大target在对齐noise状态上做一次末阶段velocity probe，同时得到误差评分与可直接提交的clean correction；阈值决定Accept/Refine/Reject，控制转向时多修正，稳定后减步。",
@@ -7020,7 +7020,7 @@ const papers: Paper[] = [
   "domain": "World Model",
   "paradigm": "Latent Predictive Dynamics / CEM / Planner Failure Diagnosis",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "paper": "https://arxiv.org/abs/2611.25347",
   "summary": "把失败分为search没试到cost愿选的解，或scoring把坏预测排在已知可行解之前。执行candidate pool、给known solution打模型cost，并比较预测/真实outcome cost；DemoProp据此选择示范warm-start或不经模型的示范平均。",
@@ -7035,6 +7035,86 @@ const papers: Paper[] = [
   "action": "仿真真实可执行control sequence；示范窗口用于检索提案，不是文本或latent action。known solution只供诊断，不能作为部署期可见gold。",
   "rollout": "四种sim环境短任务：PushT/Wall/Metaworld/RoboCasa。warm-start和Average主要open-loop单plan；仅Expand另外测试闭环MPC。Metaworld不是官方长时协议，真实机器人成功未展示。",
   "evaluation": "Metaworld同cost真实outcome AUROC0.94、预测outcome0.54，说明误差可翻转排序。结果依reference和pool定义；同时报目标状态可表征性、搜索/评分错比例、实际成功、horizon与示范覆盖，不只FVD/LPIPS。"
+},
+
+{
+  "id": "mixreact-fixed-discrete-context",
+  "index": "277",
+  "title": "MixReact: Physics-Based Reactive Humanoid Control from Multimodal Cues via a Discrete-Continuous Mixture of Transformers",
+  "shortTitle": "MixReact",
+  "date": "2026-11-19 · v1 · checked/curated 2026-11-22",
+  "category": "世界模型",
+  "domain": "World Model",
+  "paradigm": "Masked Discrete Plan / AR Continuous Diffusion / One-Way MoT",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2611.26218",
+  "summary": "离散masked分支先生成完整反应plan并固定其中间层KV，连续分支单向读取该context、直接预测未来humanoid状态；HAT再结合真实执行历史输出动作。全局离散语义与局部连续动力学分工，不是两条分支互相反复改写。",
+  "why": "对Qwen3+IBQ/URSA→ELF及MoT/Router实验，稳定且stop-gradient的语义context值得作对照：可减少局部去噪对全局plan的干扰。但论文没有验证动态Router目标漂移，也没有证明固定context普遍最优。",
+  "inspiration": "研究假设：用IBQ低频结构或威胁事件plan先生成固定KV，ELF生成细节/未来chunk时只读取；比较固定与动态刷新，避免同时改tokenizer、route和Flow目标。动作执行用独立head，不能把连续视觉输出直接当可执行action。",
+  "experiment": "固定Qwen3、IBQ、数据、两个分支参数及训练FLOPs，比较连续only、离散decode、单向固定KV、双向MoT、每chunk刷新KV；另做GT/generated plan及stop-gradient开关，分离teacher-forcing gap。报GenEval、生成OCR、OCRBench/DocVQA/TextVQA、palette/身份、horizon误差、动作shuffle、物理接触与闭环成功，计plan采样/KV构建/CFG/控制器全部成本。",
+  "state": "离散为humanoid状态VQ-VAE code ID：512码、512维、时间压缩4；连续为normalized humanoid state，不是RGB、IBQ图像或VAE视频latent。完整离散plan是latent guidance，连续预测绕过其decoder。",
+  "objective": "离散训练独立mask0.5、masked CE；连续Gaussian corruption后预测clean future state做MSE，cosine DDPM，非velocity/average velocity。continuous pass使用完整GT plan KV与detached语义condition，只更新连续分支，需核对生成plan下误差。",
+  "decoding": "开头8轮随机位置commit离散token，再额外forward构建固定KV；每窗口10步DDPM、CFG2.5，30帧history预测最多60帧，每60控制步重算未来。训练150epochs，离散1650/连续11930updates，3×3090；HAT另212k在线蒸馏updates、8×4090，不能漏计。",
+  "sharing": "两个Transformer有各自参数、输入embedding及head，one-way mixture attention共享可读KV而非同词表；cue encoder冻结，action HAT独立。未展示AR/LLM权重初始化。与URSA同离散ID/CE但非metric path；与ELF同连续生成但state及DDPM目标不同，适合作结构控制而非直接UMM公平分数。",
+  "open": "原文与项目页可访问；项目repo是网页素材，本次未核验算法代码/权重发布，论文称will release。精读§3/Appendix11及GT-plan接口。3090 FP32完整闭环34.51步/s约1.15倍30Hz；754.8 states/s只是窗口生成吞吐，非端到端控制速度。",
+  "action": "文本/音频/视频cue经adapter成语义memory；HAT输出69维真实simulator action，参考下一state及最近16帧358维观测。不把输入文本cue等同动作。",
+  "rollout": "物理仿真反馈更新history，每窗口以真实到达状态重预测；固定离散plan跨窗口复用。支持闭环反应执行，但无真实机器人或通用物体环境世界模拟结论。",
+  "evaluation": "分开fidelity/diversity、jerk、物理接触和闭环执行；还需plan失配、长horizon错误、cue变化和动作干预。单向优于双向的消融是本任务证据，不能直接推断Qwen/IBQ或Router一定获益。",
+  "project": "https://binlee26.github.io/MixReact_Page/"
+},
+{
+  "id": "gems-memory-subgoals",
+  "index": "278",
+  "title": "GEMS: Generation and Experience Memory for Subgoal-Guided Long-Horizon World Model Planning",
+  "shortTitle": "GEMS",
+  "date": "2026-11-18 · v1 · checked/curated 2026-11-22",
+  "category": "世界模型",
+  "domain": "World Model",
+  "paradigm": "Latent Residual Subgoals / Experience Projection / Frozen Dynamics CEM",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2611.25134",
+  "summary": "以当前—goal插值为anchor、Transformer回归subgoal residual；分别编码剩余goal时间和subgoal offset。生成latent作检索key，足够接近训练memory时投影到真实状态，否则保留生成目标，再用冻结world model规划。",
+  "why": "对IBQ/ELF未来预测，连续平均可能落在decoder/动力学不可实现区域。GEMS可区分生成目标质量、真实经验覆盖和短程动力学误差；它并不证明最近邻状态从当前状态可达。",
+  "inspiration": "研究假设：保持Qwen3+IBQ与URSA/ELF dynamics冻结，生成未来风险subgoal后检索训练期轨迹memory，单独改变是否投影及distance gate。先检查OCR、身份和动作条件一致，不能用相似背景替换不相容事件。",
+  "experiment": "固定codec、Qwen3、数据split、dynamics、action prior与CEM预算，做生成only/memory-only/always-project/gated-project，并比较单时间/双时间编码；另同memory才切URSA/ELF。报subgoal可达性、OOD检索、OCR身份、horizon误差、动作可控、闭环成功/失败恢复及检索+9000候选评估的总GPU/CPU/显存成本，专家subgoal仅作oracle。",
+  "state": "冻结LeWM encoder的连续语义latent；memory存训练episode真实frame embedding，非test帧、非VAE图像或离散IBQ ID。生成器预测subgoal latent，不生成完整视频。",
+  "objective": "确定性latent regression，anchor=z_t+min(tau/Delta,1)*(z_goal-z_t)再加residual。无前向加噪/掩码或velocity；两种物理任务时间不是Flow的noise t。action prior另训练，完整训练步数/参数预算本次未核验。",
+  "decoding": "每15step默认subgoal/CEM重规划；300candidate×30iterations、30elites，prior条件始终为生成proposal而cost可用memory目标。distance阈值在validation四选一，非test调参。没有NFE，成本主要future rollouts与检索。",
+  "sharing": "观测/goal/memory用同冻结encoder和空间，subgoal generator/action prior/dynamics分开；未统一LLM词表、tokenizer或输出head，也未展示AR LLM初始化。与ELF/URSA正交的planner层，公平对照须冻结生成方式再单测memory收益。",
+  "open": "原文公开；官方GEMS代码/权重/完整训练数据下载未核验，不把LeWM checkpoint当GEMS发布。精读§3与数据split。H-JEPA部分released训练含本研究test episode，论文标†，不宜拿其分数作完全无泄漏的公平基线。",
+  "action": "真实仿真control sequence，action prior提出候选，CEM选elite mean；不是文本action或latent-action discovery。memory是状态目标，不是直接下发动作。",
+  "rollout": "Cube/Cube-double/PushT/TwoRoom/Reacher/Meta-World六任务；执行短chunk后观测重规划，报告长goal horizon闭环成功。没有真实机器人证据，记忆覆盖与目标难度限制外推。",
+  "evaluation": "Cube92.8%、PushT68.4%、Meta-World54.1%是论文具体protocol结果。应同时报validation gate选择、专家上界、远近目标、memory覆盖与horizon累计错误；生成subgoal好看或距离近不能替代实际闭环成功。"
+},
+{
+  "id": "mvjepa-crossview-replay",
+  "index": "279",
+  "title": "MV-JEPA: Post-Training Video Encoders for Cross-View Understanding",
+  "shortTitle": "MV-JEPA",
+  "date": "2026-11-18 · v1 · checked/curated 2026-11-22",
+  "category": "世界模型",
+  "domain": "World Model",
+  "paradigm": "Cross-View Masked Feature Prediction / EMA / Single-View Replay",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2611.25172",
+  "summary": "各view由共享encoder独立编码visible token，训练期predictor联合context预测masked位置与完全held-out view的EMA特征；交替单view replay保持原能力。推理只保留单view encoder，无额外相机输入要求。",
+  "why": "多帧威胁检测需跨视角追踪身份和时刻，但对齐过强可能丢失文字、姿态等细粒度信息。对Qwen3+IBQ，应先验证语义辅助特征再决定是否重训codec，别把检索改善直接当未来动力学提升。",
+  "inspiration": "研究假设：冻结IBQ codec，以MV-JEPA特征监督Qwen visual adapter的语义分支；保留glyph/几何重建分支，replay OCR与单view任务。分别测试同实例不同视角和同背景不同对象，排查背景捷径。",
+  "experiment": "固定Qwen3、IBQ、数据、可训练参数和FLOPs，比single-view replay、cross-view only、cross-view+replay，另冻结teacher比较semantic adapter与codec更新。报跨视角身份/moment检索、OCRBench/DocVQA/TextVQA、生成文字OCR/GenEval、重建glyph、code coverage、小目标/遮挡威胁召回与显存吞吐；接URSA/ELF后再单列未来预测/控制，不能预设收益。",
+  "state": "连续EMA语义feature token，主干V-JEPA2-L，也迁移V-JEPA2.1-g；不是可解码VAE latent、离散image ID或pixel。held-out像素/特征仅teacher见，predictor通过query请求对应位置。",
+  "objective": "block masking后按token L1回归teacher LN特征；context masked及完整held-out均监督，teacher stop-gradient/EMA。非clean-ID CE、noise/velocity/average-velocity；mask prediction也不等同URSA metric-path生成。",
+  "decoding": "无多步denoising或AR生成；单次encoder推理。主配置16帧256²、multi-view/replay batch48/24，30epochs=9000updates，单RTX PRO6000 Blackwell约18h；每epoch152multi-view+148replay。训练多view/predictor/EMA开销需计，推理接口不变。",
+  "sharing": "各view及replay共享encoder/predictor，student/EMA两份；未统一LLM vocabulary、文本embedding或生成head，初始化来自released JEPA非AR LLM。与ELF/URSA在状态与目标上不同，适合作固定codec的语义teacher对照，不是替换采样器。",
+  "open": "原文与协议公开；本次未核验MV-JEPA特有代码/权重下载，原JEPA开源不代表该后训练已发布。精读§3与frozen-probe/attribution消融。识别和segmentation保持不包含OCR/glyph或世界模型规划验证。",
+  "action": "无action condition、动作预测或latent action；视频时刻/view query不等于控制信号。用于世界模型的语义入口仍需另接action-conditioned dynamics。",
+  "rollout": "没有多步自主rollout、环境交互或闭环规划；其JEPA预测目标主要是跨view缺失表示。可帮助身份/时刻对应，但不能据此宣称统一理解—生成—预测—行动已完成。",
+  "evaluation": "跨view instance、coarse camera-moment检索及AE2 action-phase/frozen classification，另检查motion/image/segmentation保持。必须分离表示对齐与动力学增益，未来扩展再报horizon/动作干预/任务成功，不只表征检索分数。"
 },
 
 ];
@@ -7907,6 +7987,49 @@ const englishOverrides: Record<string, Partial<EnglishPaperCopy>> = {
   "evaluation": "Metaworld cost AUROC is 0.94 on real outcomes versus 0.54 on predictions: model error can invert ranking. Labels depend on reference/pool. Report goal representability, search/scoring fractions, achieved success, horizon and demonstration coverage, not FVD/LPIPS alone."
 },
 
+"mixreact-fixed-discrete-context": {
+  "summary": "A masked discrete branch generates a full reaction plan and freezes its intermediate KV. A continuous branch reads this context one-way and predicts future humanoid states directly. HAT converts predictions plus actual execution history into actions, separating global semantics from local dynamics.",
+  "why": "Stable stop-gradient semantic context is a useful Qwen3+IBQ/URSA-to-ELF and MoT/Router control: local denoising cannot overwrite the global plan. The paper does not test dynamic-router target drift or establish universally optimal fixed context.",
+  "inspiration": "Hypothesis: generate fixed KV from coarse IBQ structure or threat-event plans, then let ELF detail/future chunks read it. Compare fixed versus refreshed context without changing codec, routes and Flow targets together. Executable actions need a separate head.",
+  "experiment": "Fix Qwen3, IBQ, data, branch parameters and training FLOPs. Compare continuous-only, discrete decoding, one-way fixed KV, bidirectional MoT and per-chunk refreshed KV. Cross ground-truth/generated plans and stop-gradient to isolate exposure mismatch. Report GenEval, generated OCR, OCRBench/DocVQA/TextVQA, palette/identity, horizon error, action shuffle, contact and closed-loop success; count plan/KV/CFG/controller costs.",
+  "state": "Discrete humanoid-state VQ-VAE IDs: 512 codes, width 512, temporal compression four. Continuous normalized humanoid states, not RGB, image IBQ or video VAE latents. Full discrete plans guide direct state prediction, bypassing the decoder.",
+  "objective": "Discrete independent 0.5 masking with masked CE; continuous Gaussian-corrupted states use clean-state MSE under cosine DDPM, not velocity/average velocity. Continuous training reads full ground-truth-plan KV and detached cue features, updating only that branch; audit generated-plan mismatch.",
+  "decoding": "Eight initial random-position token-commit rounds plus an extra fixed-KV pass. Ten DDPM steps/CFG2.5 per window, 30 historical and up to 60 future frames, replanning every 60 control steps. 150 epochs: 1650 discrete/11930 continuous updates on three 3090s; HAT adds 212k online-distillation updates on eight 4090s.",
+  "sharing": "Separate Transformer parameters, input embeddings and heads; one-way attention exposes KV, not a shared vocabulary. Frozen cue encoders and separate HAT. AR/LLM initialization not demonstrated. Discrete CE resembles URSA without its metric path; continuous generation differs from ELF in state and DDPM target. An architectural control, not a direct fair UMM score.",
+  "open": "Paper/project accessible; linked repository is project-page material, algorithm code/weights unverified and paper says release planned. Deep-read Section 3, Appendix 11 and GT-plan interface. RTX3090 FP32 full-loop throughput is 34.51 steps/s, about 1.15x 30 Hz; 754.8 states/s is window-generation throughput, not control speed.",
+  "action": "Text/audio/video cues become semantic memory. HAT outputs 69-dimensional simulator actions from next-state references and sixteen observed 358-dimensional states. Text cues are not executable actions.",
+  "rollout": "Physics feedback updates histories and each new window conditions on reached states; the discrete plan persists. Closed-loop simulated reaction is demonstrated, not real-robot control or a general object-environment simulator.",
+  "evaluation": "Separate fidelity/diversity, jerk, physical contacts and closed-loop execution. Audit plan mismatch, horizon error, changing cues and action interventions. One-way versus bidirectional ablations support this task, not guaranteed Qwen/IBQ or Router gains."
+},
+"gems-memory-subgoals": {
+  "summary": "Regresses a subgoal residual around a current-to-goal interpolation anchor with separate remaining-time and subgoal-offset encodings. Generated latents query training-state memory; nearby real states ground the scoring target, otherwise generated targets remain. Planning uses frozen dynamics.",
+  "why": "For IBQ/ELF futures, continuous averages may leave decoder/dynamics-valid regions. GEMS separates target generation, experience coverage and short-term dynamics. A nearby stored state is not necessarily reachable from the current state.",
+  "inspiration": "Hypothesis: freeze Qwen3+IBQ and URSA/ELF dynamics, generate risk subgoals and retrieve training trajectories. Vary projection/gating only. Verify OCR, identity and action compatibility so similar backgrounds do not substitute incompatible events.",
+  "experiment": "Fix codec, Qwen3, splits, dynamics, action prior and CEM. Compare generation-only, memory-only, always/gated projection and one/two-clock encoding; hold memory fixed before comparing URSA/ELF. Report subgoal reachability, OOD retrieval, OCR/identity, horizon error, controllability, closed-loop success/recovery, and total retrieval plus 9000-candidate GPU/CPU/memory cost. Expert subgoals are oracle-only.",
+  "state": "Frozen LeWM semantic latents; memory stores real training-episode frame embeddings, not test frames, image VAE latents or IBQ IDs. The generator predicts subgoals rather than full videos.",
+  "objective": "Deterministic latent regression around z_t+min(tau/Delta,1)*(z_goal-z_t), plus a residual. No corruption/mask or velocity target; task-time clocks are not diffusion time. Action prior trained separately; full optimizer/parameter budgets unverified.",
+  "decoding": "Default fifteen-step subgoals/replanning; CEM uses 300 candidates, thirty iterations and thirty elites. Prior always sees generated proposals, while costs may use memory targets. Validation selects among four distance gates, not test tuning. No denoising NFE; costs are rollout search and retrieval.",
+  "sharing": "Observation/goal/memory share a frozen encoder and space, with separate subgoal/prior/dynamics models. No unified LLM vocabulary/tokenizer/head or AR-LLM initialization demonstration. A planner layer orthogonal to ELF/URSA; freeze generation to isolate memory gains.",
+  "open": "Paper public; official GEMS code/weights/full training-data downloads unverified. LeWM checkpoint availability is separate. Deep-read Section 3 and splits. Some released H-JEPA training includes these test episodes, marked with a dagger; do not treat those comparisons as fully leakage-free.",
+  "action": "Executable simulator controls proposed by an action prior and selected by CEM elite mean, not text actions or latent-action discovery. Memory states are targets, not executable commands.",
+  "rollout": "Six simulated tasks/suites: Cube, Cube-double, PushT, TwoRoom, Reacher and Meta-World. Execute short chunks, observe and replan toward longer goals. No real-robot evidence; memory coverage and goal difficulty limit generalization.",
+  "evaluation": "Paper-specific success rates: Cube92.8%, PushT68.4%, Meta-World54.1%. Report validation gate selection, expert upper bounds, near/far goals, memory coverage and accumulating horizon error; plausible or nearby subgoals do not replace achieved closed-loop success."
+},
+"mvjepa-crossview-replay": {
+  "summary": "A shared encoder independently processes visible context tokens. A training predictor combines views to predict masked and completely held-out EMA features, alternating single-view replay for retention. Inference keeps a single-view encoder without requiring extra cameras.",
+  "why": "Threat analysis needs identity/moment correspondence across views, but excessive invariance may erase text/pose detail. For Qwen3+IBQ, test auxiliary semantics before retraining the codec. Better retrieval is not stronger future dynamics.",
+  "inspiration": "Hypothesis: freeze IBQ and use MV-JEPA features for a semantic Qwen visual adapter, preserving glyph/geometric reconstruction and OCR/single-view replay. Contrast same-instance cross-view with different-object same-background cases to detect shortcuts.",
+  "experiment": "Fix Qwen3, IBQ, data, trainable parameters and FLOPs. Compare replay-only, cross-view-only and cross-view plus replay; distinguish semantic-adapter from codec updates under a frozen teacher. Report identity/moment retrieval, OCRBench/DocVQA/TextVQA, generated OCR/GenEval, glyph reconstruction, coverage, small/occluded threat recall and throughput/memory. Evaluate future/control only after separate URSA/ELF integration.",
+  "state": "Continuous EMA semantic tokens from V-JEPA2-L, also transferred to V-JEPA2.1-g; not decodable VAE latents, discrete image IDs or pixels. Held-out pixels/features are teacher-only; predictor queries their positions.",
+  "objective": "Block masking with token L1 regression to LayerNorm EMA targets, supervising masked contexts and every held-out token. Stop-gradient teacher; no ID CE/noise/velocity/average-velocity objective. Masked prediction is not URSA metric-path generation.",
+  "decoding": "No denoising loop or AR generation; one encoder inference. Main setup: sixteen frames at256², multi-view/replay batches48/24, thirty epochs=9000 updates, about18h on one RTX PRO6000 Blackwell. Each epoch152 multi-view+148 replay updates. Count training views/predictor/EMA although inference interface stays unchanged.",
+  "sharing": "Views/replay share encoder/predictor with separate student/EMA copies. No unified LLM vocabulary/text embedding/generation head. Initializes JEPA, not an AR LLM. Unlike ELF/URSA in state and target; useful as a fixed-codec semantic-teacher control, not a sampler replacement.",
+  "open": "Paper/protocol public; MV-JEPA-specific code/weights not verified. Base JEPA release is separate. Deep-read Section3 and frozen-probe/attribution ablations. Recognition/segmentation retention does not establish OCR/glyph fidelity or world-model planning.",
+  "action": "No action conditioning, action prediction or latent actions. View/time queries are not controls. A world-model semantic input still needs a separate action-conditioned dynamics module.",
+  "rollout": "No autonomous multi-step rollout, interaction or closed-loop planning. JEPA targets missing cross-view representations. Correspondence may help downstream systems, but understanding-generation-prediction-action unification is not demonstrated.",
+  "evaluation": "Cross-view instance and coarse camera-moment retrieval, AE2 action-phase retrieval/frozen classification, plus motion/image/segmentation retention. Separate representation alignment from dynamics; extensions need horizon/intervention/task-success metrics beyond retrieval."
+},
+
 };
 
 function getEnglishCopy(paper: Paper): EnglishPaperCopy {
@@ -8026,7 +8149,8 @@ function EnglishMatrices() {
       <section className="matrix-section" id="matrix">
         <div className="section-heading"><div><h2>UMM Generation Matrix</h2></div><p>Fix backbone, tokenizer, data, and compute</p></div>
         <div className="matrix-wrap" role="region" tabIndex={0} aria-label="Scrollable comparison table"><table><thead><tr><th>Route</th><th>State</th><th>Target</th><th>Decoding</th><th>Key control</th></tr></thead><tbody>
-          <tr><th>HiUni</th><td>RGB pixels via shared ViT; no VAE/visual IDs</td><td>Clean x0 converted to velocity MSE + text CE</td><td>Parallel image Flow; AR text; 0.9B output head and raw-pixel gate</td><td>Shared backbone is not tied heads/vocabulary; keep IBQ residual controls separate from codec changes</td></tr>
+          <tr><th>MixReact</th><td>Motion VQ IDs plus continuous humanoid states</td><td>Masked CE plus clean-state DDPM MSE</td><td>Eight plan rounds; fixed stop-gradient KV; ten-step AR windows</td><td>Separate branch weights/heads; GT-plan exposure and full controller cost must be controlled</td></tr>
+<tr><th>HiUni</th><td>RGB pixels via shared ViT; no VAE/visual IDs</td><td>Clean x0 converted to velocity MSE + text CE</td><td>Parallel image Flow; AR text; 0.9B output head and raw-pixel gate</td><td>Shared backbone is not tied heads/vocabulary; keep IBQ residual controls separate from codec changes</td></tr>
 <tr><th>UniVEP (action target)</th><td>Continuous action chunk; Gaussian linear path</td><td>Joint endpoint/velocity + consistency; not average velocity</td><td>One mode/call; 1-2 calls are X-only on the default grid</td><td>Match total FLOPs and initialization; IBQ/ELF port is a hypothesis, not an image result</td></tr>
           <tr><th>ViLFlow</th><td>Continuous T5 output embeddings</td><td>Clean prediction → velocity + guidance distillation + decoder CE</td><td>Parallel refinement; separate prediction-adapted decoder</td><td>Hold generator fixed, vary readout and feedback; count decoder copies</td></tr>
 <tr><th>pi-H3 Blog</th><td>Continuous audiovisual latents</td><td>Distillation details partly undisclosed; DWD pixel output</td><td>2/4 steps + FP8/Sol-Attn</td><td>Factor distillation, decoding and quantization; same hardware</td></tr>
@@ -8067,7 +8191,8 @@ function EnglishMatrices() {
       <section className="world-section" id="world-matrix">
         <div className="section-heading"><div><h2>Understanding → Generation → Prediction → Action</h2></div><p>Do not reduce evaluation to FVD or LPIPS</p></div>
         <div className="matrix-wrap" role="region" tabIndex={0} aria-label="Scrollable comparison table"><table className="world-table"><thead><tr><th>Model</th><th>Observation state</th><th>Action</th><th>Dynamics target</th><th>Rollout / planning</th><th>UMM connection</th></tr></thead><tbody>
-          <tr><th>SpecWM / DemoProp</th><td>Video VAE / semantic next-feature</td><td>Camera controls / simulator actions</td><td>Velocity verification / terminal feature cost</td><td>AR-Flow chunks / AR dynamics plus CEM</td><td>Count 8-vs-4 GPU overlap and retries; known-solution diagnosis is oracle, not deployed success</td></tr>
+          <tr><th>GEMS / MV-JEPA</th><td>Semantic latent subgoals / EMA view features</td><td>Simulator controls / no actions</td><td>Residual regression / masked L1 prediction</td><td>CEM feedback planning / encoder-only inference</td><td>Memory proximity is not reachability; cross-view representation is not autonomous dynamics. Count retrieval/search or training replay separately</td></tr>
+<tr><th>SpecWM / DemoProp</th><td>Video VAE / semantic next-feature</td><td>Camera controls / simulator actions</td><td>Velocity verification / terminal feature cost</td><td>AR-Flow chunks / AR dynamics plus CEM</td><td>Count 8-vs-4 GPU overlap and retries; known-solution diagnosis is oracle, not deployed success</td></tr>
 <tr><th>AFFECT</th><td>Continuous video VAE; frozen feature bank</td><td>Executed joint commands + logged smooth perturbations</td><td>Velocity FM + centered action/video cross-moments</td><td>Window Flow or latent-frame AR/Flow; two-step fresh-noise training rollout</td><td>Five proposals; 24-frame selection then observe again. Count all candidates; feature moments do not prove complete causal dynamics</td></tr>
           <tr><th>AVM</th><td>VAE views + archived view/KV memory</td><td>Camera pose/ray/time, event text</td><td>Velocity FM then on-policy DMD/adversarial</td><td>Temporal AR, four-step blocks, retrieved context</td><td>Revisit quality is not physical closed-loop success; count retrieval/KV commit</td></tr>
 <tr><th>InertialWorld</th><td>FSQ Context/Dynamic IDs + carriers</td><td>Raw physical actions / local motion</td><td>Next-code CE + decoded/memory losses</td><td>Temporal AR with transported recurrent state</td><td>Real2Sim policy calibration; separate codec and carry</td></tr>
@@ -8254,8 +8379,8 @@ export default function Home() {
       <div className="issue-strip" id="top">
         <span>{language === "en" ? "Research workspace" : "研究空间"}</span>
         <span aria-hidden="true">/</span>
-        <span>{language === "en" ? "Issue 059" : "第 059 期"}</span>
-        <time dateTime="2026-11-21">2026.11.21</time>
+        <span>{language === "en" ? "Issue 060" : "第 060 期"}</span>
+        <time dateTime="2026-11-22">2026.11.22</time>
       </div>
 
       <div className="workspace">
@@ -8311,8 +8436,8 @@ export default function Home() {
               <div><span>{language === "en" ? "Research tracks" : "研究方向"}</span><b>{directions.length}</b></div>
             </div>
             <div className="issue-focus">
-              <h2>{language === "en" ? "Share representations. Audit decisions." : "共享表征，审计决策。"}</h2>
-              <p>{language === "en" ? "Three recent papers on shared pixel generation, speculative world models and search-versus-scoring failures." : "补选三篇近期论文：共享像素生成、推测式世界模型与搜索/评分失败诊断。"}</p>
+              <h2>{language === "en" ? "Stabilize plans. Ground future states." : "稳定计划，让未来状态落地。"}</h2>
+              <p>{language === "en" ? "Three recent papers on fixed discrete plans, memory-grounded subgoals and cross-view predictive features." : "补选三篇近期论文：固定离散计划、经验记忆子目标与跨视角预测表征。"}</p>
               <div className="hero-actions">
                 <button className="primary-button" onClick={() => { changeActive("今日精选"); setQuery(""); setSourceType("all"); }}>{language === "en" ? "Read this issue" : "阅读本期推荐"} <span aria-hidden="true">↓</span></button>
                 <a className="text-button" href="#matrix">{language === "en" ? "Compare modeling routes" : "比较建模路线"} ↗</a>
@@ -8320,9 +8445,9 @@ export default function Home() {
             </div>
             <aside className="research-questions" aria-label={language === "en" ? "Questions to investigate" : "本期研究问题"}>
               <h2>{language === "en" ? "Start with a question" : "从问题出发"}</h2>
-              <button onClick={() => selectDeepReads("hiuni-pixel-shared-space")}><span>{language === "en" ? "Where should visual details enter?" : "视觉细节应该从哪里进入？"}</span><small>HiUni ↗</small></button>
-              <button onClick={() => selectDeepReads("specwm-velocity-verification")}><span>{language === "en" ? "Can verification repair a draft?" : "验证能否直接修正草稿？"}</span><small>SpecWM ↗</small></button>
-              <button onClick={() => selectDeepReads("demoprop-search-scoring")}><span>{language === "en" ? "Did search miss or scoring misrank?" : "是搜索遗漏还是评分误判？"}</span><small>Search or Scoring ↗</small></button>
+              <button onClick={() => selectDeepReads("mixreact-fixed-discrete-context")}><span>{language === "en" ? "Can a fixed plan guide denoising?" : "固定计划能否稳定去噪？"}</span><small>MixReact ↗</small></button>
+              <button onClick={() => selectDeepReads("gems-memory-subgoals")}><span>{language === "en" ? "When should memory ground a subgoal?" : "何时用记忆校正子目标？"}</span><small>GEMS ↗</small></button>
+              <button onClick={() => selectDeepReads("mvjepa-crossview-replay")}><span>{language === "en" ? "Does view invariance preserve details?" : "视角不变性是否保留细节？"}</span><small>MV-JEPA ↗</small></button>
             </aside>
           </section>
 
@@ -8444,7 +8569,8 @@ export default function Home() {
               <table>
                 <thead><tr><th>路线</th><th>状态空间</th><th>预测目标</th><th>生成顺序</th><th>最关键变量</th></tr></thead>
                 <tbody>
-                  <tr><th>HiUni</th><td>RGB pixels经共享ViT，无VAE/visual ID</td><td>clean x0转velocity MSE + text CE</td><td>图像Flow、文本AR；0.9B head与像素gate</td><td>共享backbone不等于绑head/词表；IBQ残差实验与codec变化分开</td></tr>
+                  <tr><th>MixReact</th><td>动作VQ ID与连续humanoid state</td><td>masked CE + clean-state DDPM MSE</td><td>8轮plan，固定stop-gradient KV，10步AR窗口</td><td>分支参数/head分开；控制GT-plan偏差及完整控制器成本</td></tr>
+<tr><th>HiUni</th><td>RGB pixels经共享ViT，无VAE/visual ID</td><td>clean x0转velocity MSE + text CE</td><td>图像Flow、文本AR；0.9B head与像素gate</td><td>共享backbone不等于绑head/词表；IBQ残差实验与codec变化分开</td></tr>
 <tr><th>UniVEP（动作目标）</th><td>连续action chunk，Gaussian线性path</td><td>endpoint/velocity联合与一致性，非average velocity</td><td>每步单mode；默认1/2次均X-only</td><td>匹配总FLOPs与初始化；IBQ/ELF迁移待验证，非图像结果</td></tr>
                   <tr><th>ViLFlow</th><td>连续T5输出embedding</td><td>clean prediction转velocity + guidance蒸馏 + decoder CE</td><td>并行迭代，独立prediction-adapted读出</td><td>固定generator单测readout/feedback，计复制decoder成本</td></tr>
 <tr><th>pi-H3 Blog</th><td>连续音视频latent</td><td>蒸馏loss部分未披露 + DWD</td><td>2/4步 + FP8/Sol-Attn</td><td>同硬件拆分蒸馏、解码与量化收益</td></tr>
@@ -8692,7 +8818,8 @@ export default function Home() {
               <table className="world-table">
                 <thead><tr><th>路线</th><th>观测状态</th><th>动作接口</th><th>动力学目标</th><th>建模方式</th><th>Rollout / 规划</th><th>与 UMM 的关系</th></tr></thead>
                 <tbody>
-                  <tr><th>SpecWM / DemoProp</th><td>Video VAE / semantic feature</td><td>相机control / simulator action</td><td>velocity验证 / terminal feature cost</td><td>AR-Flow chunk / AR dynamics+CEM</td><td>交互生成与短任务规划分开；known solution仅诊断</td><td>计8对4GPU、rollback与全candidate；报告实际成功/horizon而非oracle上界</td></tr>
+                  <tr><th>GEMS / MV-JEPA</th><td>语义subgoal / EMA view feature</td><td>simulator action / 无action</td><td>residual regression / masked L1</td><td>CEM闭环 / 单encoder推理</td><td>memory近邻不等于可达；跨view表征非自主动力学</td><td>分开检索/搜索与replay成本，单测horizon和实际成功</td></tr>
+<tr><th>SpecWM / DemoProp</th><td>Video VAE / semantic feature</td><td>相机control / simulator action</td><td>velocity验证 / terminal feature cost</td><td>AR-Flow chunk / AR dynamics+CEM</td><td>交互生成与短任务规划分开；known solution仅诊断</td><td>计8对4GPU、rollback与全candidate；报告实际成功/horizon而非oracle上界</td></tr>
 <tr><th>AFFECT</th><td>连续video VAE与冻结feature bank</td><td>真实joint command与平滑扰动日志</td><td>velocity FM + 中心化动作/未来交叉矩</td><td>窗口Flow或latent-frame AR/Flow；额外2步训练rollout</td><td>5候选、24帧选chunk后再观测，非完整因果恢复</td><td>固定codec/数据单测loss；计全部候选与训练rollout，报闭环/horizon/动作响应</td></tr>
                   <tr><th>AVM</th><td>VAE views + view/KV档案</td><td>camera/ray/time与文本</td><td>velocity FM后DMD/adversarial</td><td>时间AR、4步block、context检索</td><td>重访而非物理闭环</td><td>计检索/KV commit；固定memory再换生成方式</td></tr>
 <tr><th>InertialWorld</th><td>FSQ Context/Dynamic + carriers</td><td>真实action/局部位移</td><td>next-code CE + decoded损失</td><td>carry + temporal AR</td><td>Real2Sim policy校准</td><td>固定codec隔离carry与生成方式</td></tr>
