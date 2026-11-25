@@ -7206,7 +7206,7 @@ const papers: Paper[] = [
   "domain": "UMM",
   "paradigm": "Hierarchical Visual Fusion / Shared Continuous Latent / Block-wise MoT",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "paper": "https://arxiv.org/abs/2611.31237",
   "summary": "Abstraction Fusion聚合冻结Qwen3.5视觉encoder的多层feature，构造可重建且语义对齐的共同latent；生成stream只在VLM block边界读取条件KV。理解主干冻结，noisy visual latent只进生成stream，不是全层共享denoising。",
@@ -7230,7 +7230,7 @@ const papers: Paper[] = [
   "domain": "图像生成",
   "paradigm": "Internal Latent Critic / Dense Flow-GRPO / ODE Lookahead",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "paper": "https://arxiv.org/abs/2611.28265",
   "summary": "用Flow backbone内部feature加LoRA/query/head预测noisy latent的组合正确性reward；Flow-GRPO按每t分组构造advantage。高噪声state先ODE lookahead到可信noise区间，不直接把各噪声reward混用；还可早停筛选candidate。",
@@ -7254,7 +7254,7 @@ const papers: Paper[] = [
   "domain": "World Model",
   "paradigm": "Target-Conditioned Slots / JEPA Residual Dynamics / Active Perception",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "paper": "https://arxiv.org/abs/2611.28723",
   "summary": "把高分辨率aerial观测和reference编码为4个target-region slot+1个context slot，预测动作后的compact state，再评估可见性/面积等观测收益规划UAV运动与视角。目标是走近并看清指定实例，不生成完整未来视频。",
@@ -7271,6 +7271,112 @@ const papers: Paper[] = [
   "evaluation": "同时评价target approach与observation quality；需补错实例、unknown/OOD、真实动作后观测改善、horizon错误及全部前端成本，不只latent MSE。紧凑state与末端image renderer的作用应独立消融。"
 },
 
+{
+  "id": "core-joint-contextual-representation",
+  "index": "286",
+  "title": "CoRe: Jointly Learning Contextual Representations for Understanding and Generation",
+  "shortTitle": "CoRe",
+  "date": "2026-11-23 · v1 · checked/curated 2026-11-25",
+  "category": "建模与机制诊断",
+  "domain": "UMM",
+  "paradigm": "Shared Contextual Representation / VP Gaussian / Clean-State Prediction",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "kind": "Paper",
+  "paper": "https://arxiv.org/abs/2611.31397",
+  "summary": "从零联合学习图像与文本各自的contextual representation：同一表示用于理解、跨模态条件和生成状态。383M模型在CC12M训练，不在推理依赖预训练LLM/文本encoder/VAE；不是把所有模态合成一个词表或同一个denoiser。",
+  "why": "对Qwen3+IBQ/URSA→ELF，最关键的是理解究竟读到哪个生成空间。CoRe以同数据/架构消融隔离语义对齐与生成监督，提示应先审计共享状态的可读性，再讨论共享Transformer；结果尚不能证明IBQ上同样有效。",
+  "inspiration": "研究假设：在冻结IBQ的Qwen视觉embedding上，把理解probe与生成clean-state head接到同一位置；显式比较detach与允许生成梯度回流，并以glyph/OCR保真约束语义压缩。可将probe用于诊断ELF中间状态，但自评分不能代替独立评测。",
+  "experiment": "固定Qwen3、IBQ、数据、可训练参数/FLOPs、noise path与NFE，做生成梯度detach/回流×仅clean-embedding回归/加固定观测锚点。先用同一个连续path比较velocity与x0，再另列URSA clean-ID CE。报重建/OCR、code coverage、有效秩、OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、吞吐/显存/稳定性；世界模型扩展另测horizon误差。",
+  "state": "每模态encoder输出经投影/LayerNorm形成256维连续contextual token，非IBQ ID、simplex或VAE latent。前向VP Gaussian：Zγ=αγZ+σγε，α²=sigmoid(-γ)、σ²=sigmoid(γ)；无离散MASK。",
+  "objective": "denoiser预测clean Z；图像observable head预测RGB，文本head预测词表logits，以固定观测锚定移动表示；clean-state回归为采样辅助，另有SigLIP对齐和感知项。不能因连续flow就标成velocity/average-velocity监督。",
+  "decoding": "双向并行迭代生成，图文有各自denoiser和head。125K updates、batch8192；GenEval/DPG 128steps=257NFE，FID64steps=128NFE；蒸馏8jumps=9NFE含最终readout。无AR初始化实证；将Qwen权重接入是迁移假设。",
+  "sharing": "每模态内部的理解/条件/生成共享Z；image/text encoder、denoiser、RGB/vocabulary head分开，不共享统一视觉ID词表。与ELF同属连续运输但目标与VP path不同；与URSA离散metric path不同。架构/数据控制不是FLOP匹配：原文未训练额外计算匹配的contrastive-only基线。",
+  "open": "11月25日核对原文，未核验CoRe专属代码/权重/项目页；文中MiniT2I链接是基线，不能当作本方法发布。精读§3、Appendix7/8/12；训练含冻结感知网络成本，推理无预训练VAE不等于训练无外部监督。"
+},
+{
+  "id": "nemotron-pixel-code-visualcreation",
+  "index": "287",
+  "title": "Nemotron-Labs-VisualCreation: Pixel as Code for Agentic Visual Creation",
+  "shortTitle": "Nemotron VisualCreation",
+  "date": "2026-11-23 · v1 · checked/curated 2026-11-25",
+  "category": "建模与机制诊断",
+  "domain": "图像生成",
+  "paradigm": "Fixed Lattice Tokens / Causal AR / Agentic Rendering",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "kind": "Paper",
+  "paper": "https://arxiv.org/abs/2611.31358",
+  "project": "https://huggingface.co/nvidia/Nemotron-Labs-Image-30B-A3B",
+  "code": "https://huggingface.co/nvidia/Nemotron-Labs-Image-30B-A3B/tree/main",
+  "summary": "以固定Leech lattice视觉词表建模raster图像，以显式程序表达SVG/网页/文档，再用harness规划、候选选择与局部修复。必须拆开tokenizer、单次AR生成与agentic harness；论文报告的系统提升不等于生成器本身提升。",
+  "why": "直接包含Emu3.5 IBQ对照，适合Qwen3+IBQ的codebook几何与文字重建审计。固定lattice和可学习IBQ同时改变tokenizer容量/架构/词表，不能凭PSNR或系统分数断言AR优于URSA/ELF。",
+  "inspiration": "研究假设：先复用公开tokenizer测glyph、文档线条、小目标与ID占用，再考虑Qwen接入；用固定候选数的单次生成作为基线，单独测结构化程序对OCR/layout精度的贡献，不让视觉judge选择掩盖palette collapse。",
+  "experiment": "分开两轴：tokenizer-only用同图像/分辨率比较IBQ与lattice的重建OCR、细线、code使用率和速度；生成轴固定IBQ/Qwen3、数据、参数/FLOPs，比较AR/URSA/ELF。最后单独加相同harness与候选预算，报GenEval/文字OCR/OCRBench/DocVQA/TextVQA、所有retry/judge/renderer FLOPs、吞吐和峰值显存。",
+  "state": "约642M ViT encoder-decoder，16×16patch，24维归一化量化embedding；196560个固定Leech lattice code，不是learned IBQ codebook。text/reference/target image在统一causal序列；生成状态为离散token ID，无前向去噪或mask。",
+  "objective": "raster generator以next-token categorical/logit监督为基础，多阶段mid-training加GRPO；非连续embedding velocity、noise或average velocity。codec另训练；harness的选择/修复与模型目标分开记账。",
+  "decoding": "初始化Nemotron3 Nano30B-A3B hybrid Mamba2-Transformer MoE，顺序AR输出视觉token再codec decode，非NFE式整图去噪；开销随输出长度、KV/cache及候选数增长。精确总训练FLOPs与本次统一延迟未核验，不外推论文A100 codec倍率到Qwen端到端。",
+  "sharing": "raster generator共享文本/图像causal主干和序列接口，codec encoder/decoder独立；harness与VisionCode是另组件。未证明理解benchmark与生成完全共用tokenizer/embedding/head绑权。与URSA共离散ID但顺序/路径不同，与ELF状态/目标不同；必须固定codec再公平对照。",
+  "open": "官方HF模型卡与文件核对：图像权重、bundled tokenizer、模型定义和inference code公开；非商业研究/评测许可。harness/VisionCode仍待legal clearance，完整训练数据/训练流水线未核验。精读§3.1/5/6，单列codec与system结果。"
+},
+{
+  "id": "dreamcatcher-surprisal-video-memory",
+  "index": "288",
+  "title": "Dreamcatcher: Remembering What Surprises a World Model in Video Streams",
+  "shortTitle": "Dreamcatcher",
+  "date": "2026-11-24 · v1 · checked/curated 2026-11-25",
+  "category": "建模与机制诊断",
+  "domain": "World Model",
+  "paradigm": "Frozen JEPA Prediction / Surprisal Memory / Evidence Gate",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "kind": "Paper",
+  "paper": "https://arxiv.org/abs/2611.31765",
+  "summary": "冻结V-JEPA2预测来帧feature，以归一化误差构造时间/空间surprisal；在线分段，按年龄衰减预算保留Video-LLM原生视觉token。查询时先检索再用reader判断历史是否增加证据；无需微调，但不是零额外计算。",
+  "why": "与Qwen3多帧威胁检测直接相关：像素变化大未必危险，细微反常动作可能更值得记忆。相对固定2×2 folding，可在相同token预算下检验预测性选择是否保留遮挡前身份、文字及因果起点。",
+  "inspiration": "研究假设：IBQ ID仍作细节存储，用独立语义预测器只决定保留位置；对OCR和低surprisal静态危险标志增加coverage floor。比较原生reader embedding与IBQ存储时要先固定重建/检索误差，不能归因到记忆策略。",
+  "experiment": "固定Qwen3、IBQ/原生token接口、帧率和总存储token，比较均匀采样、feature novelty、JEPA surprisal；再独立比较无gate/top-k/evidence gate。报OCRBench/视频OCR、早期威胁召回/误报、关键帧删除归因、horizon证据保留、回答质量、总GPU+host内存和端到端延迟；计全部预测器、检索、约10次gate scoring，限制未来帧访问。",
+  "state": "世界预测状态为V-JEPA2连续语义feature；长期存储为冻结Video-LLM原生embedding，不是IBQ codec/像素未来生成。预测器与reader/tokenizer分离；无新Gaussian/MASK生成路径。",
+  "objective": "复用冻结JEPA feature prediction，normalized residual驱动memory selection；不训练ELF velocity或URSA clean-ID CE。reader对每候选证据打分；surprisal是有价值异常的启发式，摄像机运动/域外噪声也会触发。",
+  "decoding": "按视频时间单次处理，保留当前anchor与衰减历史，再检索/gate/AR回答。无新训练updates或迭代渲染NFE。论文示例anchor-only0.49s、top4无gate1.02s、gate3.20s；减少输入token不能称为回答更快。",
+  "sharing": "JEPA与Video-LLM不共享tokenizer、Transformer、词表或生成head，仅由surprisal map控制reader token保留。是ELF/URSA之外的decoder-free预测辅助端点，可接Qwen但不能宣称统一生成已实现；必须计额外模型权重。",
+  "open": "11月25日原文公开，未核验Dreamcatcher官方实现/权重链接；V-JEPA公开不等于本pipeline已开源。精读§3/4.4及AppendixA.3/B：memory floor30%意味着长视频存储仍增长；两GPU测量不能与单GPU吞吐混比。",
+  "action": "无真实action/text-to-control/latent action输入；问句是证据读取条件，不是环境动作。不能把异常检测当作动作条件动力学。",
+  "rollout": "预测来帧语义以选择历史，评测长视频QA；没有物理交互、闭环规划或多步动作rollout的证明。接入威胁预警是研究迁移假设。",
+  "evaluation": "同时测rare-event/OCR细节与覆盖，因果关键帧干预、长时证据遗忘、噪声/相机运动鲁棒性及总延迟；本方法无闭环控制成功率结果。不要用FVD替代QA因果证据评测。"
+},
+{
+  "id": "simpwm-proxy-causal-intervention",
+  "index": "289",
+  "title": "Simulator-as-Proxy World Model for Robot Manipulation",
+  "shortTitle": "SimPWM",
+  "date": "2026-11-24 · v1 · checked/curated 2026-11-25",
+  "category": "建模与机制诊断",
+  "domain": "World Model",
+  "paradigm": "Explicit Rule Dynamics / Proxy Rendering / Video Generator",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "kind": "Paper",
+  "paper": "https://arxiv.org/abs/2611.32786",
+  "project": "https://sim-pwm.pages.dev/",
+  "code": "https://github.com/TingtingLiao/SimPWM",
+  "summary": "首帧分解robot mesh、可接触物体3D points与背景；无训练参数的规则模拟器执行grasp/carry/release/gravity，视频模型渲染proxy。冻结物体但保持机械臂动作的干预，揭示画面可能违反显式状态；有模拟器不等于renderer服从动力学。",
+  "why": "适合检验Qwen3+IBQ/URSA/ELF未来视频是否真正使用动作或只是补全常见情节。把静态codec、显式状态转移与最终renderer拆开，比单用FVD/LPIPS更能定位多帧威胁预测的因果失效。",
+  "inspiration": "研究假设：用目标track/速度/风险state作共享接口，保持同一未来状态让AR/URSA/ELF各自渲染；冻结对象、交换动作、错置接触时刻，检查渲染是否偷偷改写状态。Qwen负责理解/计划是扩展方案，原文未证明统一UMM。",
+  "experiment": "固定Qwen3、IBQ、数据、参数/FLOPs、初始观测、动作与proxy，比较AR/URSA/ELF renderer；再固定renderer比较规则/JEPA/学习Flow dynamics。报oracle状态render误差、原生状态预测误差、对象冻结lift率/动作shuffle、1/8/32horizon漂移、OCR/身份、GenEval与独立闭环任务成功率。计calibration、perception、模拟及渲染；禁止用评测窗口帧校准的版本冒充单帧部署。",
+  "state": "显式robot mesh+3D object pointsets+背景，与video backbone的VAE latent组成混合表示；动作驱动规则state transition，参考proxy video再输入MiniMax-H3/LTX2.3/Cosmos-Transfer2.5。不是单一离散visual-token world model。",
+  "objective": "规则模拟不拟合next-token/noise；学习部分将proxy渲染为真实视频，具体denoising目标随base model，不能统一标成ELF velocity/URSA CE。主要实验检验state fidelity而非证明通用物理正确。",
+  "decoding": "时间展开显式模拟，再条件视频生成；各base采样NFE本次未核验，不把97frame horizon当97NFE。训练使用3000episodes，H3-C选845个proxy与真实一致子集；改变子集需配对控制，参数/显存主要来自视频backbone及perception。",
+  "sharing": "perception/simulator/video renderer分开，没有共享Qwen tokenizer/embedding/vocabulary/head实证；可把IBQ renderer接到同proxy作对照，AR初始化或ELF迁移是方案而非原文结果。与URSA/ELF比较要固定状态和数据，不能把模拟器收益算生成范式收益。",
+  "open": "官方GitHub存在simpwm、configs/scripts等实现目录及LICENSE，代码可访问；完整checkpoint/data发布本次未核验。精读§3/4/limitations与AppendixF/H。部分baseline训练集重叠、camera calibration和VLM judge影响比较，不把公开repo等同端到端可复现。",
+  "action": "真实机械臂joint angles与gripper closure，经规则接触/搬运/释放驱动物体；不是latent action或仅文本提示。calibrated camera为前提，DROID评测camera fitting用了20帧（5帧在评测window）。",
+  "rollout": "展示多帧recorded/perturbed action replay与proxy/video双输出；原文明确非闭环控制。刚性carry假设不适合cloth/rope，接触与几何误差会累积；没有实证长时MPC成功率。",
+  "evaluation": "冻结object保持arm动作，rigid-object lift率H3-C42%→10%、LTX-C57%→49%，说明条件服从依赖renderer。报state/video disagreement与arm/object分开；校准用窗口外帧另列。闭环成功与可控性需独立实验，不能由逼真画面推断。"
+},
 ];
 
 const shortcuts = ["今日精选", "全部内容", "Blog", "精读清单", "已保存", "借鉴优先"];
@@ -8261,6 +8367,56 @@ const englishOverrides: Record<string, Partial<EnglishPaperCopy>> = {
   "evaluation": "Measures target approach and observation quality. Add wrong-instance/OOD tests, observed gains after executed actions, horizon error and full frontend cost, beyond latent MSE. Ablate compact states separately from any downstream renderer."
 },
 
+"core-joint-contextual-representation": {
+  "summary": "CoRe jointly learns one contextual representation per modality, using it for understanding, cross-modal conditioning and generation. The 383M model trains from scratch on CC12M, with no pretrained LLM, text encoder or VAE at inference. This is not one vocabulary or one denoiser for all modalities.",
+  "why": "For Qwen3+IBQ and URSA-to-ELF, first ask which generative state understanding actually reads. Same-data/architecture interventions separate alignment from generative supervision, motivating a shared-state audit before more Transformer sharing. Transfer to IBQ remains unproven.",
+  "inspiration": "Hypothesis: attach understanding probes and a clean-state generation head at the same frozen-IBQ/Qwen visual interface. Compare detached versus returning generation gradients, protecting glyph/OCR detail. Probe intermediate ELF states, but evaluate self-ranking with independent judges.",
+  "experiment": "Fix Qwen3, IBQ, data, trainable parameters/FLOPs, noise path and NFE. Cross detached/returning gradients with clean-embedding regression alone/observable anchoring. Compare velocity and x0 on the same continuous path, then list URSA clean-ID CE separately. Report reconstruction/OCR, code coverage, effective rank, OCRBench/DocVQA/TextVQA, generated-text OCR, GenEval, throughput, memory and stability; evaluate temporal horizon separately.",
+  "state": "Projected, LayerNorm-normalized 256-dimensional contextual tokens per modality; not IBQ IDs, simplex states or VAE latents. VP Gaussian corruption uses Zgamma=alpha*Z+sigma*noise with alpha²=sigmoid(-gamma) and sigma²=sigmoid(gamma), without categorical masking.",
+  "objective": "Denoisers predict clean Z. RGB and vocabulary-logit observable heads anchor the moving representation to fixed observations; clean-state regression assists sampling, alongside SigLIP alignment and perceptual terms. Continuous transport does not imply velocity or average-velocity supervision.",
+  "decoding": "Parallel iterative generation with separate modality denoisers/heads. Training:125K updates,batch8192. GenEval/DPG:128steps/257NFE; FID:64steps/128NFE. Eight distilled jumps require9NFE including readout. No AR initialization experiment; Qwen transfer is a proposal.",
+  "sharing": "Understanding, conditioning and generation share each modality’s Z; image/text encoders, denoisers and RGB/vocabulary heads remain distinct. Continuous like ELF but with different targets/VP path; unlike URSA categorical metric paths. Same architecture/data is not FLOP matching: the paper did not train a compute-matched contrastive-only control.",
+  "open": "Checked2026-11-25: no verified CoRe-specific code, weights or project page. Linked MiniT2I repositories are baselines, not its release. Deep-read Section3 and Appendices7/8/12. Count frozen perceptual networks during training; no pretrained VAE at inference does not mean no external training supervision."
+},
+"nemotron-pixel-code-visualcreation": {
+  "summary": "Fixed Leech-lattice visual tokens represent raster images; explicit programs represent SVG, webpages and documents. A harness plans, selects candidates and repairs artifacts. Separate tokenizer quality, standalone AR generation and agentic selection: system gains are not generator-only gains.",
+  "why": "The explicit Emu3.5 IBQ comparison makes this useful for Qwen3+IBQ codebook geometry and text reconstruction. Lattice versus IBQ also changes codec capacity, architecture and vocabulary; PSNR or harness scores cannot establish AR superiority over URSA/ELF.",
+  "inspiration": "Hypothesis: first evaluate the released codec on glyphs, document strokes, small objects and code occupancy. Use equal-candidate standalone generation before adding structured programs or judges, so selection does not hide palette collapse.",
+  "experiment": "Separate two axes. Codec-only: equal images/resolution, compare IBQ/lattice reconstruction OCR, strokes, occupancy and speed. Generator: fixed IBQ/Qwen3, data, parameters/FLOPs, compare AR/URSA/ELF. Add the same harness and candidate budget afterward. Report GenEval, generated-text OCR, OCRBench/DocVQA/TextVQA, all retries/judges/renderers, throughput and peak memory.",
+  "state": "Approximately642M ViT encoder-decoder,16x16 patches,24-dimensional normalized quantized embeddings and196560 fixed Leech-lattice codes, not a learned IBQ codebook. Text/reference/target images form one causal sequence of token IDs; no forward denoising/mask process.",
+  "objective": "Raster generation uses next-token categorical/logit supervision, progressive mid-training and GRPO, not embedding velocity, noise or average velocity. Codec training and harness selection/repair are distinct contributions and costs.",
+  "decoding": "Initialized from Nemotron3 Nano30B-A3B hybrid Mamba2-Transformer MoE. Sequential AR visual tokens followed by codec decoding; no whole-image denoising NFE. Costs scale with output length, cache and candidates. Total training FLOPs/common end-to-end latency not verified; A100 codec speedups do not establish Qwen system speed.",
+  "sharing": "The raster model shares a causal backbone and sequence interface across text/images; codec encoder/decoder are separate, as are the harness and VisionCode. Full understanding/generation tokenizer, embedding and tied-head sharing is not established. Discrete like URSA but with different order/path; different state/target from ELF. Fix the codec for fair comparisons.",
+  "open": "Official HF card/files checked: image weights, bundled tokenizer, model definitions and inference code available under noncommercial research/evaluation terms. Harness/VisionCode await legal clearance; full training pipeline/data unverified. Deep-read Sections3.1/5/6; separate codec and system results."
+},
+"dreamcatcher-surprisal-video-memory": {
+  "summary": "A frozen V-JEPA2 predicts incoming features; normalized residuals provide temporal/spatial surprisal for online segmentation and age-decayed retention of native Video-LLM tokens. Retrieval is followed by a reader evidence gate. No fine-tuning does not mean no added compute.",
+  "why": "Directly useful for Qwen3 multi-frame threat analysis: subtle unexpected motion can matter more than large predictable changes. Under equal token budgets, test whether predictive memory preserves pre-occlusion identity, text and causal onset better than fixed2x2 folding.",
+  "inspiration": "Hypothesis: retain IBQ IDs for detail while an independent semantic predictor selects locations. Protect static OCR and low-surprisal warning signs with a coverage floor. If changing native embeddings to IBQ storage, isolate reconstruction/retrieval errors before attributing gains to memory.",
+  "experiment": "Fix Qwen3, codec/token interface, frame rate and stored-token budget. Compare uniform selection, feature novelty and JEPA surprisal; independently vary no gate/top-k/evidence gate. Report video OCR, threat recall/false alarms, causal frame deletion, horizon evidence retention, answer quality, GPU plus host memory and full latency. Count predictors, retrieval and all roughly ten scoring passes; forbid future-frame access.",
+  "state": "Prediction uses continuous V-JEPA2 semantic features; long-term memory stores the frozen reader’s native visual embeddings, not IBQ/pixel futures. Predictor and reader/tokenizer remain separate, with no newly trained Gaussian or MASK generation path.",
+  "objective": "Frozen JEPA feature prediction and normalized residuals guide memory selection, not ELF velocity or URSA clean-ID CE training. The reader scores candidate evidence. Surprisal is a heuristic: camera motion and out-of-domain noise may also trigger it.",
+  "decoding": "One-pass temporal ingestion, current anchor plus decaying history, then retrieval/gating and AR answering. No new training updates or rendering NFE. Reported example latency:anchor-only0.49s,unscored top4 1.02s,gate3.20s. Fewer answer-input tokens do not establish faster answers.",
+  "sharing": "JEPA and Video-LLM share no tokenizer, Transformer, vocabulary or generation head; surprisal only controls token retention. A decoder-free predictive auxiliary for Qwen, not demonstrated unified URSA/ELF generation. Include extra model weights in memory accounting.",
+  "open": "Checked2026-11-25: paper public; no verified Dreamcatcher implementation/weights link. Public V-JEPA does not establish release of this pipeline. Deep-read Sections3/4.4 and AppendicesA.3/B. The30% retention floor implies growing long-video storage; two-GPU timings are not single-GPU throughput.",
+  "action": "No real, textual-control or latent actions. Questions condition evidence reading rather than environment transitions. Anomaly selection is not action-conditioned dynamics.",
+  "rollout": "Incoming-feature prediction supports long-video QA memory; no physical closed-loop interaction, planning or multi-step action-rollout demonstration. Threat warning transfer is a proposed experiment.",
+  "evaluation": "Measure rare-event/OCR detail, coverage, causal frame interventions, horizon forgetting, camera/noise robustness and full latency. No closed-loop control success result. FVD is not a substitute for causal evidence use in QA."
+},
+"simpwm-proxy-causal-intervention": {
+  "summary": "A first frame yields robot geometry,3D contact-object points and background. A parameter-free rule simulator handles grasp/carry/release/gravity; a video model renders its proxy. Freezing objects while replaying the arm exposes renderers that ignore explicit state. A simulator does not guarantee state-faithful video.",
+  "why": "Tests whether Qwen3+IBQ/URSA/ELF futures use actions or merely complete familiar narratives. Separate static codec, explicit transitions and renderer to diagnose causal failure in multi-frame threat prediction beyond FVD/LPIPS.",
+  "inspiration": "Hypothesis: share tracks, velocity and risk state, then let AR/URSA/ELF render exactly the same future. Freeze objects, shuffle actions and shift contact times to test whether rendering rewrites state. Adding Qwen understanding/planning is a proposal, not demonstrated UMM unification.",
+  "experiment": "Fix Qwen3, IBQ, data, parameters/FLOPs, initial view, actions and proxies; compare AR/URSA/ELF renderers. Then freeze rendering and compare rule/JEPA/learned-Flow dynamics. Report oracle-state rendering error, native-state error, frozen-object lift rate, action shuffle,1/8/32-horizon drift, OCR/identity, GenEval and independent closed-loop success. Count calibration, perception, simulation and rendering; do not label evaluation-window calibration as single-frame deployment.",
+  "state": "Hybrid explicit robot mesh,3D object points/background plus each video backbone’s VAE latent. Rule-based state transitions produce reference proxy videos for MiniMax-H3,LTX2.3 or Cosmos-Transfer2.5. Not a purely discrete visual-token world model.",
+  "objective": "Rule dynamics do not fit next-token/noise targets. Learned video rendering is backbone-specific; its denoising objective cannot uniformly be labeled ELF velocity or URSA CE. State-fidelity tests do not establish general physical correctness.",
+  "decoding": "Temporal explicit simulation followed by conditional video generation. Sampling NFE not verified;97frames is a horizon, not97NFE. Training uses3000episodes;H3-C uses845 proxy-consistent episodes, requiring matched subset controls. Video backbones and perception dominate parameters/memory.",
+  "sharing": "Separate perception, simulator and renderer; no demonstrated shared Qwen tokenizer, embedding, vocabulary or head. An IBQ renderer can consume the same proxy, but AR initialization/ELF transfer is proposed. Fix states/data before attributing gains to a generation paradigm.",
+  "open": "Official GitHub includes implementation directories(simpwm,configs,scripts) and LICENSE; code accessible. Complete checkpoints/data release not verified. Deep-read Sections3/4/limitations and AppendicesF/H. Baseline training overlap, calibration and VLM judging limit comparison; repository access alone is not end-to-end reproducibility.",
+  "action": "Real joint angles and gripper closure drive rule-based grasp/carry/release, not latent actions or text alone. Requires calibrated cameras. DROID camera fitting uses20frames,including5inside the evaluation window.",
+  "rollout": "Demonstrates multi-frame recorded/perturbed-action replay and proxy/video outputs; explicitly not closed-loop control. Rigid carrying fails for cloth/rope, and contact/geometric errors accumulate. No demonstrated long-horizon MPC success.",
+  "evaluation": "With objects frozen and arm motion unchanged,rigid-object lift rate changes42%to10%forH3-C but57%to49%forLTX-C,showing renderer-dependent obedience. Separate arm/object fidelity and state/video disagreement; list out-of-window calibration separately. Closed-loop success and causal control need independent tests."
+},
 };
 
 function getEnglishCopy(paper: Paper): EnglishPaperCopy {
@@ -8380,7 +8536,8 @@ function EnglishMatrices() {
       <section className="matrix-section" id="matrix">
         <div className="section-heading"><div><h2>UMM Generation Matrix</h2></div><p>Fix backbone, tokenizer, data, and compute</p></div>
         <div className="matrix-wrap" role="region" tabIndex={0} aria-label="Scrollable comparison table"><table><thead><tr><th>Route</th><th>State</th><th>Target</th><th>Decoding</th><th>Key control</th></tr></thead><tbody>
-          <tr><th>Integral / DeFlowCritic</th><td>Shared AF continuous latent / model-specific VAE latent</td><td>Flow velocity / dense-reward Flow-GRPO</td><td>Block-boundary MoT / trusted-time ODE lookahead</td><td>Separate codec-semantic gains from routing; count critic, all candidates and lookahead</td></tr>
+          <tr><th>CoRe / Nemotron</th><td>Shared continuous Z / fixed lattice token IDs</td><td>VP corruption;clean Z plus RGB/CE / causal next-token CE plus GRPO</td><td>Parallel257NFE or distilled9 / sequential AR plus optional harness</td><td>Separate state, target and codec changes; no FLOP-matched contrastive control; count every candidate/judge</td></tr>
+                  <tr><th>Integral / DeFlowCritic</th><td>Shared AF continuous latent / model-specific VAE latent</td><td>Flow velocity / dense-reward Flow-GRPO</td><td>Block-boundary MoT / trusted-time ODE lookahead</td><td>Separate codec-semantic gains from routing; count critic, all candidates and lookahead</td></tr>
 <tr><th>Hindsight Forcing</th><td>Continuous video VAE plus historical KV</td><td>DMD with a selected-clean-step ST gradient bridge</td><td>Full four-step forward; surrogate cross-chunk backward</td><td>No new parameters does not mean free memory; biased gradient, fixed-codec controls required</td></tr>
 <tr><th>MixReact</th><td>Motion VQ IDs plus continuous humanoid states</td><td>Masked CE plus clean-state DDPM MSE</td><td>Eight plan rounds; fixed stop-gradient KV; ten-step AR windows</td><td>Separate branch weights/heads; GT-plan exposure and full controller cost must be controlled</td></tr>
 <tr><th>HiUni</th><td>RGB pixels via shared ViT; no VAE/visual IDs</td><td>Clean x0 converted to velocity MSE + text CE</td><td>Parallel image Flow; AR text; 0.9B output head and raw-pixel gate</td><td>Shared backbone is not tied heads/vocabulary; keep IBQ residual controls separate from codec changes</td></tr>
@@ -8424,7 +8581,8 @@ function EnglishMatrices() {
       <section className="world-section" id="world-matrix">
         <div className="section-heading"><div><h2>Understanding → Generation → Prediction → Action</h2></div><p>Do not reduce evaluation to FVD or LPIPS</p></div>
         <div className="matrix-wrap" role="region" tabIndex={0} aria-label="Scrollable comparison table"><table className="world-table"><thead><tr><th>Model</th><th>Observation state</th><th>Action</th><th>Dynamics target</th><th>Rollout / planning</th><th>UMM connection</th></tr></thead><tbody>
-          <tr><th>AERIN</th><td>Four target slots plus context</td><td>UAV translation and camera angles</td><td>One/two-step residual feature L1; no denoising</td><td>Candidate lookahead, first action, observation feedback</td><td>Simulation evidence; count sixteen-view frontend and separate oracle-crop baselines from compact dynamics</td></tr>
+          <tr><th>Dreamcatcher / SimPWM</th><td>JEPA semantic features / explicit3D plus VAE video</td><td>No actions / real joint angles and gripper</td><td>Frozen feature prediction / rule transition plus video rendering</td><td>QA memory, no control loop / recorded or perturbed replay, no closed loop</td><td>Count evidence-gate latency; freeze objects to test renderer obedience; audit calibration and horizon drift</td></tr>
+                  <tr><th>AERIN</th><td>Four target slots plus context</td><td>UAV translation and camera angles</td><td>One/two-step residual feature L1; no denoising</td><td>Candidate lookahead, first action, observation feedback</td><td>Simulation evidence; count sixteen-view frontend and separate oracle-crop baselines from compact dynamics</td></tr>
 <tr><th>ViewDreamer / ReactDrive</th><td>Multi-view VAE slots / VAE plus agent states</td><td>Robot deltas / queried ego trajectory</td><td>Flow with slot agreement / Flow plus agent regression</td><td>Variable-view generation and WAM / fixed response tokens per query</td><td>Recorded-action rollout is distinct from closed-loop policy; factual response supervision is not counterfactual identification</td></tr>
 <tr><th>GEMS / MV-JEPA</th><td>Semantic latent subgoals / EMA view features</td><td>Simulator controls / no actions</td><td>Residual regression / masked L1 prediction</td><td>CEM feedback planning / encoder-only inference</td><td>Memory proximity is not reachability; cross-view representation is not autonomous dynamics. Count retrieval/search or training replay separately</td></tr>
 <tr><th>SpecWM / DemoProp</th><td>Video VAE / semantic next-feature</td><td>Camera controls / simulator actions</td><td>Velocity verification / terminal feature cost</td><td>AR-Flow chunks / AR dynamics plus CEM</td><td>Count 8-vs-4 GPU overlap and retries; known-solution diagnosis is oracle, not deployed success</td></tr>
@@ -8614,8 +8772,8 @@ export default function Home() {
       <div className="issue-strip" id="top">
         <span>{language === "en" ? "Research workspace" : "研究空间"}</span>
         <span aria-hidden="true">/</span>
-        <span>{language === "en" ? "Issue 062" : "第 062 期"}</span>
-        <time dateTime="2026-11-24">2026.11.24</time>
+        <span>{language === "en" ? "Issue 063" : "第 063 期"}</span>
+        <time dateTime="2026-11-25">2026.11.25</time>
       </div>
 
       <div className="workspace">
@@ -8671,8 +8829,8 @@ export default function Home() {
               <div><span>{language === "en" ? "Research tracks" : "研究方向"}</span><b>{directions.length}</b></div>
             </div>
             <div className="issue-focus">
-              <h2>{language === "en" ? "Share useful semantics. Predict better evidence." : "共享有效语义，预测更好的证据。"}</h2>
-              <p>{language === "en" ? "Three papers on shared visual latents, dense Flow rewards and compact UAV world states." : "三篇论文聚焦共享视觉latent、稠密Flow奖励与紧凑无人机世界状态。"}</p>
+              <h2>{language === "en" ? "Share states. Test what futures obey." : "共享状态，检验未来服从什么。"}</h2>
+              <p>{language === "en" ? "Four papers on shared representations, lattice tokens, predictive memory and causal proxy rendering." : "四篇论文聚焦共享表征、lattice token、预测性记忆与可干预proxy渲染。"}</p>
               <div className="hero-actions">
                 <button className="primary-button" onClick={() => { changeActive("今日精选"); setQuery(""); setSourceType("all"); }}>{language === "en" ? "Read this issue" : "阅读本期推荐"} <span aria-hidden="true">↓</span></button>
                 <a className="text-button" href="#matrix">{language === "en" ? "Compare modeling routes" : "比较建模路线"} ↗</a>
@@ -8680,9 +8838,9 @@ export default function Home() {
             </div>
             <aside className="research-questions" aria-label={language === "en" ? "Questions to investigate" : "本期研究问题"}>
               <h2>{language === "en" ? "Start with a question" : "从问题出发"}</h2>
-              <button onClick={() => selectDeepReads("integral-abstraction-blockmot")}><span>{language === "en" ? "Does reconstruction preserve usable semantics?" : "重建是否保留可用的语义？"}</span><small>Integral ↗</small></button>
-              <button onClick={() => selectDeepReads("deflowcritic-dense-latent-reward")}><span>{language === "en" ? "Can rewards diagnose intermediate states?" : "奖励能否诊断中间状态？"}</span><small>DeFlowCritic ↗</small></button>
-              <button onClick={() => selectDeepReads("aerin-target-state-navigation")}><span>{language === "en" ? "Should we render or improve the view?" : "应该渲染未来还是改善视角？"}</span><small>AERIN ↗</small></button>
+              <button onClick={() => selectDeepReads("core-joint-contextual-representation")}><span>{language === "en" ? "Which state do both tasks actually share?" : "两种任务真正共享什么状态？"}</span><small>CoRe ↗</small></button>
+              <button onClick={() => selectDeepReads("dreamcatcher-surprisal-video-memory")}><span>{language === "en" ? "Which unexpected details should memory keep?" : "记忆应该保留哪些反常细节？"}</span><small>Dreamcatcher ↗</small></button>
+              <button onClick={() => selectDeepReads("simpwm-proxy-causal-intervention")}><span>{language === "en" ? "Does the video obey the simulated state?" : "视频服从模拟状态了吗？"}</span><small>SimPWM ↗</small></button>
             </aside>
           </section>
 
@@ -8804,6 +8962,7 @@ export default function Home() {
               <table>
                 <thead><tr><th>路线</th><th>状态空间</th><th>预测目标</th><th>生成顺序</th><th>最关键变量</th></tr></thead>
                 <tbody>
+                  <tr><th>CoRe / Nemotron</th><td>共享连续Z / 固定lattice token ID</td><td>VP加噪、clean Z+RGB/CE / causal next-token CE+GRPO</td><td>并行257NFE或蒸馏9 / 顺序AR另加harness</td><td>状态/目标/codec分开；contrastive基线非FLOP匹配，计全候选/judge</td></tr>
                   <tr><th>Integral / DeFlowCritic</th><td>共享AF连续latent / 特定VAE latent</td><td>Flow velocity / 稠密reward Flow-GRPO</td><td>block边界MoT / 可信t的ODE lookahead</td><td>codec语义与路由分开，计critic/全候选/lookahead</td></tr>
 <tr><th>Hindsight Forcing</th><td>连续video VAE与历史KV</td><td>DMD + 单clean-step ST梯度桥</td><td>前向完整4步，后向跨chunk近似</td><td>无新参数非无显存成本；有偏梯度，固定codec单测</td></tr>
 <tr><th>MixReact</th><td>动作VQ ID与连续humanoid state</td><td>masked CE + clean-state DDPM MSE</td><td>8轮plan，固定stop-gradient KV，10步AR窗口</td><td>分支参数/head分开；控制GT-plan偏差及完整控制器成本</td></tr>
@@ -9055,6 +9214,7 @@ export default function Home() {
               <table className="world-table">
                 <thead><tr><th>路线</th><th>观测状态</th><th>动作接口</th><th>动力学目标</th><th>建模方式</th><th>Rollout / 规划</th><th>与 UMM 的关系</th></tr></thead>
                 <tbody>
+                  <tr><th>Dreamcatcher / SimPWM</th><td>JEPA语义feature / 显式3D+VAE视频</td><td>无动作 / joint angles+gripper</td><td>冻结feature预测 / 规则transition+视频render</td><td>QA记忆 / 动作replay</td><td>两者均未证明物理闭环控制</td><td>计gate延迟；冻结对象测条件服从；审计calibration与horizon漂移</td></tr>
                   <tr><th>AERIN</th><td>4target+context slots</td><td>UAV位移与相机角度</td><td>1/2step residual L1，无去噪</td><td>候选lookahead，首动作与观测反馈</td><td>仿真主动观察，非实飞安全</td><td>计16view前端，oracle crop基线与compact dynamics分开</td></tr>
 <tr><th>ViewDreamer / ReactDrive</th><td>多view VAE slots / VAE+agent state</td><td>robot delta / ego轨迹</td><td>Flow+slot对齐 / Flow+agent回归</td><td>多view生成/WAM / 每query固定response</td><td>recorded-action replay与policy闭环分开</td><td>固定视角/监督/codec；事实响应不等于未见动作因果验证</td></tr>
 <tr><th>GEMS / MV-JEPA</th><td>语义subgoal / EMA view feature</td><td>simulator action / 无action</td><td>residual regression / masked L1</td><td>CEM闭环 / 单encoder推理</td><td>memory近邻不等于可达；跨view表征非自主动力学</td><td>分开检索/搜索与replay成本，单测horizon和实际成功</td></tr>
