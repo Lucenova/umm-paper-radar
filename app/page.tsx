@@ -7281,7 +7281,7 @@ const papers: Paper[] = [
   "domain": "UMM",
   "paradigm": "Shared Contextual Representation / VP Gaussian / Clean-State Prediction",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "kind": "Paper",
   "paper": "https://arxiv.org/abs/2611.31397",
@@ -7305,7 +7305,7 @@ const papers: Paper[] = [
   "domain": "图像生成",
   "paradigm": "Fixed Lattice Tokens / Causal AR / Agentic Rendering",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "kind": "Paper",
   "paper": "https://arxiv.org/abs/2611.31358",
@@ -7331,7 +7331,7 @@ const papers: Paper[] = [
   "domain": "World Model",
   "paradigm": "Frozen JEPA Prediction / Surprisal Memory / Evidence Gate",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "kind": "Paper",
   "paper": "https://arxiv.org/abs/2611.31765",
@@ -7358,7 +7358,7 @@ const papers: Paper[] = [
   "domain": "World Model",
   "paradigm": "Explicit Rule Dynamics / Proxy Rendering / Video Generator",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "kind": "Paper",
   "paper": "https://arxiv.org/abs/2611.32786",
@@ -7376,6 +7376,82 @@ const papers: Paper[] = [
   "action": "真实机械臂joint angles与gripper closure，经规则接触/搬运/释放驱动物体；不是latent action或仅文本提示。calibrated camera为前提，DROID评测camera fitting用了20帧（5帧在评测window）。",
   "rollout": "展示多帧recorded/perturbed action replay与proxy/video双输出；原文明确非闭环控制。刚性carry假设不适合cloth/rope，接触与几何误差会累积；没有实证长时MPC成功率。",
   "evaluation": "冻结object保持arm动作，rigid-object lift率H3-C42%→10%、LTX-C57%→49%，说明条件服从依赖renderer。报state/video disagreement与arm/object分开；校准用窗口外帧另列。闭环成功与可控性需独立实验，不能由逼真画面推断。"
+},
+{
+  "id": "scanar-row-parallel-umm",
+  "index": "290",
+  "title": "ScanAR: Parallel Row-Scan Decoding for Efficient Image Generation in Unified Autoregressive Models",
+  "shortTitle": "ScanAR",
+  "date": "2026-11-25 · v1 · checked/curated 2026-11-26",
+  "category": "建模与机制诊断",
+  "domain": "UMM",
+  "paradigm": "Discrete IDs / Row-Block AR / Shared Next-Token Head",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "kind": "Paper",
+  "paper": "https://arxiv.org/abs/2611.33761",
+  "summary": "首行按标准AR逐token生成，后续每行并行预测，target从上一行垂直对齐位置的hidden读取；row-block causal mask在提交状态时允许行内双向attention。保留主干、词表和输出head，不新增参数，但需要适配训练，不是精确复现raster分解的免费采样器。",
+  "why": "最贴近Qwen3+IBQ与2×2 folding的公平对照：不用同时换codec或生成head，即可改变视觉依赖图。适合判断URSA/ELF的收益究竟来自建模目标，还是单纯减少串行深度；横向glyph相关性必须单列。",
+  "inspiration": "研究假设：先在原IBQ网格上比较raster/ScanAR，再接2×2 merge，仍恢复四个原始ID，不创造merged ID。对长文字、细线和小目标做行内依赖压力测试；只压缩训练序列不能自动获得推理并行。",
+  "experiment": "固定Qwen3、IBQ、数据、参数、训练FLOPs、CFG与采样预算，比较raster AR、ScanAR、块内masked/URSA、ELF。每种都给相同post-training数据/步数的raster控制；报slot/block exact match、水平邻接共现、生成OCR、OCRBench/DocVQA/TextVQA、GenEval、code覆盖、真实延迟/吞吐/显存。2×2 folding单独做有无实验，计蒸馏teacher成本。",
+  "state": "离散visual token ID；无Gaussian forward noise、simplex流或mask corruption。非视觉token和首行保留causal规则；后续行提交hidden用row-block causal可见性，训练输入为GT tokens，不能把GT行内state误当生成时提前见答案。",
+  "objective": "共享词表logits/next-token CE，但视觉target的predecessor重新定义；U0附加首1K步raster teacher分布蒸馏。不是ELF embedding velocity/average velocity，也不是URSA metric-path去噪。",
+  "decoding": "H×W网格需要H+W−1次采样，另加首行state-only commit（H>1），有效深度H+W。Emu3.5后训练20Ksteps，U0为10K；论文1024→64深度、64.60→4.69s是在matched CFG设置，不能直接搬到Qwen硬件。",
+  "sharing": "继承UMM tokenizer、embedding/vocabulary、Transformer和next-token head；只改变mask/loss/readout与KV调度，支持AR权重初始化。行内条件独立近似可能损细节；训练dense4D mask可OOM，FlexAttention缓解，非零工程/显存成本。ELF/URSA比较需另控制每样本FLOPs。",
+  "open": "11月26日核对论文，未核验官方代码/权重链接，不标开源。精读§3.3/3.4/limitations/AppendixC；U0的checkpoint/后训练和视频采样设置不完全匹配，不能把其视频差异全归因到解码。"
+},
+{
+  "id": "recap-decoder-aware-token-map",
+  "index": "291",
+  "title": "Same Tokenizer, Better Tokens: Choosing Image Tokens by MAP Inference",
+  "shortTitle": "RecaP",
+  "date": "2026-11-24 · v1 · checked/curated 2026-11-26",
+  "category": "建模与机制诊断",
+  "domain": "图像生成",
+  "paradigm": "Frozen Codec / Decoder-Aware MAP / AR Prior",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "kind": "Paper",
+  "paper": "https://arxiv.org/abs/2611.33261",
+  "code": "https://github.com/gmum/recap",
+  "summary": "固定encoder/codebook/decoder，用重建loss加AR prior联合选择每个位置的code。对邻近候选做softmax退火、优化mixture logits，最后argmax得到离散图；它改变训练标签，不是新tokenizer架构或新生成范式。",
+  "why": "直接诊断IBQ→ELF palette问题：nearest encoder code不一定是decoder最优组合，容易预测的ID也不一定生成更好。原文更强prior权重反而恶化FID，提示低CE/低entropy不能独立作为成功指标。",
+  "inspiration": "研究假设：给Qwen3+IBQ离线构造NN、纯重建重选、重建+prior三套标签；保持原codec不动，比较glyph与稀有ID是否被prior抹掉，再分别训练AR/URSA/ELF。AR prior可能偏袒AR，需加入matched非AR prior或无prior端点。",
+  "experiment": "先用同一批文档/OCR/威胁帧固定IBQ，只改assignment；prior权重0/小/大，候选与搜索预算相同。测tokenizer-only重建OCR、LPIPS、每图unique IDs、稀有code与邻接误差；再固定Qwen3/数据/训练FLOPs比较下游生成、OCRBench/DocVQA/TextVQA、GenEval、coverage。报告离线编码和prior训练成本，训练集reference FID与held-out FID分开。",
+  "state": "生成模型仍读离散ID；搜索内部用每位置16邻近code的simplex mixture与连续expected embedding，最终argmax。该soft relaxation是编码优化，不是DFM probability path/URSA forward kernel；不改变词表维度。",
+  "objective": "MAP=decoder重建能量+AR序列prior的mean-field rate，冻结所有模型仅优化assignment logits。IBQ实验用L1+LPIPS-VGG+0.01rate、50搜索步/16候选；下游AR依然CE，不能把搜索梯度等同ELF velocity。",
+  "decoding": "一次性离线标签搜索后，生成照原AR/对应模型decode，不在每次生成执行50步搜索。论文ImageNet结果：早期training-reference FID收益更大，held-out较小；单个generator含编码成本更贵，跨多run摊销才可能省。无Qwen或URSA/ELF初始化实证。",
+  "sharing": "encoder/codebook/decoder/prior均冻结，改变同codec的标签分布；没有统一理解/生成Transformer或head的新证明。可作为所有范式共同数据端点，先固定重选标签再比较AR/URSA/ELF。masked生成端点未显示明确收益，不能宣称普适。",
+  "open": "论文给出gmum/recap链接，本次网页与GitHub App API均404，故代码未可访问；权重/数据发布未核验。精读§3/4.4/5与IBQ附录。与旧条目RECAP activation解释同名但不同方法，已按标题/arXiv全量去重。"
+},
+{
+  "id": "splatwam-gaussian-shortcut-dynamics",
+  "index": "292",
+  "title": "SplatWAM: Splatting World Action Models for Real-Time 3D Imagination",
+  "shortTitle": "SplatWAM",
+  "date": "2026-11-24 · v1 · checked/curated 2026-11-26",
+  "category": "建模与机制诊断",
+  "domain": "World Model",
+  "paradigm": "Explicit Gaussian State / X-Prediction / Shortcut Forcing",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "kind": "Paper",
+  "paper": "https://arxiv.org/abs/2611.33467",
+  "summary": "VGGT+learned query把无pose多视图压成固定预算Gaussian tokens，动力学在可渲染3D state上预测未来；共享backbone另加Flow action head。单步未来不是无噪声确定性回归：训练用逐帧独立加噪的diffusion forcing与shortcut consistency。",
+  "why": "为Qwen3+IBQ/URSA→ELF提供不同state端点：视觉清晰度与真实3D动力学可分开测。尤其提示token不必是离散ID，Gaussian token是连续几何参数；不能把action flow、world dynamics和renderer速度合为一个Flow结果。",
+  "inspiration": "研究假设：IBQ保留OCR/身份，独立Gaussian或track state负责运动/遮挡/风险；Qwen跨stream读语义接口。先固定观测/codec比较x0与velocity、single-step shortcut与多步，再探索共享理解—生成—预测—行动；原文没有共享IBQ/LLM词表。",
+  "experiment": "两层控制：先固定Gaussian codec/backbone/数据/FLOPs比较clean-state、velocity和shortcut预算；再固定动力学目标比较IBQ/语义embedding/Gaussian表示并明确codec重建差异。报1/8/16/32horizon对象/接触误差、action shuffle/反事实、跨视图、闭环成功、OCR/身份、NFE、端到端吞吐显存；另测policy梯度detach与render anchor，避免joint训练破坏rollout。",
+  "state": "每Gaussian用13维连续参数：位置3、log-Euclidean covariance6、opacity1、RGB3。固定query索引不等于真实物理点追踪；不是VAE latent或IBQ one-hot。每帧state按τ独立与Gaussian noise线性插值。",
+  "objective": "causal Transformer预测clean Gaussian state（x-prediction），shortcut forcing组合flow-matching与一大步匹配两小步的一致性，再加held-out-view render L2。不能只标velocity或average velocity；action policy另用Flow Matching，不与world目标混写。",
+  "decoding": "每未来帧从噪声开始K=1/d步shortcut，可单步；生成context重新加噪，超出窗口只留最近T−1state并重置时间索引。policy10Euler步，OGBench执行1action、LIBERO执行8/16chunk；codec30K、policy500K/100Kupdates，完整训练FLOPs未核验。",
+  "sharing": "world与policy共Gaussian表示及动力学backbone，agent tokens单独pass/非对称attention；LIBERO目标用冻结CLIP text encoder，非共享LLM词表/head。VGGT预训练不是AR初始化。与ELF连续state相近但几何/path/target不同，与URSA非同ID；公平比较必须先固定state。",
+  "open": "论文明确code/checkpoints will be released；本次未核验官方可下载实现，不标开源。精读§3.2/3.3与AppendixB/C.4。报告约80FPS为指定GPU/渲染设置，不等同全系统控制频率；多视图几何一致不保证动力学物理正确。",
+  "action": "OGBench真实环境动作，LIBERO机器人action chunks；目标为goal Gaussian state或CLIP文本instruction，不是无监督latent action。action dropout训练无条件future端点，必须做动作置乱检查。",
+  "rollout": "16/32horizon autoregressive state rollout及OGBench/LIBERO policy任务；控制来自goal-conditioned behavior cloning，不是证明MPC搜索。窗口Markov近似、遮挡与Gaussian退化仍需长时审计；单视图OCR细节不是主要验证目标。",
+  "evaluation": "除FVD/LPIPS/PSNR，记录任务成功、跨视图几何、对象/接触/动作因果误差与horizon积累。joint policy梯度会伤rollout，render supervision可缓解；对威胁检测需加rare-event召回与文本保持，不能只按新视图质量评价。"
 },
 ];
 
@@ -8417,6 +8493,42 @@ const englishOverrides: Record<string, Partial<EnglishPaperCopy>> = {
   "rollout": "Demonstrates multi-frame recorded/perturbed-action replay and proxy/video outputs; explicitly not closed-loop control. Rigid carrying fails for cloth/rope, and contact/geometric errors accumulate. No demonstrated long-horizon MPC success.",
   "evaluation": "With objects frozen and arm motion unchanged,rigid-object lift rate changes42%to10%forH3-C but57%to49%forLTX-C,showing renderer-dependent obedience. Separate arm/object fidelity and state/video disagreement; list out-of-window calibration separately. Closed-loop success and causal control need independent tests."
 },
+"scanar-row-parallel-umm": {
+  "summary": "Generate the first row causally, then sample each later row in parallel from vertically aligned predecessor states. A row-block causal mask uses within-row attention when committing states. Backbone, vocabulary and head remain unchanged, but training adaptation is required; this approximates rather than exactly reproduces raster factorization.",
+  "why": "A close controlled baseline for Qwen3+IBQ and2x2 folding: change the visual dependency graph without changing codec/head. Test whether URSA/ELF gains come from modeling targets or reduced serial depth, with horizontal glyph dependencies evaluated separately.",
+  "inspiration": "Hypothesis: compare raster/ScanAR on original IBQ grids before adding2x2 merging. Recover all four original IDs, without merged IDs. Stress-test text, strokes and small objects; compressed training sequences do not automatically yield parallel inference.",
+  "experiment": "Fix Qwen3, IBQ, data, parameters, training FLOPs, CFG and sampling budget. Compare raster AR,ScanAR,block masked/URSA and ELF, with equal-post-training raster controls. Report slot/block exact match, horizontal co-occurrence, generated-text OCR,OCRBench/DocVQA/TextVQA,GenEval,code coverage,latency,throughput and memory. Factor folding separately and count teacher compute.",
+  "state": "Discrete visual IDs without Gaussian corruption, simplex transport or masking. Nonvisual tokens/first row remain causal; subsequent committed states use row-block visibility. Training uses ground-truth tokens, but target prediction reads predecessor states rather than the target row.",
+  "objective": "Shared vocabulary logits/next-token CE with reassigned visual predecessors. U0 also uses raster-teacher distribution distillation during the first1K updates. Neither ELF embedding/average velocity nor URSA metric-path denoising.",
+  "decoding": "H*W grid: H+W-1 sampling groups plus one first-row state-only commit whenH>1, givingH+W effective depth. Emu3.5 post-training20Ksteps;U0 10K. Reported1024to64 depth and64.60to4.69s use matched CFG; these timings do not establish Qwen hardware performance.",
+  "sharing": "Retains UMM tokenizer,embedding/vocabulary,Transformer and next-token head, changing masks/loss/readout/KV scheduling; AR initialization supported. Conditional independence within rows can hurt detail. Dense4D masks can OOM;FlexAttention mitigates rather than eliminates engineering/memory cost. Match FLOPs before ELF/URSA comparisons.",
+  "open": "Checked2026-11-26: paper public; no verified official code/weights link. Deep-read Sections3.3/3.4,limitations and AppendixC. U0 checkpoints/post-training and video sampling are not fully matched, limiting attribution of video differences to decoding alone."
+},
+"recap-decoder-aware-token-map": {
+  "summary": "Freeze encoder,codebook and decoder; choose codes using reconstruction loss plus an AR prior. Annealed softmax mixtures over nearby codes optimize assignment logits before final argmax. This changes training labels rather than codec architecture or generation paradigm.",
+  "why": "Directly diagnoses IBQ-to-ELF palette problems: nearest encoder codes need not form the best decoder combination, and easier IDs need not generate better images. Stronger prior weighting worsens FID in the paper; lower CE/entropy is not sufficient evidence of progress.",
+  "inspiration": "Hypothesis: build NN,reconstruction-only and reconstruction-plus-prior label sets for frozen Qwen3+IBQ experiments. Audit erased glyphs/rare IDs before training AR/URSA/ELF. An AR prior may favor AR; include a no-prior or matched non-AR-prior endpoint.",
+  "experiment": "Fix IBQ and identical document/OCR/threat frames; vary assignment with zero/small/large prior weights under equal search budgets. Measure codec-only OCR,LPIPS,unique IDs,rare-code retention and adjacency errors. Then fix Qwen3,data/training FLOPs and compare generation,OCRBench/DocVQA/TextVQA,GenEval and coverage. Count offline encoding/prior training; separate training-reference and held-out FID.",
+  "state": "Generators still consume discrete IDs. Search uses a16-candidate simplex mixture and continuous expected embeddings,then argmax. This encoding relaxation is neither a DFM probability path nor a URSA forward kernel; vocabulary size stays fixed.",
+  "objective": "MAP combines decoder reconstruction energy and mean-field AR prior rate; only assignment logits update. IBQ usesL1+LPIPS-VGG+0.01rate,50search steps/16candidates. Downstream AR still usesCE; search gradients are not ELF velocity supervision.",
+  "decoding": "One-time offline label search; generation retains the underlying model’s decoder,without50search steps per generated image. Early training-reference FID gains are larger than held-out gains. Including encoding costs,one generator is more expensive; savings may require reuse across runs. No Qwen/URSA/ELF initialization demonstration.",
+  "sharing": "Encoder,codebook,decoder and prior stay frozen while label distributions change. No new shared understanding/generation Transformer/head demonstration. Supply identical reassigned labels across AR/URSA/ELF for a fair data endpoint. The masked generator shows no clear gain,limiting universality.",
+  "open": "Paper links togmum/recap,but both webpage and GitHub App API returned404 on2026-11-26; code not accessible. Weights/data release unverified. Deep-read Sections3/4.4/5 and IBQ appendix. Distinct from the archived activation-explanation RECAP despite the similar name."
+},
+"splatwam-gaussian-shortcut-dynamics": {
+  "summary": "VGGT plus learned queries maps unposed views to fixed-budget Gaussian states. Dynamics predicts renderable3D futures; a Flow action head reuses the backbone. One-step futures are not deterministic uncorrupted regression: training uses framewise diffusion forcing and shortcut consistency.",
+  "why": "A different state endpoint for Qwen3+IBQ/URSA-to-ELF, separating visual quality from3D dynamics. Gaussian tokens are continuous geometry,not discrete IDs. Keep action flow,world prediction and renderer speed distinct.",
+  "inspiration": "Hypothesis: preserve OCR/identity with IBQ and model motion,occlusion and risk in Gaussian/track states; Qwen reads their semantic interface. Comparex0/velocity and one-step/multistep shortcuts before sharing understanding-generation-prediction-action. The paper does not share an IBQ/LLM vocabulary.",
+  "experiment": "First fix Gaussian codec,backbone,data/FLOPs and vary clean-state/velocity/shortcut budgets. Then compare IBQ,semantic and Gaussian states under fixed targets,explicitly measuring codec differences. Report1/8/16/32-horizon object/contact errors,action shuffle/counterfactuals,cross-view consistency,closed-loop success,OCR/identity,NFE,full throughput/memory. Factor policy-gradient detachment/render anchoring separately.",
+  "state": "Each primitive has13continuous coordinates:position3,log-Euclidean covariance6,opacity1,RGB3. Fixed query indices are not physical-point correspondence. Neither VAE nor IBQ one-hot states. Each frame independently interpolates its state with Gaussian noise at signal leveltau.",
+  "objective": "A causal Transformer predicts clean Gaussian states. Shortcut forcing combines flow matching and large-step/two-small-step consistency,plus held-out-view renderL2. Do not label the target simply velocity or average velocity. Action-policy Flow Matching is a separate objective.",
+  "decoding": "Each future starts from noise and takesK=1/d shortcut steps,including one-step settings. Generated context is re-noised; beyond-window rollout retainsT-1states and reindexes time. Policy:10Euler steps,executes1action onOGBench or8of16chunk actions onLIBERO. Codec30Kupdates;policy500K/100K;total training FLOPs unverified.",
+  "sharing": "World/policy share Gaussian states and dynamics backbone; agent tokens use a separate pass/asymmetric attention. LIBERO uses frozen CLIP text goals,not a shared LLM vocabulary/head. VGGT initialization is not AR initialization. Continuous like ELF but with different geometry/path/target; not URSA ID dynamics. Fix states for fair comparisons.",
+  "open": "Paper says code/checkpoints will be released; no verified downloadable official implementation. Deep-read Sections3.2/3.3 and AppendicesB/C.4. About80FPS refers to specific GPU/rendering settings,not full control frequency. Geometric view consistency does not guarantee correct physics.",
+  "action": "Real OGBench controls and LIBERO robot chunks,conditioned on goal Gaussian states or CLIP text instructions,not unsupervised latent actions. Action dropout adds marginalized-future training; test action shuffles.",
+  "rollout": "Autoregressive16/32-horizon state prediction and OGBench/LIBERO policy tasks. Control uses goal-conditioned behavior cloning,not demonstrated MPC search. Windowed Markov approximation,occlusion and degenerate primitives require longer audits; OCR is not a primary validated capability.",
+  "evaluation": "Beyond FVD/LPIPS/PSNR,measure task success,cross-view geometry,object/contact/action causal errors and horizon accumulation. Joint policy gradients can degrade prediction;render supervision mitigates it. Threat applications also require rare-event recall and text preservation."
+},
 };
 
 function getEnglishCopy(paper: Paper): EnglishPaperCopy {
@@ -8536,7 +8648,8 @@ function EnglishMatrices() {
       <section className="matrix-section" id="matrix">
         <div className="section-heading"><div><h2>UMM Generation Matrix</h2></div><p>Fix backbone, tokenizer, data, and compute</p></div>
         <div className="matrix-wrap" role="region" tabIndex={0} aria-label="Scrollable comparison table"><table><thead><tr><th>Route</th><th>State</th><th>Target</th><th>Decoding</th><th>Key control</th></tr></thead><tbody>
-          <tr><th>CoRe / Nemotron</th><td>Shared continuous Z / fixed lattice token IDs</td><td>VP corruption;clean Z plus RGB/CE / causal next-token CE plus GRPO</td><td>Parallel257NFE or distilled9 / sequential AR plus optional harness</td><td>Separate state, target and codec changes; no FLOP-matched contrastive control; count every candidate/judge</td></tr>
+          <tr><th>ScanAR / RecaP</th><td>Same discrete IDs / reassigned IDs via soft candidate search</td><td>Changed predecessor CE / offline reconstruction-plus-prior MAP</td><td>Row-parallel H+W depth / underlying generator unchanged</td><td>Match post-training and codec; audit horizontal OCR, prior bias and offline-search cost</td></tr>
+                  <tr><th>CoRe / Nemotron</th><td>Shared continuous Z / fixed lattice token IDs</td><td>VP corruption;clean Z plus RGB/CE / causal next-token CE plus GRPO</td><td>Parallel257NFE or distilled9 / sequential AR plus optional harness</td><td>Separate state, target and codec changes; no FLOP-matched contrastive control; count every candidate/judge</td></tr>
                   <tr><th>Integral / DeFlowCritic</th><td>Shared AF continuous latent / model-specific VAE latent</td><td>Flow velocity / dense-reward Flow-GRPO</td><td>Block-boundary MoT / trusted-time ODE lookahead</td><td>Separate codec-semantic gains from routing; count critic, all candidates and lookahead</td></tr>
 <tr><th>Hindsight Forcing</th><td>Continuous video VAE plus historical KV</td><td>DMD with a selected-clean-step ST gradient bridge</td><td>Full four-step forward; surrogate cross-chunk backward</td><td>No new parameters does not mean free memory; biased gradient, fixed-codec controls required</td></tr>
 <tr><th>MixReact</th><td>Motion VQ IDs plus continuous humanoid states</td><td>Masked CE plus clean-state DDPM MSE</td><td>Eight plan rounds; fixed stop-gradient KV; ten-step AR windows</td><td>Separate branch weights/heads; GT-plan exposure and full controller cost must be controlled</td></tr>
@@ -8581,7 +8694,8 @@ function EnglishMatrices() {
       <section className="world-section" id="world-matrix">
         <div className="section-heading"><div><h2>Understanding → Generation → Prediction → Action</h2></div><p>Do not reduce evaluation to FVD or LPIPS</p></div>
         <div className="matrix-wrap" role="region" tabIndex={0} aria-label="Scrollable comparison table"><table className="world-table"><thead><tr><th>Model</th><th>Observation state</th><th>Action</th><th>Dynamics target</th><th>Rollout / planning</th><th>UMM connection</th></tr></thead><tbody>
-          <tr><th>Dreamcatcher / SimPWM</th><td>JEPA semantic features / explicit3D plus VAE video</td><td>No actions / real joint angles and gripper</td><td>Frozen feature prediction / rule transition plus video rendering</td><td>QA memory, no control loop / recorded or perturbed replay, no closed loop</td><td>Count evidence-gate latency; freeze objects to test renderer obedience; audit calibration and horizon drift</td></tr>
+          <tr><th>SplatWAM</th><td>Explicit13D Gaussian tokens</td><td>Real action chunks;goal state/text</td><td>Framewise noising;x-prediction plus shortcut/render losses</td><td>AR state rollout;shared-backbone behavior cloning</td><td>Separate10-step action Flow from one-step dynamics;count codec and inspect16/32-horizon causal/closed-loop errors</td></tr>
+                  <tr><th>Dreamcatcher / SimPWM</th><td>JEPA semantic features / explicit3D plus VAE video</td><td>No actions / real joint angles and gripper</td><td>Frozen feature prediction / rule transition plus video rendering</td><td>QA memory, no control loop / recorded or perturbed replay, no closed loop</td><td>Count evidence-gate latency; freeze objects to test renderer obedience; audit calibration and horizon drift</td></tr>
                   <tr><th>AERIN</th><td>Four target slots plus context</td><td>UAV translation and camera angles</td><td>One/two-step residual feature L1; no denoising</td><td>Candidate lookahead, first action, observation feedback</td><td>Simulation evidence; count sixteen-view frontend and separate oracle-crop baselines from compact dynamics</td></tr>
 <tr><th>ViewDreamer / ReactDrive</th><td>Multi-view VAE slots / VAE plus agent states</td><td>Robot deltas / queried ego trajectory</td><td>Flow with slot agreement / Flow plus agent regression</td><td>Variable-view generation and WAM / fixed response tokens per query</td><td>Recorded-action rollout is distinct from closed-loop policy; factual response supervision is not counterfactual identification</td></tr>
 <tr><th>GEMS / MV-JEPA</th><td>Semantic latent subgoals / EMA view features</td><td>Simulator controls / no actions</td><td>Residual regression / masked L1 prediction</td><td>CEM feedback planning / encoder-only inference</td><td>Memory proximity is not reachability; cross-view representation is not autonomous dynamics. Count retrieval/search or training replay separately</td></tr>
@@ -8772,8 +8886,8 @@ export default function Home() {
       <div className="issue-strip" id="top">
         <span>{language === "en" ? "Research workspace" : "研究空间"}</span>
         <span aria-hidden="true">/</span>
-        <span>{language === "en" ? "Issue 063" : "第 063 期"}</span>
-        <time dateTime="2026-11-25">2026.11.25</time>
+        <span>{language === "en" ? "Issue 064" : "第 064 期"}</span>
+        <time dateTime="2026-11-26">2026.11.26</time>
       </div>
 
       <div className="workspace">
@@ -8829,8 +8943,8 @@ export default function Home() {
               <div><span>{language === "en" ? "Research tracks" : "研究方向"}</span><b>{directions.length}</b></div>
             </div>
             <div className="issue-focus">
-              <h2>{language === "en" ? "Share states. Test what futures obey." : "共享状态，检验未来服从什么。"}</h2>
-              <p>{language === "en" ? "Four papers on shared representations, lattice tokens, predictive memory and causal proxy rendering." : "四篇论文聚焦共享表征、lattice token、预测性记忆与可干预proxy渲染。"}</p>
+              <h2>{language === "en" ? "Choose tokens. Rethink their dependencies." : "重选token，重审依赖关系。"}</h2>
+              <p>{language === "en" ? "Three papers on decoder-aware assignment, parallel UMM decoding and explicit Gaussian world dynamics." : "三篇论文聚焦decoder感知重选、UMM并行解码与显式Gaussian世界动力学。"}</p>
               <div className="hero-actions">
                 <button className="primary-button" onClick={() => { changeActive("今日精选"); setQuery(""); setSourceType("all"); }}>{language === "en" ? "Read this issue" : "阅读本期推荐"} <span aria-hidden="true">↓</span></button>
                 <a className="text-button" href="#matrix">{language === "en" ? "Compare modeling routes" : "比较建模路线"} ↗</a>
@@ -8838,9 +8952,9 @@ export default function Home() {
             </div>
             <aside className="research-questions" aria-label={language === "en" ? "Questions to investigate" : "本期研究问题"}>
               <h2>{language === "en" ? "Start with a question" : "从问题出发"}</h2>
-              <button onClick={() => selectDeepReads("core-joint-contextual-representation")}><span>{language === "en" ? "Which state do both tasks actually share?" : "两种任务真正共享什么状态？"}</span><small>CoRe ↗</small></button>
-              <button onClick={() => selectDeepReads("dreamcatcher-surprisal-video-memory")}><span>{language === "en" ? "Which unexpected details should memory keep?" : "记忆应该保留哪些反常细节？"}</span><small>Dreamcatcher ↗</small></button>
-              <button onClick={() => selectDeepReads("simpwm-proxy-causal-intervention")}><span>{language === "en" ? "Does the video obey the simulated state?" : "视频服从模拟状态了吗？"}</span><small>SimPWM ↗</small></button>
+              <button onClick={() => selectDeepReads("scanar-row-parallel-umm")}><span>{language === "en" ? "Which dependencies require serial decoding?" : "哪些依赖必须串行解码？"}</span><small>ScanAR ↗</small></button>
+              <button onClick={() => selectDeepReads("recap-decoder-aware-token-map")}><span>{language === "en" ? "Are nearest codes the best training targets?" : "最近邻code是最优训练标签吗？"}</span><small>RecaP ↗</small></button>
+              <button onClick={() => selectDeepReads("splatwam-gaussian-shortcut-dynamics")}><span>{language === "en" ? "What should the world state represent?" : "世界状态应该表示什么？"}</span><small>SplatWAM ↗</small></button>
             </aside>
           </section>
 
@@ -8962,6 +9076,7 @@ export default function Home() {
               <table>
                 <thead><tr><th>路线</th><th>状态空间</th><th>预测目标</th><th>生成顺序</th><th>最关键变量</th></tr></thead>
                 <tbody>
+                  <tr><th>ScanAR / RecaP</th><td>同离散ID / soft候选搜索后重选ID</td><td>改predecessor CE / 离线重建+prior MAP</td><td>行并行H+W深度 / 下游生成规则不变</td><td>匹配后训练与codec，测横向OCR/prior偏差/离线成本</td></tr>
                   <tr><th>CoRe / Nemotron</th><td>共享连续Z / 固定lattice token ID</td><td>VP加噪、clean Z+RGB/CE / causal next-token CE+GRPO</td><td>并行257NFE或蒸馏9 / 顺序AR另加harness</td><td>状态/目标/codec分开；contrastive基线非FLOP匹配，计全候选/judge</td></tr>
                   <tr><th>Integral / DeFlowCritic</th><td>共享AF连续latent / 特定VAE latent</td><td>Flow velocity / 稠密reward Flow-GRPO</td><td>block边界MoT / 可信t的ODE lookahead</td><td>codec语义与路由分开，计critic/全候选/lookahead</td></tr>
 <tr><th>Hindsight Forcing</th><td>连续video VAE与历史KV</td><td>DMD + 单clean-step ST梯度桥</td><td>前向完整4步，后向跨chunk近似</td><td>无新参数非无显存成本；有偏梯度，固定codec单测</td></tr>
@@ -9214,6 +9329,7 @@ export default function Home() {
               <table className="world-table">
                 <thead><tr><th>路线</th><th>观测状态</th><th>动作接口</th><th>动力学目标</th><th>建模方式</th><th>Rollout / 规划</th><th>与 UMM 的关系</th></tr></thead>
                 <tbody>
+                  <tr><th>SplatWAM</th><td>显式13D Gaussian tokens</td><td>真实action chunks，goal state/text</td><td>逐帧加噪，x-prediction+shortcut/render</td><td>AR state rollout，共主干BC policy</td><td>任务控制证据不等同MPC搜索</td><td>10step动作Flow与单步动力学分开，计codec/16与32horizon因果误差</td></tr>
                   <tr><th>Dreamcatcher / SimPWM</th><td>JEPA语义feature / 显式3D+VAE视频</td><td>无动作 / joint angles+gripper</td><td>冻结feature预测 / 规则transition+视频render</td><td>QA记忆 / 动作replay</td><td>两者均未证明物理闭环控制</td><td>计gate延迟；冻结对象测条件服从；审计calibration与horizon漂移</td></tr>
                   <tr><th>AERIN</th><td>4target+context slots</td><td>UAV位移与相机角度</td><td>1/2step residual L1，无去噪</td><td>候选lookahead，首动作与观测反馈</td><td>仿真主动观察，非实飞安全</td><td>计16view前端，oracle crop基线与compact dynamics分开</td></tr>
 <tr><th>ViewDreamer / ReactDrive</th><td>多view VAE slots / VAE+agent state</td><td>robot delta / ego轨迹</td><td>Flow+slot对齐 / Flow+agent回归</td><td>多view生成/WAM / 每query固定response</td><td>recorded-action replay与policy闭环分开</td><td>固定视角/监督/codec；事实响应不等于未见动作因果验证</td></tr>
