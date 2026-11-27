@@ -7387,7 +7387,7 @@ const papers: Paper[] = [
   "domain": "UMM",
   "paradigm": "Discrete IDs / Row-Block AR / Shared Next-Token Head",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "kind": "Paper",
   "paper": "https://arxiv.org/abs/2611.33761",
@@ -7411,7 +7411,7 @@ const papers: Paper[] = [
   "domain": "图像生成",
   "paradigm": "Frozen Codec / Decoder-Aware MAP / AR Prior",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "kind": "Paper",
   "paper": "https://arxiv.org/abs/2611.33261",
@@ -7436,7 +7436,7 @@ const papers: Paper[] = [
   "domain": "World Model",
   "paradigm": "Explicit Gaussian State / X-Prediction / Shortcut Forcing",
   "priority": "精读",
-  "featured": true,
+  "featured": false,
   "idea": true,
   "kind": "Paper",
   "paper": "https://arxiv.org/abs/2611.33467",
@@ -7452,6 +7452,1065 @@ const papers: Paper[] = [
   "action": "OGBench真实环境动作，LIBERO机器人action chunks；目标为goal Gaussian state或CLIP文本instruction，不是无监督latent action。action dropout训练无条件future端点，必须做动作置乱检查。",
   "rollout": "16/32horizon autoregressive state rollout及OGBench/LIBERO policy任务；控制来自goal-conditioned behavior cloning，不是证明MPC搜索。窗口Markov近似、遮挡与Gaussian退化仍需长时审计；单视图OCR细节不是主要验证目标。",
   "evaluation": "除FVD/LPIPS/PSNR，记录任务成功、跨视图几何、对象/接触/动作因果误差与horizon积累。joint policy梯度会伤rollout，render supervision可缓解；对威胁检测需加rare-event召回与文本保持，不能只按新视图质量评价。"
+},
+{
+  "id": "cm3-causal-infilling",
+  "title": "CM3: A Causal Masked Multimodal Model of the Internet",
+  "shortTitle": "CM3",
+  "date": "2022-01-19 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2201.07520",
+  "project": "https://arxiv.org/abs/2201.07520",
+  "paradigm": "Discrete Outputs / Causal or Seq2Seq Modeling",
+  "summary": "VQ图像ID与text/HTML ID；mask span移动到末尾再做causal next-token CE，不是迭代离散扩散。",
+  "why": "ICML离散UMM相关工作的基础参照：不能把统一任务、共享词表、共享视觉输入表示和同一生成目标混为一谈。用于核对AR／MaskGiT／URSA实验中哪些变量真正固定。",
+  "inspiration": "研究假设：固定Qwen3与选定视觉codec，让理解与生成共享可测试的语义接口；分别测输入连续/离散、mask策略与head依赖，不由参数共享推断知识迁移。",
+  "experiment": "固定Qwen3、视觉codec、数据、参数与训练FLOPs，只切换causal/masked/metric-path目标；再单独改tokenizer与共享边界。报告OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、ID覆盖、组内相关性、遗忘、吞吐/显存/稳定性；完整计入预训练、检索、teacher及候选开销。",
+  "state": "VQ图像ID与text/HTML ID；mask span移动到末尾再做causal next-token CE，不是迭代离散扩散。",
+  "objective": "主模型输出离散token logits，以causal/seq2seq next-token CE或任务重建目标训练；若预训练使用span mask不意味着推理是masked diffusion。无ELF式连续velocity目标。",
+  "decoding": "自回归输出文本/视觉ID，再接各自codec；串行复杂度依输出长度与KV cache增长。不是从AR权重无训练改为双向mask；具体训练updates/FLOPs与同硬件延迟本次未复核。",
+  "sharing": "共享跨任务Transformer不自动等于共享全部encoder、tokenizer、embedding和输出head。VQ图像ID与text/HTML ID；mask span移动到末尾再做causal next-token CE，不是迭代离散扩散。 与URSA的离散状态有关，但forward path/分解不同；ELF仅作连续外部边界。",
+  "open": "论文/作者页面可访问；本次未验证完整训练代码与可用生成checkpoint，不标全部开源。 作为历史补读，非今日新作；精读原文method与训练/评测协议，勿把不同数据预算榜单当严格因果比较。",
+  "index": "293"
+},
+{
+  "id": "ofa-seq2seq-discrete-output",
+  "title": "OFA: Unifying Architectures, Tasks, and Modalities Through a Simple Sequence-to-Sequence Learning Framework",
+  "shortTitle": "OFA",
+  "date": "2022-02-07 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2202.03052",
+  "project": "https://github.com/OFA-Sys/OFA",
+  "paradigm": "Discrete Outputs / Causal or Seq2Seq Modeling",
+  "code": "https://github.com/OFA-Sys/OFA",
+  "summary": "输入图像使用视觉feature，生成图像为离散code；共享seq2seq Transformer及指令接口支持caption/VQA/grounding与生成，不能称输入全离散。",
+  "why": "ICML离散UMM相关工作的基础参照：不能把统一任务、共享词表、共享视觉输入表示和同一生成目标混为一谈。用于核对AR／MaskGiT／URSA实验中哪些变量真正固定。",
+  "inspiration": "研究假设：固定Qwen3与选定视觉codec，让理解与生成共享可测试的语义接口；分别测输入连续/离散、mask策略与head依赖，不由参数共享推断知识迁移。",
+  "experiment": "固定Qwen3、视觉codec、数据、参数与训练FLOPs，只切换causal/masked/metric-path目标；再单独改tokenizer与共享边界。报告OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、ID覆盖、组内相关性、遗忘、吞吐/显存/稳定性；完整计入预训练、检索、teacher及候选开销。",
+  "state": "输入图像使用视觉feature，生成图像为离散code；共享seq2seq Transformer及指令接口支持caption/VQA/grounding与生成，不能称输入全离散。",
+  "objective": "主模型输出离散token logits，以causal/seq2seq next-token CE或任务重建目标训练；若预训练使用span mask不意味着推理是masked diffusion。无ELF式连续velocity目标。",
+  "decoding": "自回归输出文本/视觉ID，再接各自codec；串行复杂度依输出长度与KV cache增长。不是从AR权重无训练改为双向mask；具体训练updates/FLOPs与同硬件延迟本次未复核。",
+  "sharing": "共享跨任务Transformer不自动等于共享全部encoder、tokenizer、embedding和输出head。输入图像使用视觉feature，生成图像为离散code；共享seq2seq Transformer及指令接口支持caption/VQA/grounding与生成，不能称输入全离散。 与URSA的离散状态有关，但forward path/分解不同；ELF仅作连续外部边界。",
+  "open": "官方repo可访问且链接代码/模型；具体数据license、全部checkpoint与重训复现程度需逐项复核。 作为历史补读，非今日新作；精读原文method与训练/评测协议，勿把不同数据预算榜单当严格因果比较。",
+  "index": "294"
+},
+{
+  "id": "unified-io-original",
+  "title": "Unified-IO: A Unified Model for Vision, Language, and Multi-Modal Tasks",
+  "shortTitle": "Unified-IO",
+  "date": "2022-06-17 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2206.08916",
+  "project": "https://unified-io.allenai.org/",
+  "paradigm": "Discrete Outputs / Causal or Seq2Seq Modeling",
+  "summary": "把图像、文本及稠密/稀疏任务输出统一为离散词表序列，单Transformer在90余数据集联合训练；任务统一早于当前decoder-only UMM。",
+  "why": "ICML离散UMM相关工作的基础参照：不能把统一任务、共享词表、共享视觉输入表示和同一生成目标混为一谈。用于核对AR／MaskGiT／URSA实验中哪些变量真正固定。",
+  "inspiration": "研究假设：固定Qwen3与选定视觉codec，让理解与生成共享可测试的语义接口；分别测输入连续/离散、mask策略与head依赖，不由参数共享推断知识迁移。",
+  "experiment": "固定Qwen3、视觉codec、数据、参数与训练FLOPs，只切换causal/masked/metric-path目标；再单独改tokenizer与共享边界。报告OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、ID覆盖、组内相关性、遗忘、吞吐/显存/稳定性；完整计入预训练、检索、teacher及候选开销。",
+  "state": "把图像、文本及稠密/稀疏任务输出统一为离散词表序列，单Transformer在90余数据集联合训练；任务统一早于当前decoder-only UMM。",
+  "objective": "主模型输出离散token logits，以causal/seq2seq next-token CE或任务重建目标训练；若预训练使用span mask不意味着推理是masked diffusion。无ELF式连续velocity目标。",
+  "decoding": "自回归输出文本/视觉ID，再接各自codec；串行复杂度依输出长度与KV cache增长。不是从AR权重无训练改为双向mask；具体训练updates/FLOPs与同硬件延迟本次未复核。",
+  "sharing": "共享跨任务Transformer不自动等于共享全部encoder、tokenizer、embedding和输出head。把图像、文本及稠密/稀疏任务输出统一为离散词表序列，单Transformer在90余数据集联合训练；任务统一早于当前decoder-only UMM。 与URSA的离散状态有关，但forward path/分解不同；ELF仅作连续外部边界。",
+  "open": "论文/作者页面可访问；本次未验证完整训练代码与可用生成checkpoint，不标全部开源。 作为历史补读，非今日新作；精读原文method与训练/评测协议，勿把不同数据预算榜单当严格因果比较。",
+  "index": "295"
+},
+{
+  "id": "magvlt-masked-vl",
+  "title": "MAGVLT: Masked Generative Vision-and-Language Transformer",
+  "shortTitle": "MAGVLT",
+  "date": "2023-03-21 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2303.12208",
+  "project": "https://openaccess.thecvf.com/content/CVPR2023/html/Kim_MAGVLT_Masked_Generative_Vision-and-Language_Transformer_CVPR_2023_paper.html",
+  "paradigm": "Discrete Outputs / Masked Multimodal Modeling",
+  "summary": "VQGAN图像ID与BPE文本ID进入双向Transformer，联合/I2T/T2I masked预测并迭代并行修订；原文对比ARGVLT，是AR与masked对照的重要早期原作。",
+  "why": "ICML离散UMM相关工作的基础参照：不能把统一任务、共享词表、共享视觉输入表示和同一生成目标混为一谈。用于核对AR／MaskGiT／URSA实验中哪些变量真正固定。",
+  "inspiration": "研究假设：固定Qwen3与选定视觉codec，让理解与生成共享可测试的语义接口；分别测输入连续/离散、mask策略与head依赖，不由参数共享推断知识迁移。",
+  "experiment": "固定Qwen3、视觉codec、数据、参数与训练FLOPs，只切换causal/masked/metric-path目标；再单独改tokenizer与共享边界。报告OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、ID覆盖、组内相关性、遗忘、吞吐/显存/稳定性；完整计入预训练、检索、teacher及候选开销。",
+  "state": "VQGAN图像ID与BPE文本ID进入双向Transformer，联合/I2T/T2I masked预测并迭代并行修订；原文对比ARGVLT，是AR与masked对照的重要早期原作。",
+  "objective": "随机MASK/可见token子集训练，预测clean类别logits/CE；生成迭代恢复。具体模态head与decode调度应按原实现，不等同连续velocity或average velocity。",
+  "decoding": "并行预测未知token并逐轮提交/修订，非逐像素连续Flow；训练updates、精确迭代次数与统一硬件峰值显存本次未复核，应按具体任务和checkpoint单列。",
+  "sharing": "共享跨任务Transformer不自动等于共享全部encoder、tokenizer、embedding和输出head。VQGAN图像ID与BPE文本ID进入双向Transformer，联合/I2T/T2I masked预测并迭代并行修订；原文对比ARGVLT，是AR与masked对照的重要早期原作。 与URSA的离散状态有关，但forward path/分解不同；ELF仅作连续外部边界。",
+  "open": "论文/作者页面可访问；本次未验证完整训练代码与可用生成checkpoint，不标全部开源。 作为历史补读，非今日新作；精读原文method与训练/评测协议，勿把不同数据预算榜单当严格因果比较。",
+  "index": "296"
+},
+{
+  "id": "cm3leon-retrieval-ar",
+  "title": "Scaling Autoregressive Multi-Modal Models: Pretraining and Instruction Tuning",
+  "shortTitle": "CM3leon",
+  "date": "2023-09-05 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2309.02591",
+  "project": "https://ai.meta.com/blog/generative-ai-text-images-cm3leon/",
+  "paradigm": "Discrete Outputs / Causal or Seq2Seq Modeling",
+  "summary": "检索增强causal混合模态预训练再多任务SFT；256²图像1024个VQ ID、8192视觉词表，与文本交错。infilling为causal span relocation，不是masked diffusion。",
+  "why": "ICML离散UMM相关工作的基础参照：不能把统一任务、共享词表、共享视觉输入表示和同一生成目标混为一谈。用于核对AR／MaskGiT／URSA实验中哪些变量真正固定。",
+  "inspiration": "研究假设：固定Qwen3与选定视觉codec，让理解与生成共享可测试的语义接口；分别测输入连续/离散、mask策略与head依赖，不由参数共享推断知识迁移。",
+  "experiment": "固定Qwen3、视觉codec、数据、参数与训练FLOPs，只切换causal/masked/metric-path目标；再单独改tokenizer与共享边界。报告OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、ID覆盖、组内相关性、遗忘、吞吐/显存/稳定性；完整计入预训练、检索、teacher及候选开销。",
+  "state": "检索增强causal混合模态预训练再多任务SFT；256²图像1024个VQ ID、8192视觉词表，与文本交错。infilling为causal span relocation，不是masked diffusion。",
+  "objective": "主模型输出离散token logits，以causal/seq2seq next-token CE或任务重建目标训练；若预训练使用span mask不意味着推理是masked diffusion。无ELF式连续velocity目标。",
+  "decoding": "自回归输出文本/视觉ID，再接各自codec；串行复杂度依输出长度与KV cache增长。不是从AR权重无训练改为双向mask；具体训练updates/FLOPs与同硬件延迟本次未复核。",
+  "sharing": "共享跨任务Transformer不自动等于共享全部encoder、tokenizer、embedding和输出head。检索增强causal混合模态预训练再多任务SFT；256²图像1024个VQ ID、8192视觉词表，与文本交错。infilling为causal span relocation，不是masked diffusion。 与URSA的离散状态有关，但forward path/分解不同；ELF仅作连续外部边界。",
+  "open": "论文/作者页面可访问；本次未验证完整训练代码与可用生成checkpoint，不标全部开源。 作为历史补读，非今日新作；精读原文method与训练/评测协议，勿把不同数据预算榜单当严格因果比较。",
+  "index": "297"
+},
+{
+  "id": "4m-multimodal-masked",
+  "title": "4M: Massively Multimodal Masked Modeling",
+  "shortTitle": "4M",
+  "date": "2023-12-11 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2312.06647",
+  "project": "https://4m.epfl.ch/",
+  "paradigm": "Discrete Outputs / Masked Multimodal Modeling",
+  "code": "https://github.com/apple-aiml-research/ml-4m",
+  "summary": "模态专属离散tokenizer覆盖RGB/文本/几何/语义及neural feature；共享encoder-decoder对随机token子集做multimodal masked预测，支持任意模态条件，不局限图像caption。",
+  "why": "ICML离散UMM相关工作的基础参照：不能把统一任务、共享词表、共享视觉输入表示和同一生成目标混为一谈。用于核对AR／MaskGiT／URSA实验中哪些变量真正固定。",
+  "inspiration": "研究假设：固定Qwen3与选定视觉codec，让理解与生成共享可测试的语义接口；分别测输入连续/离散、mask策略与head依赖，不由参数共享推断知识迁移。",
+  "experiment": "固定Qwen3、视觉codec、数据、参数与训练FLOPs，只切换causal/masked/metric-path目标；再单独改tokenizer与共享边界。报告OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、ID覆盖、组内相关性、遗忘、吞吐/显存/稳定性；完整计入预训练、检索、teacher及候选开销。",
+  "state": "模态专属离散tokenizer覆盖RGB/文本/几何/语义及neural feature；共享encoder-decoder对随机token子集做multimodal masked预测，支持任意模态条件，不局限图像caption。",
+  "objective": "随机MASK/可见token子集训练，预测clean类别logits/CE；生成迭代恢复。具体模态head与decode调度应按原实现，不等同连续velocity或average velocity。",
+  "decoding": "并行预测未知token并逐轮提交/修订，非逐像素连续Flow；训练updates、精确迭代次数与统一硬件峰值显存本次未复核，应按具体任务和checkpoint单列。",
+  "sharing": "共享跨任务Transformer不自动等于共享全部encoder、tokenizer、embedding和输出head。模态专属离散tokenizer覆盖RGB/文本/几何/语义及neural feature；共享encoder-decoder对随机token子集做multimodal masked预测，支持任意模态条件，不局限图像caption。 与URSA的离散状态有关，但forward path/分解不同；ELF仅作连续外部边界。",
+  "open": "官方repo可访问且链接代码/模型；具体数据license、全部checkpoint与重训复现程度需逐项复核。 作为历史补读，非今日新作；精读原文method与训练/评测协议，勿把不同数据预算榜单当严格因果比较。",
+  "index": "298"
+},
+{
+  "id": "unified-io2-anytoany",
+  "title": "Unified-IO 2: Scaling Autoregressive Multimodal Models with Vision, Language, Audio, and Action",
+  "shortTitle": "Unified-IO 2",
+  "date": "2023-12-28 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2312.17172",
+  "project": "https://unified-io-2.allenai.org/",
+  "paradigm": "Discrete Outputs / Causal or Seq2Seq Modeling",
+  "code": "https://github.com/allenai/unified-io-2",
+  "summary": "共享encoder-decoder覆盖图文音频动作与空间token；图像输入ViT patch feature，输出VQGAN离散code。multimodal denoiser预训练不等于图像推理使用diffusion sampler。",
+  "why": "ICML离散UMM相关工作的基础参照：不能把统一任务、共享词表、共享视觉输入表示和同一生成目标混为一谈。用于核对AR／MaskGiT／URSA实验中哪些变量真正固定。",
+  "inspiration": "研究假设：固定Qwen3与选定视觉codec，让理解与生成共享可测试的语义接口；分别测输入连续/离散、mask策略与head依赖，不由参数共享推断知识迁移。",
+  "experiment": "固定Qwen3、视觉codec、数据、参数与训练FLOPs，只切换causal/masked/metric-path目标；再单独改tokenizer与共享边界。报告OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、ID覆盖、组内相关性、遗忘、吞吐/显存/稳定性；完整计入预训练、检索、teacher及候选开销。",
+  "state": "共享encoder-decoder覆盖图文音频动作与空间token；图像输入ViT patch feature，输出VQGAN离散code。multimodal denoiser预训练不等于图像推理使用diffusion sampler。",
+  "objective": "主模型输出离散token logits，以causal/seq2seq next-token CE或任务重建目标训练；若预训练使用span mask不意味着推理是masked diffusion。无ELF式连续velocity目标。",
+  "decoding": "自回归输出文本/视觉ID，再接各自codec；串行复杂度依输出长度与KV cache增长。不是从AR权重无训练改为双向mask；具体训练updates/FLOPs与同硬件延迟本次未复核。",
+  "sharing": "共享跨任务Transformer不自动等于共享全部encoder、tokenizer、embedding和输出head。共享encoder-decoder覆盖图文音频动作与空间token；图像输入ViT patch feature，输出VQGAN离散code。multimodal denoiser预训练不等于图像推理使用diffusion sampler。 与URSA的离散状态有关，但forward path/分解不同；ELF仅作连续外部边界。",
+  "open": "官方repo可访问且链接代码/模型；具体数据license、全部checkpoint与重训复现程度需逐项复核。 作为历史补读，非今日新作；精读原文method与训练/评测协议，勿把不同数据预算榜单当严格因果比较。",
+  "index": "299"
+},
+{
+  "id": "4m21-anytoany-discrete",
+  "title": "4M-21: An Any-to-Any Vision Model for Tens of Tasks and Modalities",
+  "shortTitle": "4M-21",
+  "date": "2024-06-13 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2406.09406",
+  "project": "https://4m.epfl.ch/",
+  "paradigm": "Discrete Outputs / Masked Multimodal Modeling",
+  "code": "https://github.com/apple-aiml-research/ml-4m",
+  "summary": "把4M扩至21模态，含DINOv2/ImageBind feature、几何、结构化标签与metadata，经离散tokenization联合masked建模，扩至3B；语义code效用与RGB重建需分开。",
+  "why": "ICML离散UMM相关工作的基础参照：不能把统一任务、共享词表、共享视觉输入表示和同一生成目标混为一谈。用于核对AR／MaskGiT／URSA实验中哪些变量真正固定。",
+  "inspiration": "研究假设：固定Qwen3与选定视觉codec，让理解与生成共享可测试的语义接口；分别测输入连续/离散、mask策略与head依赖，不由参数共享推断知识迁移。",
+  "experiment": "固定Qwen3、视觉codec、数据、参数与训练FLOPs，只切换causal/masked/metric-path目标；再单独改tokenizer与共享边界。报告OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、ID覆盖、组内相关性、遗忘、吞吐/显存/稳定性；完整计入预训练、检索、teacher及候选开销。",
+  "state": "把4M扩至21模态，含DINOv2/ImageBind feature、几何、结构化标签与metadata，经离散tokenization联合masked建模，扩至3B；语义code效用与RGB重建需分开。",
+  "objective": "随机MASK/可见token子集训练，预测clean类别logits/CE；生成迭代恢复。具体模态head与decode调度应按原实现，不等同连续velocity或average velocity。",
+  "decoding": "并行预测未知token并逐轮提交/修订，非逐像素连续Flow；训练updates、精确迭代次数与统一硬件峰值显存本次未复核，应按具体任务和checkpoint单列。",
+  "sharing": "共享跨任务Transformer不自动等于共享全部encoder、tokenizer、embedding和输出head。把4M扩至21模态，含DINOv2/ImageBind feature、几何、结构化标签与metadata，经离散tokenization联合masked建模，扩至3B；语义code效用与RGB重建需分开。 与URSA的离散状态有关，但forward path/分解不同；ELF仅作连续外部边界。",
+  "open": "官方repo可访问且链接代码/模型；具体数据license、全部checkpoint与重训复现程度需逐项复核。 作为历史补读，非今日新作；精读原文method与训练/评测协议，勿把不同数据预算榜单当严格因果比较。",
+  "index": "300"
+},
+{
+  "id": "chameleon-early-fusion-discrete",
+  "title": "Chameleon: Mixed-Modal Early-Fusion Foundation Models",
+  "shortTitle": "Chameleon",
+  "date": "2024-05-16 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": true,
+  "idea": true,
+  "paradigm": "Discrete Visual Tokens / Unified AR",
+  "paper": "https://arxiv.org/abs/2405.09818",
+  "code": "https://github.com/facebookresearch/chameleon",
+  "project": "https://github.com/facebookresearch/chameleon",
+  "summary": "从训练之初进行图文early fusion，统一理解、文本生成与图像生成；QK normalization、z-loss等稳定化设计针对混合模态训练的norm/logit问题。",
+  "why": "离散UMM必须引用的early-fusion基线：同一个AR主干处理图文交错输入和输出。对视觉词表进入LLM后的logit偏移与训练稳定性，不能只讨论生成loss而忽略多模态norm。",
+  "state": "图像由VQ tokenizer量化为8192视觉词表，512²图像对应1024 ID；与文本ID组成混合序列。LLM内部使用embedding不代表连续视觉diffusion；采样状态仍为类别ID。",
+  "sharing": "同视觉tokenizer服务理解与生成，共用图文序列Transformer与扩展词表；image decoder为独立codec组件。论文模型能力与公开checkpoint开放范围必须区分。",
+  "objective": "LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。官方最初发布侧重图文输入、文本输出，不能假定公开checkpoint原生具备完整论文图像生成接口；Anole是重要开放延伸。",
+  "decoding": "先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。",
+  "inspiration": "研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。",
+  "experiment": "固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。",
+  "open": "论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。官方最初发布侧重图文输入、文本输出，不能假定公开checkpoint原生具备完整论文图像生成接口；Anole是重要开放延伸。",
+  "index": "301"
+},
+{
+  "id": "vila-u-rq-unified-ar",
+  "title": "VILA-U: a Unified Foundation Model Integrating Visual Understanding and Generation",
+  "shortTitle": "VILA-U",
+  "date": "2024-09-06 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paradigm": "Discrete Visual Tokens / Unified AR",
+  "paper": "https://arxiv.org/abs/2409.04429",
+  "code": "https://github.com/mit-han-lab/vila-u",
+  "project": "https://hanlab.mit.edu/projects/vila-u",
+  "summary": "统一视觉塔以重建与图文contrastive监督学习离散表示；主LLM预测空间序列，depth Transformer补全各位置residual codes，实现图像/视频理解与生成。",
+  "why": "为语义离散token与重建联合训练提供直接先例，也给出spatial/depth两层AR。它与四槽局部预测相关，但residual quantization depth不是2×2空间slot，不应混为同一种并行方式。",
+  "state": "SigLIP视觉塔加residual quantizer；codebook16384，单位置有多个residual-depth ID。不是一个ID对应一个合并空间block。",
+  "sharing": "理解/生成共享视觉塔与主AR框架；额外depth Transformer和pixel decoder仍存在，不是完全同一head。主干从预训练语言模型扩展，codec对照要保持residual深度一致。",
+  "objective": "LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。",
+  "decoding": "先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。",
+  "inspiration": "研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。",
+  "experiment": "固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。",
+  "open": "论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。",
+  "index": "302"
+},
+{
+  "id": "seed-llama-semantic-discrete",
+  "title": "Making LLaMA SEE and Draw with SEED Tokenizer",
+  "shortTitle": "SEED-LLaMA",
+  "date": "2023-10-02 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paradigm": "Discrete Visual Tokens / Unified AR / Hybrid Renderer",
+  "paper": "https://arxiv.org/abs/2310.01218",
+  "code": "https://github.com/AILab-CVC/SEED",
+  "project": "https://ailab-cvc.github.io/seed/seed_llama.html",
+  "summary": "用兼顾判别与重建的语义离散token，让LLaMA通过标准next-word prediction处理交错图文；图像最终由独立预训练UNet diffusion decoder渲染。",
+  "why": "离散语义token统一理解生成的早期基础，必须与IBQ像素重建ID区分：低序列长度可能来自语义瓶颈与额外diffusion renderer，而非更高效的同任务离散建模。",
+  "state": "ViT+Causal Q-Former+VQ产生1D语义ID；扩展8192视觉词表，预测离散code后映射到unCLIP-SD条件。不是dense pixel-grid VQ codec。",
+  "sharing": "共用LLM、扩展词表和语义视觉ID，pixel renderer不共享AR head；LLaMA初始化、embedding/head新增视觉参数。属于离散语义接口+连续renderer边界。",
+  "objective": "LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。",
+  "decoding": "先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。",
+  "inspiration": "研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。",
+  "experiment": "固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。",
+  "open": "论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。",
+  "index": "303"
+},
+{
+  "id": "anygpt-discrete-anytoany",
+  "title": "AnyGPT: Unified Multimodal LLM with Discrete Sequence Modeling",
+  "shortTitle": "AnyGPT",
+  "date": "2024-02-19 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paradigm": "Discrete Visual Tokens / Unified AR / Hybrid Renderer",
+  "paper": "https://arxiv.org/abs/2402.12226",
+  "code": "https://github.com/OpenMOSS/AnyGPT",
+  "project": "https://junzhan2000.github.io/AnyGPT.github.io/",
+  "summary": "将各模态作为可组合离散序列进行统一AR训练和any-to-any instruction tuning；图像最终沿SEED的独立renderer恢复，不是所有模态都由同一pixel decoder生成。",
+  "why": "展示图像/语音/音乐/文本都可进入统一离散序列，是Omni与离散UMM的共享词表参照。其图像语义token与decoder成本不能直接和IBQ dense重建系统比较。",
+  "state": "各模态独立codec离散化；图像采用SEED，32 ID/image、8192词表；语音音乐有各自RVQ token。多codec不是一个物理共享codebook。",
+  "sharing": "统一LLM序列建模与扩展token接口，模态tokenizer/detokenizer分开；图像部分属于离散语义接口加外部renderer，不能归类为全像素离散重建UMM。",
+  "objective": "LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。",
+  "decoding": "先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。",
+  "inspiration": "研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。",
+  "experiment": "固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。",
+  "open": "论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。",
+  "index": "304"
+},
+{
+  "id": "lavit-dynamic-discrete-umm",
+  "title": "Unified Language-Vision Pretraining in LLM with Dynamic Discrete Visual Tokenization",
+  "shortTitle": "LaVIT",
+  "date": "2023-09-09 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paradigm": "Discrete Visual Tokens / Unified AR / Hybrid Renderer",
+  "paper": "https://arxiv.org/abs/2309.04669",
+  "code": "https://github.com/jy0205/LaVIT",
+  "project": "https://github.com/jy0205/LaVIT",
+  "summary": "将图像token视为另一种语言，动态长度tokenizer使同一LLM能够理解与生成；生成code再经visual detokenizer的diffusion过程恢复图像。",
+  "why": "动态token长度与语义选择是固定网格/2×2 merger的重要历史参照。需区分减少视觉序列冗余和改善离散生成概率模型，OCR等细粒度信息可能被语义选择丢弃。",
+  "state": "动态selector/merger后的视觉features量化为离散code，图文按统一AR序列处理；像素恢复需要独立训练的denoising UNet。搜索/选择与AR解码长度分开记账。",
+  "sharing": "理解生成共享离散接口与AR LLM，视觉tokenizer和denoising renderer独立；基于预训练LLaMA扩展。属于离散接口+连续渲染，不是纯VQ decoder端点。",
+  "objective": "LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。",
+  "decoding": "先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。",
+  "inspiration": "研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。",
+  "experiment": "固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。",
+  "open": "论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。",
+  "index": "305"
+},
+{
+  "id": "janus-decoupled-original",
+  "title": "Janus: Decoupling Visual Encoding for Unified Multimodal Understanding and Generation",
+  "shortTitle": "Janus",
+  "date": "2024-10-17 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paradigm": "Discrete Visual Tokens / Unified AR / Decoupled Encoding",
+  "paper": "https://arxiv.org/abs/2410.13848",
+  "code": "https://github.com/deepseek-ai/Janus",
+  "project": "https://github.com/deepseek-ai/Janus",
+  "summary": "解耦理解与生成视觉编码，保留统一Transformer；理解输入侧用semantic features，生成侧AR预测重建visual codes，再独立decoder出图。",
+  "why": "直接回答离散UMM必须审查的共享边界：共享Transformer并不要求理解与生成共用visual encoder。理解收益可能来自SigLIP入口，不能归为visual ID建模进步。",
+  "state": "理解为连续SigLIP-Large features，经adapter进入LLM；生成使用16384词表、16×下采样VQ ID，384²对应24²位置。不是双向都用同离散视觉token。",
+  "sharing": "共享LLM主干，visual encoders/adapters、text/visual输出接口分别配置；属于离散生成+连续理解的边界对照。已有Janus-Pro不能替代本篇解耦设计论证。",
+  "objective": "LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。",
+  "decoding": "先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。",
+  "inspiration": "研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。",
+  "experiment": "固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。",
+  "open": "论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。",
+  "index": "306"
+},
+{
+  "id": "anole-open-chameleon-extension",
+  "title": "ANOLE: An Open, Autoregressive, Native Large Multimodal Models for Interleaved Image-Text Generation",
+  "shortTitle": "Anole",
+  "date": "2024-07-08 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paradigm": "Discrete Visual Tokens / Unified AR",
+  "paper": "https://arxiv.org/abs/2407.06135",
+  "code": "https://github.com/GAIR-NLP/anole",
+  "project": "https://gair-nlp.github.io/anole/",
+  "summary": "从Chameleon延伸，以高效指令微调获得可开放的交错图文生成；核心是训练/开放方案而非新离散forward path。",
+  "why": "把Chameleon架构与公开可复现的图像生成能力分开，是复现实验应关注的开放延伸。对ICML比较，checkpoint允许的输出模态和微调数据不能被论文名掩盖。",
+  "state": "继承Chameleon的离散image/text序列与VQ image codec；AR采样视觉ID，VQ decoder恢复图像，不使用独立diffusion生成器。",
+  "sharing": "继承单主干、图文序列与视觉tokenizer；扩展同家族checkpoint，不是独立从零baseline。比较时同时记录Chameleon父模型与Anole微调预算。",
+  "objective": "LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。",
+  "decoding": "先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。",
+  "inspiration": "研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。",
+  "experiment": "固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。",
+  "open": "论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。",
+  "index": "307"
+},
+{
+  "id": "lwm-million-context-discrete",
+  "title": "World Model on Million-Length Video And Language With Blockwise RingAttention",
+  "shortTitle": "LWM",
+  "date": "2024-02-13 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paradigm": "Discrete Visual Tokens / Unified AR",
+  "paper": "https://arxiv.org/abs/2402.08268",
+  "code": "https://github.com/LargeWorldModel/LWM",
+  "project": "https://largeworldmodel.github.io/lwm/",
+  "summary": "基于Llama逐级扩展到百万token上下文，利用Blockwise RingAttention训练视频/语言理解与生成；主要贡献是上下文与系统扩展，非新的视觉token概率目标。",
+  "why": "离散视频/文本长上下文基础，适合多帧威胁检测的历史证据与生成比较。论文题名world model不等于action-conditioned闭环动力学，不能把1M上下文当作1M步rollout。",
+  "state": "视频帧经离散视觉tokenizer，配合EOF/EOV等序列边界，与文本共同形成长AR序列；状态为视觉ID而非连续VAE/noise field。",
+  "sharing": "共享长序列LLM与离散视觉输入输出接口，codec独立；AR权重扩展可行但长上下文显存/通信是主要成本。不能与短上下文小预算UMM直接比总分。",
+  "objective": "LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。",
+  "decoding": "先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。",
+  "inspiration": "研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。",
+  "experiment": "固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。",
+  "open": "论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。",
+  "index": "308"
+},
+{
+  "id": "lumina-mgpt-unirep-omnisft",
+  "title": "Lumina-mGPT: Illuminate Flexible Photorealistic Text-to-Image Generation with Multimodal Generative Pretraining",
+  "shortTitle": "Lumina-mGPT",
+  "date": "2024-08-05 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paradigm": "Discrete Visual Tokens / Unified AR",
+  "paper": "https://arxiv.org/abs/2408.02657",
+  "code": "https://github.com/Alpha-VLLM/Lumina-mGPT",
+  "project": "https://github.com/Alpha-VLLM/Lumina-mGPT",
+  "summary": "从multimodal Generative PreTraining初始化，经Flexible Progressive SFT提升图像生成，再以Omni-SFT探索VQA、segmentation、depth等统一任务；区分各阶段checkpoint能力。",
+  "why": "任意宽高比、row边界与多任务SFT可能显著影响离散网格建模；是ScanAR、block decoding以及OCR布局控制应补的AR基线。生成质量不能只归于AR目标而忽略multimodal预训练和SFT数据。",
+  "state": "VQ-VAE离散图像ID与文本token组成decoder-only序列；UniRep显式表达图像形状/行结构，避免相同token数对应不同宽高的歧义。",
+  "sharing": "共享decoder-only序列建模和visual ID接口，VQ codec独立；Omni-SFT是扩展能力阶段，不应假定纯T2I checkpoint已经验证所有理解任务。",
+  "objective": "LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。",
+  "decoding": "先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。",
+  "inspiration": "研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。",
+  "experiment": "固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。",
+  "open": "论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。",
+  "index": "309"
+},
+{
+  "id": "unicode2-cascaded-codebooks",
+  "title": "UniCode²: Cascaded Large-scale Codebooks for Unified Multimodal Understanding and Generation",
+  "shortTitle": "UniCode²",
+  "date": "2025-06-25 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paradigm": "Discrete Visual Tokens / Unified AR / Hybrid Renderer",
+  "paper": "https://arxiv.org/abs/2506.20214",
+  "project": "https://arxiv.org/abs/2506.20214",
+  "summary": "级联大codebook保存语义对齐并改善使用率/稳定性；生成离散视觉语义token后可接预训练diffusion decoder。属于离散接口+连续renderer边界，而非纯离散像素重建模型。",
+  "why": "对大视觉词表使用率和稳定性是直接相关工作：从SigLIP语义构建500K codebook，并用冻结/可训练级联降低空间漂移。需检查提升来自token语义和decoder，还是AR本身。",
+  "state": "通过聚类SigLIP sequence embeddings得到500K语义视觉code；冻结anchor codebook与可训练refinement级联。并非把IBQ重建词表等比例扩大即可复现。",
+  "sharing": "理解与生成利用对齐语义code接口，pixel diffusion decoder独立；LLM与视觉词表embedding是否完全绑权本次未逐项核验，不能由统一名称推断。",
+  "objective": "LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。",
+  "decoding": "先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。",
+  "inspiration": "研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。",
+  "experiment": "固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。",
+  "open": "原文已核对；本次未核验官方代码/权重下载链接，不标已开源。基础相关工作补录，精读codebook构建与两级训练消融；decoder替换和500K输出head成本需要独立报告。",
+  "index": "310"
+},
+{
+  "id": "sensenova-u1-neo-unify-boundary",
+  "title": "SenseNova-U1: Unifying Multimodal Understanding and Generation with NEO-unify Architecture",
+  "shortTitle": "SenseNova-U1 / NEO-unify",
+  "date": "2026-05-12 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paradigm": "External Comparator / Native MoT / Pixel Flow",
+  "paper": "https://arxiv.org/abs/2605.12500",
+  "code": "https://github.com/OpenSenseNova/SenseNova-U1",
+  "project": "https://huggingface.co/blog/sensenova/neo-unify",
+  "summary": "将文本AR与pixel-space Flow放入原生MoT；8B dense与30B-A3B MoE理解基线扩展为理解生成联合模型。它是连续生成边界对照，不计入严格离散UMM。",
+  "why": "必须纳入离散UMM论文的外部架构对照：原生MoT与near-lossless输入可同时保留语义与像素，但视觉生成是pixel Flow，不是离散ID。共享机制的收益不能与AR/Mask/metric-path目标混写。",
+  "state": "near-lossless原生pixel interface，视觉状态为连续像素/patch，不用预训练VE或VAE，也不经离散视觉codebook；从分辨率相关Gaussian noise沿线性path生成。",
+  "sharing": "理解与生成通过MoT交互，保留不同学习目标/输出head；不是共享视觉ID词表的证据。encoder-free不等于tokenizer全部共享。其连续pixel接口需要先与固定离散codec控制分开。",
+  "objective": "文本使用AR CE；视觉网络直接预测clean pixels，再换算velocity计算v-space MSE。该x-prediction参数化+velocity loss与纯clean-ID CE不同；不是离散masked diffusion或URSA metric path。",
+  "decoding": "文本因果AR，视觉并行迭代Flow；原文训练/推理预算需按8B/MoE与分辨率分别比较，本次未复核全部配置。官方当前U1.6示例base50步，另有4/8步distilled变体，不能把新版速度写成U1原文结果。",
+  "inspiration": "研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。",
+  "experiment": "固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。",
+  "open": "原文、官方Blog与OpenSenseNova/SenseNova-U1代码库可访问，仓库有inference/training目录与checkpoint链接；2026-11-24已发布U1.6。EvolvingLMMs-Lab/NEO为家族入口，不能把NEO理解权重当成U1生成权重。精读原文§3和对应版本文档。",
+  "index": "311"
+},
+{
+  "id": "liquid-shared-discrete-space",
+  "title": "Liquid: Language Models are Scalable and Unified Multi-modal Generators",
+  "shortTitle": "Liquid",
+  "date": "2024-12-05 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paradigm": "Discrete Visual Tokens / Unified AR",
+  "paper": "https://arxiv.org/abs/2412.04332",
+  "code": "https://github.com/FoundationVision/Liquid",
+  "project": "https://foundationvision.github.io/Liquid/",
+  "summary": "以离散视觉ID直接拓展现有LLM，在共享feature space统一视觉理解和生成，并研究模型规模对多任务干扰的影响；codec重建与LLM扩展是两个不同阶段。",
+  "why": "把已有Qwen/Gemma等LLM扩展到统一离散视觉空间，是固定主干离散UMM论文必须比较的路径；不要求重训整套encoder，也不能把借用tokenizer的收益归为只换AR目标。",
+  "state": "Chameleon VQGAN把512²图像编码为32×32 ID，视觉词表8192；图文共用扩展序列，visual embedding在语言模型侧学习。无单独CLIP理解入口。",
+  "sharing": "理解/生成共用视觉tokenizer和LLM序列接口，独立VQ decoder恢复像素；预训练LLM初始化明确，不是从零Chameleon训练的计算预算。",
+  "objective": "LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。",
+  "decoding": "先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。",
+  "inspiration": "研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。",
+  "experiment": "固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。",
+  "open": "论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。",
+  "index": "312"
+},
+{
+  "id": "unitok-multicodebook-umm",
+  "title": "UniTok: A Unified Tokenizer for Visual Generation and Understanding",
+  "shortTitle": "UniTok",
+  "date": "2025-02-27 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paradigm": "Enabler / Multi-Codebook Quantization / Semantic Reconstruction",
+  "paper": "https://arxiv.org/abs/2502.20321",
+  "code": "https://github.com/FoundationVision/UniTok",
+  "project": "https://foundationvision.github.io/UniTok/",
+  "summary": "以multi-codebook quantization扩大离散容量，同时联合视觉重建与语义监督；接入Liquid框架验证理解生成。它首先是tokenizer研究，不应作为仅改变生成范式的公平baseline。",
+  "why": "直接涉及离散UMM瓶颈：语义与重建loss并非必然冲突，离散表示容量不足可能是根因。必须把codebook/瓶颈维度变化与AR、Mask或metric-path模型目标分开。",
+  "state": "将每个视觉向量划分为多个channel chunks，各自用小sub-codebook量化；组合词表指数扩展。multi-codebook通道分块不等于四个空间IBQ ID或residual-depth codes。",
+  "sharing": "同一tokenizer可供理解/生成使用，但完整UMM的Transformer与head由下游Liquid配置决定；tokenizer的共同空间不能自动证明所有生成/理解参数绑权。",
+  "objective": "tokenizer侧联合重建与语义对齐，multi-codebook扩容，非AR/Flow采样目标本身；下游Liquid用离散next-token CE。必须区分codec训练和LLM训练预算。",
+  "decoding": "tokenizer输出多个sub-codebook ID并重建像素，下游生成顺序由Liquid或其它AR模型决定。精确LLM生成步数、初始化与显存不应归给tokenizer；本次未统一复核各配置成本。",
+  "inspiration": "研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。",
+  "experiment": "固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。",
+  "open": "论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。",
+  "index": "313"
+},
+{
+  "id": "qlip-text-aligned-bsq",
+  "title": "QLIP: Text-Aligned Visual Tokenization Unifies Auto-Regressive Multimodal Understanding and Generation",
+  "shortTitle": "QLIP",
+  "date": "2025-02-07 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paradigm": "Enabler / Binary Spherical Quantization / Text Alignment",
+  "paper": "https://arxiv.org/abs/2502.05178",
+  "code": "https://github.com/NVlabs/QLIP",
+  "project": "https://nvlabs.github.io/QLIP/",
+  "summary": "动态平衡对齐与重建，并用两阶段训练适应大batch contrastive与高显存重建的不同需求；分别接入LLaVA、LlamaGen及统一mixed-modality AR验证。",
+  "why": "离散token语义对齐必须引用：BSQ重建和language-image alignment能通过分阶段训练共存。用它审计OCR与重建特征冲突时，应保持token容量与训练监督一致。",
+  "state": "Binary Spherical Quantization在单位球面超立方体角点构造implicit离散code；不是learned dense IBQ查表，也不是连续embedding diffusion。",
+  "sharing": "是理解生成共享离散codec的enabler；不同下游实验不代表单一Transformer在所有任务中完全共享。其统一AR模型与独立LLaVA/LlamaGen结果要分列。",
+  "objective": "stage1对齐loss+MSE；stage2移除text encoder并冻结visual encoder，只优化quantizer/decoder细化重建。下游统一模型用AR CE。不是依靠离散diffusion修复token语义。",
+  "decoding": "BSQ编码/decoder重建与下游AR采样分开；没有tokenizer自带的ODE NFE。训练大batch与重建显存开销分阶段核算；本次未复核所有下游LLM初始化/延迟。",
+  "inspiration": "研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。",
+  "experiment": "固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。",
+  "open": "论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。",
+  "index": "314"
+},
+{
+  "id": "video-lavit-visual-motion-discrete",
+  "title": "Video-LaVIT: Unified Video-Language Pre-training with Decoupled Visual-Motional Tokenization",
+  "shortTitle": "Video-LaVIT",
+  "date": "2024-02-05 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paradigm": "Discrete Visual Tokens / Unified AR / Hybrid Renderer",
+  "paper": "https://arxiv.org/abs/2402.03161",
+  "code": "https://github.com/jy0205/LaVIT",
+  "project": "https://video-lavit.github.io/",
+  "summary": "在LaVIT基础上解耦visual/motional tokenization，以统一AR预训练处理图像、视频和文本理解生成；keyframe先恢复，再以keyframe+motion为条件生成后续帧。",
+  "why": "对多帧威胁检测与视频离散UMM重要：静态keyframe和时间motion分开，减少重复外观token；但motion code不是可执行action，也不能由视频清晰度推断闭环物理正确。",
+  "state": "视频拆为keyframe与temporal motion，分别离散tokenizer后与文本交错；视频像素恢复另用conditional denoising UNet。不是所有帧都共享同一种dense重建ID。",
+  "sharing": "主LLM共享AR文本/visual/motion序列，各tokenizer与图像/视频denoising renderer独立。属于离散时序接口+连续渲染，非action-conditioned world-model闭环证据。",
+  "objective": "LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。",
+  "decoding": "先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。",
+  "inspiration": "研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。",
+  "experiment": "固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。",
+  "open": "论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。",
+  "index": "315"
+},
+{
+  "id": "lumina-mgpt2-speculative-jacobi",
+  "title": "Lumina-mGPT 2.0: Stand-Alone AutoRegressive Image Modeling",
+  "shortTitle": "Lumina-mGPT 2.0",
+  "date": "2025-07-23 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paradigm": "Discrete Visual Tokens / Unified AR",
+  "paper": "https://arxiv.org/abs/2507.17801",
+  "code": "https://github.com/Alpha-VLLM/Lumina-mGPT-2.0",
+  "project": "https://github.com/Alpha-VLLM/Lumina-mGPT-2.0",
+  "summary": "从零训练stand-alone AR图像模型，覆盖编辑、subject-driven、controllable与dense prediction；加入inference-time scaling和speculative Jacobi decoding提升质量/速度。",
+  "why": "对离散UMM的并行解码和图像多任务是重要邻域：speculative Jacobi通过预测/验证加速AR，不等于masked diffusion。主要证据是图像生成与dense prediction，不能自动视作强通用VQA基线。",
+  "state": "统一离散图像token序列加decoder-only AR；图像tokenizer与model训练设置按2.0配置，不能拿1.0预训练状态替代。Jacobi的临时候选是解码状态，不是新的视觉codebook。",
+  "sharing": "统一生成任务的token化/主干，但主任务是multimodal generation而非已全面验证的通用理解生成共享。作为并行解码/训练初始化的邻域enabler，不替代Chameleon/Emu3等理解基线。",
+  "objective": "LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。",
+  "decoding": "从零训练，而非1.0的multimodal pretrained初始化；推理使用标准AR或speculative Jacobi，另有候选选择/测试时scaling。必须计draft、验证和全部候选；精确匹配预算延迟本次未复核。",
+  "inspiration": "研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。",
+  "experiment": "固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。",
+  "open": "论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。",
+  "index": "316"
+},
+{
+  "id": "mio-multimodal-discrete-tokens",
+  "title": "MIO: A Foundation Model on Multimodal Tokens",
+  "shortTitle": "MIO",
+  "date": "2024-09-26 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paradigm": "Discrete Visual Tokens / Unified AR / Hybrid Renderer",
+  "paper": "https://arxiv.org/abs/2409.17692",
+  "code": "https://github.com/MIO-Team/MIO",
+  "project": "https://github.com/MIO-Team/MIO",
+  "summary": "以四模态离散token训练any-to-any AR模型，依次进行alignment、interleaved、speech-enhanced预训练与综合SFT，支持交错video-text和visual guideline等任务。",
+  "why": "补齐Omni离散序列与交错视频/语音的直接相关工作；训练阶段与多任务数据会影响统一效果，不能只把生成收益归给离散token建模。",
+  "state": "图像用SEED tokenizer：224²图像压为32语义ID、8192词表；视频按frame sequence处理，语音用独立SpeechTokenizer。图像renderer沿SEED路径，非dense IBQ直接解码。",
+  "sharing": "LLM统一离散token序列，各模态codec/detokenizer独立；SEED图像语义接口需另计diffusion renderer。属于离散语义UMM+外部渲染，不是纯离散像素世界模型。",
+  "objective": "LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。",
+  "decoding": "先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。",
+  "inspiration": "研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。",
+  "experiment": "固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。",
+  "open": "论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。",
+  "index": "317"
+},
+{
+  "id": "orthus-continuous-local-diffusion",
+  "title": "Orthus: Autoregressive Interleaved Image-Text Generation with Modality-Specific Heads",
+  "shortTitle": "Orthus",
+  "date": "2024-11-28 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paradigm": "External Comparator / Continuous Image Features / AR plus Diffusion Head",
+  "paper": "https://arxiv.org/abs/2412.00127",
+  "code": "https://github.com/SJTU-DENG-Lab/Orthus",
+  "project": "https://github.com/SJTU-DENG-Lab/Orthus",
+  "summary": "AR backbone建模跨模态序列；语言head输出文本类别，modality-specific diffusion head在backbone条件下生成连续图像feature，减少noise对理解backbone的干扰。",
+  "why": "直接审查离散视觉量化损失的外部对照：保留AR跨模态依赖，却把visual ID改为连续feature与局部diffusion head。AR顺序与视觉输出离散性是两个独立轴。",
+  "state": "文字是离散ID，图像是VAE连续patch features；从已有UMM把VQ替换为soft alternative。视觉不是离散codebook ID，不计入strict discrete UMM。",
+  "sharing": "共AR backbone，文本head与图像diffusion head分开，visual codec连续；可由已有离散UMM转化，但并非只替换CE目标而保持状态不变。",
+  "objective": "文字next-token CE，图像局部diffusion head建模连续feature分布；不是视觉clean-ID CE。具体diffusion参数化本次未完整复核，不强标ELF velocity/average velocity。",
+  "decoding": "跨模态/patch顺序保持AR，局部图像feature由diffusion head采样，额外迭代必须计入；72A100-hours是base构造示例，不代表总训练预算。精确NFE/统一延迟未核验。",
+  "inspiration": "研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。",
+  "experiment": "固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。",
+  "open": "论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。",
+  "index": "318"
+},
+{
+  "id": "unitoken-mixed-visual-encoding",
+  "title": "UniToken: Harmonizing Multimodal Understanding and Generation through Unified Visual Encoding",
+  "shortTitle": "UniToken",
+  "date": "2025-04-06 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paradigm": "Discrete Visual Tokens / Unified AR / Hybrid Renderer",
+  "paper": "https://arxiv.org/abs/2504.04423",
+  "code": "https://github.com/SxJyJay/UniToken",
+  "project": "https://github.com/SxJyJay/UniToken",
+  "summary": "统一visual encoding融合高层语义和低层细节，用共享AR模型实现理解生成，并分析任务数据比例与表示选择对干扰的影响。",
+  "why": "必须与UniTok区分：该工作把连续语义与离散细节同时注入统一视觉输入，提示理解提升可能来自额外连续路径，不能归给离散ID本身。",
+  "state": "视觉输入组合连续feature与VQ离散ID embedding，输出仍AR视觉类别；是mixed-input/discrete-output，不是单一离散视觉token同时承担所有理解信息。",
+  "sharing": "共享视觉输入融合和prediction head，但连续visual encoder仍提供额外信息；需做离散only/连续only/混合三臂，固定backbone和数据比例。CVPR2025Workshop工作，勿与UniTok论文混淆。",
+  "objective": "LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。",
+  "decoding": "先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。",
+  "inspiration": "研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。",
+  "experiment": "固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。",
+  "open": "论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。",
+  "index": "319"
+},
+{
+  "id": "emu35-dida-native-discrete",
+  "title": "Emu3.5: Native Multimodal Models are World Learners",
+  "shortTitle": "Emu3.5 / DiDA",
+  "date": "2025-10-30 · foundational backfill · checked/curated 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "kind": "Paper",
+  "priority": "精读",
+  "featured": false,
+  "idea": true,
+  "paradigm": "Discrete IBQ / AR Pretraining / Discrete Diffusion Adaptation",
+  "paper": "https://arxiv.org/abs/2510.26583",
+  "code": "https://github.com/baaivision/Emu3.5",
+  "project": "https://emu.world",
+  "summary": "大规模图文交错next-token预训练与RL后训练；DiDA以自蒸馏数据和修改attention把逐ID解码转为bidirectional离散预测，支持交错生成及文本丰富的X2I。",
+  "why": "Emu3之外必须补齐的重要离散UMM：IBQ大词表、长时交错预训练以及AR→离散diffusion适配，是URSA与Mask-only对照的直接先例。不能把DiDA约20倍加速等同metric path收益。",
+  "state": "IBQ视觉tokenizer，16×下采样，256维code，词表131072；图文共用离散序列。DiDA将视觉序列整体加噪/并行refinement，文字保持AR。",
+  "sharing": "AR和DiDA复用同家族离散视觉表示与主干，noisy visual token只在本图内双向读，其余clean/text序列保持causal。与URSA同离散端点，但原文未证明其corruption就是metric-aware路径。",
+  "objective": "基础为图文next-token CE，DiDA增加离散去噪适配与self-distillation数据；具体transition kernel/噪声权重本次未逐项复核，不能将其写为URSA metric path。另有RL奖励，需独立对照。",
+  "decoding": "文字AR、视觉DiDA并行逐步refinement；约20倍/图为论文设置，非固定NFE跨模型结论。预训练约13T token，不能与小预算后训练直接比较；具体推理步数/峰值显存本次未统一核验。",
+  "inspiration": "研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。",
+  "experiment": "固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。",
+  "open": "论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。",
+  "index": "320"
+},
+{
+  "id": "unidisc-joint-discrete-diffusion",
+  "title": "Unified Multimodal Discrete Diffusion",
+  "shortTitle": "UniDisc",
+  "date": "2025-03-26 · v1 · backfill/checked 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "paradigm": "Joint Text-Image Masked Discrete Diffusion",
+  "priority": "精读",
+  "featured": false,
+  "kind": "Paper",
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2503.20853",
+  "project": "https://unidisc.github.io/",
+  "code": "https://github.com/alexanderswerdlow/unidisc",
+  "summary": "把图像与文本离散token联合建模，通过随机MASK和双向去噪支持生成、caption、检索及跨模态inpainting。其重点是共同离散分布与可变采样预算，不应把早期小尺度caption/检索结果等同完整OCR/VQA专家能力。",
+  "why": "是离散UMM相关工作中不能跳过的masked基线，适合将Qwen3+IBQ的全AR、MaskGIT与URSA metric path放在同一坐标系；对照应固定tokenizer及CFG，不能让guidance差异冒充范式提升。",
+  "inspiration": "研究假设：对相同IBQ ID和Qwen3主干，保留统一图文序列，只切换causal next-token与joint MASK恢复；用文字/图像相互inpainting检验双向信息调用，并检查OCR glyph和稀有code是否在高mask率下丢失。",
+  "experiment": "固定Qwen3、IBQ、图文数据、参数与训练FLOPs，比较AR、absorbing-MASK、URSA metric path。各自扫描相同总forward预算与CFG；报告OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、inpainting、code coverage、NFE/吞吐/显存；把理解输入codec与采样器收益拆开。",
+  "state": "text IDs与离散visual code IDs联合序列；前向随机将位置变为absorbing MASK，模型内部embedding连续不等于连续生成状态。视觉decoder负责ID到像素，非VAE latent Gaussian diffusion。",
+  "objective": "在被mask位置学习clean token的categorical logits/交叉熵式离散去噪目标，非ELF velocity/noise/average velocity。与URSA同为离散端点，但MASK corruption不利用完整视觉metric path。",
+  "decoding": "并行迭代unmask，可变步数控制速度质量，保留输入位置可做联合inpainting。论文含115M/340M及1.4B尺度；小尺度使用300 L40S GPU小时的离散模型训练对照，不能作为Qwen3端到端预算。统一评测NFE与完整训练FLOPs本次未核验。",
+  "sharing": "统一Transformer处理图文离散token，但文本与图像各有tokenizer及词表区间；不意味着text/image codec或所有head绑权。论文强调同tokenizer AR对照；Qwen3初始化迁移需独立验证，不与从零训练结论混写。",
+  "open": "官方代码仓库及训练/推理实现可访问，论文声明公开模型和数据；完整数据下载与所有权重本次未逐项运行核验。精读方法、AR对照/CFG及附录预算；属于2025基础补录，非今日新发表。",
+  "index": "321"
+},
+{
+  "id": "mmada-unified-masked-diffusion",
+  "title": "MMaDA: Multimodal Large Diffusion Language Models",
+  "shortTitle": "MMaDA",
+  "date": "2025-05-21 · v2 2025-09-25 · backfill/checked 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "paradigm": "Masked Discrete UMM / Mixed-CoT / UniGRPO",
+  "priority": "精读",
+  "featured": true,
+  "kind": "Paper",
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2505.15809",
+  "code": "https://github.com/Gen-Verse/MMaDA",
+  "summary": "从LLaDA-8B-Instruct扩展统一masked diffusion，用MAGVIT-v2离散图像token联合文本推理、视觉理解与T2I；随后Mixed-CoT和UniGRPO进一步后训练。应把共享概率模型与CoT/RL奖励带来的提升分开。",
+  "why": "是Qwen3+IBQ离散UMM必须覆盖的LLM出发masked基线，可与AR→URSA改造直接比较。论文的跨任务能力同时依赖数据和RL，不能只凭最终分数声称masked目标优于AR。",
+  "inspiration": "研究假设：先用Qwen3与IBQ做不加CoT/RL的基础masked适配，再独立加Mixed-CoT与统一reward。用OCR证据替换/删除测试解释是否忠实，生成文字OCR与code diversity不能被语言奖励掩盖。",
+  "experiment": "固定主干/IBQ/训练数据/FLOPs，先比较AR、MaskGIT式图像mask+text AR、全图文mask、URSA。最佳结构上再做CoT×RL的2×2控制；报OCRBench/DocVQA/TextVQA、GenEval、生成文字、palette、语言保持及全部rollout/reward成本。",
+  "state": "文本用LLaDA tokenizer，图像用Show-o采用的MAGVIT-v2离散quantizer，映射到统一token序列；前向随机mask目标token并保留prompt。不是共享一个图文encoder，也不是连续VAE噪声状态。",
+  "objective": "统一clean-token masked prediction，加Mixed-CoT SFT与UniGRPO。输出仍为categorical logits；UniGRPO通过多mask估计概率，非ELF连续velocity目标，也不等于URSA uniform metric kernel。",
+  "decoding": "官方示例文本使用semi-AR block sampling，图像/多模态使用非AR迭代去噪；“全diffusion”不等于所有任务同一全局解码顺序。初始化LLaDA而非直接AR；完整训练FLOPs及各任务统一NFE本次未核验，需从配置逐项记录。",
+  "sharing": "图文共dLLM主干和masked概率形式，但MAGVIT图像codec与文本tokenizer分开。为Qwen迁移时应保留原词表/IBQ head的对照，单独报告adapter、扩词表与双向attention改动，不把继承LLaDA能力算新范式收益。",
+  "open": "官方training/models/evaluation代码与Base、MixCoT模型链接可访问；README的Max/UniGRPO最终模型仍写coming soon，不能笼统称所有阶段权重已公开。精读概率目标、sampling与UniGRPO，补录历史核心文献。",
+  "index": "322"
+},
+{
+  "id": "fudoki-metric-discrete-umm",
+  "title": "FUDOKI: Discrete Flow-based Unified Understanding and Generation via Kinetic-Optimal Velocities",
+  "shortTitle": "FUDOKI",
+  "date": "2025-05-26 · v3 2025-07-24 · backfill/checked 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "paradigm": "Metric-Induced Discrete Flow / Kinetic-Optimal Rates / AR Initialization",
+  "priority": "精读",
+  "featured": true,
+  "kind": "Paper",
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2505.20147",
+  "project": "https://fudoki-hku.github.io/",
+  "code": "https://github.com/fudoki-hku/FUDOKI",
+  "summary": "以Janus-1.5B的AR统一模型初始化，切换到全attention与离散flow matching，利用metric-induced probability path和kinetic-optimal velocities实现双向上下文及可纠错迭代。它是比普通mask更直接的URSA相关工作。",
+  "why": "若ICML工作强调离散metric path、从Qwen/AR适配或迭代纠错，FUDOKI是不能遗漏的近邻。必须区分已有的path/velocity参数化与自己的共享表示、局部head或训练效率贡献。",
+  "inspiration": "研究假设：保留Qwen3+IBQ状态与词表，复现MASK、generic DFM、FUDOKI metric、URSA path，再讨论2×2 block及语义入口。不能把“使用metric”或“AR转离散flow”单独视为未被探索的创新。",
+  "experiment": "固定codec、主干、数据、参数与训练/采样FLOPs，只切换corruption/path；先统一clean-ID预测head，再另比较head或rate参数化。测反复重写率、错误token恢复、coverage、OCR/DocVQA/TextVQA、GenEval及显存/吞吐；test-time scaling计全候选与评分成本。",
+  "state": "text/image生成在离散ID空间，metric-induced categorical probability path允许非MASK替换与纠错；velocity指类别跳转率，不是ELF embedding欧氏速度。理解输入仍用SigLIP连续feature，生成用LlamaGen 16384码本，非共享单codec。",
+  "objective": "离散flow matching通过kinetic-optimal velocity定义逆向采样，预测clean类别分布以构建离散更新。和URSA同属metric-aware离散路线，但具体path、rate与初始化不同；不能直接宣称是同一算法。",
+  "decoding": "Janus-1.5B初始化，改full attention与logit shifting，迭代并行采样可修改既有token。文本词表102400，图像16384；无直接Qwen3移植实证。精确训练总FLOPs与统一NFE需按论文/配置复核，本条不猜测。",
+  "sharing": "共用Janus式LLM主干，理解SigLIP与生成VQ encoder/decoder解耦，text/image词表及输出适配不等于绑同head。应归“离散输出UMM”，不归“理解生成全共享离散视觉入口”。与ELF对照先固定codec和预算。",
+  "open": "官方推理、理解/生成示例、评测代码与HF模型链接公开；完整训练数据及训练流水线是否全部复现本次未验证。精读path/rate推导、Janus转换与附录，先复现最邻近端点再写ICML novelty。",
+  "index": "323"
+},
+{
+  "id": "muddit-unified-discrete-diffusion",
+  "title": "Muddit: Liberating Generation Beyond Text-to-Image with a Unified Discrete Diffusion Model",
+  "shortTitle": "Muddit",
+  "date": "2025-05-29 · v5 2026-05-26 · backfill/checked 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "paradigm": "Pretrained Visual MDM / Shared Discrete Denoising / Text Decoder",
+  "priority": "精读",
+  "featured": false,
+  "kind": "Paper",
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2505.23606",
+  "code": "https://github.com/M-E-AGI-Lab/Muddit",
+  "project": "https://huggingface.co/MeissonFlow/Muddit",
+  "summary": "从强T2I Meissonic出发，给MM-DiT增加轻量文本decoder，联合文本与图像离散去噪，完成T2I、I2T和视觉问答。与LLM出发的MMaDA互补，说明“统一”可以从视觉先验扩展，而非必须从语言主干开始。",
+  "why": "是离散UMM必须包含的视觉生成器初始化端点。Qwen3+IBQ的理解优势与Muddit继承的T2I优势来自不同预训练资源；若不记录这些资源，模型横向分数无法证明某个离散目标更优。",
+  "inspiration": "研究假设：固定Qwen3/IBQ时，先比较是否加入图像生成teacher蒸馏，再切MASK/URSA，避免同时引入视觉先验和新path。文本decoder轻量化也提示局部head容量可能独立于全局共享主干。",
+  "experiment": "固定同一IBQ、图文数据、参数/FLOPs，做语言checkpoint初始化/视觉teacher辅助×MASK/metric path的控制；所有预训练teacher FLOPs单列。测理解OCR、生成glyph、GenEval、语言能力、code共现、采样步数与显存；原Meissonic仅作资源不同的参考，不冒充严格控制。",
+  "state": "VQ图像ID与文本token均以离散target恢复；输入分别经image encoder/CLIP text embedding进入MM-DiT，另有文本readout。内部连续embedding不等于连续latent diffusion，文本和图像仍有不同codec。",
+  "objective": "统一masked discrete denoising，以clean-token logits/交叉熵恢复被mask位置；预训练T2I视觉先验与文本head共同适配。无ELF velocity/average velocity，也非URSA uniform metric noise。",
+  "decoding": "cosine masking schedule迭代并行恢复，论文默认64 sampling steps，T2I/I2T的CFG分别9.0/1.5。训练先8M图文再1M instruction，文本最长77token、图像512²；完整训练总FLOPs本次未核验，不外推到长文档/OCR。",
+  "sharing": "MM-DiT共享跨模态去噪计算，图像codec、CLIP text输入和轻量文本输出仍分开；不是单一全绑权LLM。可作为共享程度轴的端点；无法直接把Meissonic初始化等同Qwen3/AR权重转换。",
+  "open": "官方模型/推理/训练相关代码及HF Muddit链接可访问；部分训练数据为internal，不能称全数据可复现。精读初始化、shared space与sampling，区分mask目标和预训练资源。",
+  "index": "324"
+},
+{
+  "id": "lumina-dimoo-discrete-umm",
+  "title": "Lumina-DiMOO: An Omni Diffusion Large Language Model for Multi-Modal Generation and Understanding",
+  "shortTitle": "Lumina-DiMOO",
+  "date": "2025-10-07 · v1 · backfill/checked 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "paradigm": "Fully Discrete Masked UMM / dLLM Initialization / ML-Cache",
+  "priority": "精读",
+  "featured": false,
+  "kind": "Paper",
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2510.06308",
+  "project": "https://synbol.github.io/Lumina-DiMOO/",
+  "code": "https://github.com/Alpha-VLLM/Lumina-DiMOO",
+  "summary": "以离散dLLM统一图文理解、T2I、编辑、inpainting与主体生成，采用预测—采样—remask，并用Max-Logit Cache复用稳定计算。将tokenizer选择、多阶段数据、离散目标和cache分别讨论，才能读懂其效率来源。",
+  "why": "是比早期MMaDA/UniDisc更完整的离散UMM任务覆盖端点，也是当前IBQ/MaskGIT路线的高相关基线。生成、编辑和理解同时改善不自动证明双向知识迁移，需要相同实体/概念的交叉任务控制。",
+  "inspiration": "研究假设：在Qwen3+IBQ上先保留标准masked更新，只加基于logit稳定性的cache，并检查OCR位置是否比背景更晚稳定；再独立比较URSA非mask更新。不要将MIGM shortcut在本模型上的加速误认为模型本体的新生成范式。",
+  "experiment": "固定主干、IBQ、数据、参数/FLOPs，先比较MASK与URSA；各自分别打开/关闭cache并匹配有效forward次数。报OCR/DocVQA/TextVQA、生成文字、GenEval、编辑背景/身份保持、code coverage、NFE/延迟/显存，额外做cache stale-error与稀有ID分桶。",
+  "state": "图像离散视觉code与text IDs串接，由预训练dLLM适配；corruption为mask而不是Gaussian VAE噪声。图像重建codec独立于语言tokenizer；必须按最终配置核对codebook与resolution，不能只看总模型名。",
+  "objective": "clean-token categorical/logit预测，mask恢复与remask；cache只改变计算复用，不把目标改成embedding velocity。与URSA差异在forward path及token可修正方式；ELF为连续空间外部对照。",
+  "decoding": "图像全局并行迭代，文本按block生成；论文文本理解设置block256、128 sampling steps。ML-Cache额外约2倍加速属于配置相关结果，应计cache命中率与误差；具体各T2I配置NFE、总训练FLOPs需逐配置核对。",
+  "sharing": "共享dLLM图文语义计算与离散概率过程，视觉codec和text tokenizer分开；不意味着统一像素重建head。初始化预训练dLLM，直接从Qwen3 AR转入需要独立适配实验；固定主干后才可比较mask与metric path。",
+  "open": "官方仓库含实现、使用说明及HF模型链接，论文声明代码/checkpoints公开；所有训练数据与各阶段权重本次未逐项运行核验。精读foundation tokenizer、训练阶段和ML-Cache；归历史补录。",
+  "index": "325"
+},
+{
+  "id": "mmada-parallel-joint-denoising",
+  "title": "MMaDA-Parallel: Multimodal Large Diffusion Language Models for Thinking-Aware Editing and Generation",
+  "shortTitle": "MMaDA-Parallel",
+  "date": "2025-11-12 · v3 2025-11-18 · backfill/checked 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "paradigm": "Parallel Text-Image Masked Diffusion / ParaRL",
+  "priority": "精读",
+  "featured": false,
+  "kind": "Paper",
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2511.09611",
+  "project": "https://tyfeld.github.io/mmadaparellel.github.io/",
+  "code": "https://github.com/tyfeld/MMaDA-Parallel",
+  "summary": "图文响应在共同去噪轨迹中并行恢复，而非先固定文字CoT再生成图像；ParaRL沿轨迹约束语义一致。A/M两版本使用不同视觉tokenizer，不能把二者最终差异只归因到同一并行算法。",
+  "why": "如果离散UMM论文声称联合文本—图像生成更能纠错或统一推理，这是一项关键近邻。它提醒需要测图文相互影响，而不只是共享Transformer或最终图像分数。",
+  "inspiration": "研究假设：Qwen3+IBQ中比较先text后image与joint-mask，保持同一CoT数据和head；干预文字计划中一个对象/关系，观察后续视觉token是否改变，以及图像证据能否反向修正错误文字。",
+  "experiment": "固定Qwen3、IBQ、数据、参数与训练/总采样FLOPs，比较顺序CoT、joint MASK、joint URSA；再单独加ParaRL。报Output Alignment、独立GenEval/文字OCR、CoT证据忠实性、code palette与理解benchmark；计全部文字block和image去噪调用，不只计算图像步数。",
+  "state": "text IDs与离散image IDs以sentinel/task tags交错，在双向上下文中联合MASK恢复；M版本MAGVIT-v2，A版本Amused-VQ。内部embedding连续不等于continuous diffusion。",
+  "objective": "联合mask clean-token预测与SFT，ParaRL在抽样去噪状态上给语义reward；不是ELF velocity监督，也非URSA metric corruption。奖励一致性不等于真实CoT忠实性，需反事实证据测试。",
+  "decoding": "两模态轨迹并行交互，但文本仍可block/semi-AR；官方A示例image64、text128steps、文本block32，不应直接称单一64NFE。8B A/M checkpoints；完整训练FLOPs和各reward调用预算本次未核验。",
+  "sharing": "同一离散multimodal去噪骨干及上下文，image codec/text tokenizer仍不同；A与M不是同codec公平对照。基于MMaDA适配，不能把继承能力当成Qwen3 AR→diffusion转换实证。",
+  "open": "官方A/M实现、两种HF权重和A训练代码可访问；Apache-2.0仓库许可。README说明真人/真实照片OOD尚未充分探索，训练数据完整性需另核验。精读parallel schedule、ParaRL与ParaBench。",
+  "index": "326"
+},
+{
+  "id": "omni-diffusion-anytoany-discrete",
+  "title": "Omni-Diffusion: Unified Multimodal Understanding and Generation with Masked Discrete Diffusion",
+  "shortTitle": "Omni-Diffusion",
+  "date": "2026-03-06 · v2 2026-07-03 · backfill/checked 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "paradigm": "Any-to-Any Text-Image-Speech Masked Diffusion",
+  "priority": "精读",
+  "featured": false,
+  "kind": "Paper",
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2603.06577",
+  "project": "https://omni-diffusion.github.io/",
+  "code": "https://github.com/VITA-MLLM/Omni-Diffusion",
+  "summary": "以mask-based离散diffusion统一文本、图像、语音的any-to-any理解与生成；tail-pad masking处理变长，position penalty抑制图像重复布局，special-token pre-infilling辅助语音对话。它覆盖Omni扩展，但不是“任何模态同一个物理tokenizer”。",
+  "why": "ICML2026已发表的全离散Omni近邻，离散UMM工作不能只引用AR与图像mask而漏掉这一扩展。对Qwen3+IBQ，position penalty和长度策略也是应固定的解码控制变量。",
+  "inspiration": "研究假设：先限图文，固定IBQ后测position penalty是否减少top/bottom重复而伤害OCR排版；独立扫描tail-pad长度策略，避免把可变输出长度收益误算metric path。多帧威胁与语音告警可作为后续扩展，不宣称原文验证该任务。",
+  "experiment": "固定Qwen3、IBQ、数据、参数/FLOPs，比较MASK与URSA各自有无位置惩罚/尾部pad策略；报重复图案、文字行顺序、OCRBench/DocVQA/TextVQA、生成文字、GenEval、长度EOS校准、NFE/显存。三模态实验另固定语音codec与数据，计全部codec成本。",
+  "state": "text IDs、MAGVIT-v2图像离散code、speech tokenizer离散IDs组成joint token空间；图像downsample16、codebook8192。各模态codec不同，MASK corruption与连续VAE diffusion分开。",
+  "objective": "统一clean-token categorical去噪，以mask-based probability formulation建模联合分布；tail-pad是训练mask策略，position penalty是采样调度，不是embedding/noise/velocity或average velocity目标。",
+  "decoding": "双向并行迭代unmask，输出长度由pad/EOS策略处理；position penalty约束早期图像位置，speech预填special tokens。三阶段渐进训练，batch128/max3072tokens；统一NFE与完整FLOPs本次未核验，不能将多模态序列预算当图像预算。",
+  "sharing": "joint dLLM跨模态共享语义计算与离散去噪过程，但MAGVIT/语音/text tokenizer、decoder与词表区间不同。是否绑权每个head需看实现，本文不推断“全共享”。与URSA差forward path，与ELF差状态空间。",
+  "open": "官方项目、ICML2026 PMLR论文、代码仓库和HF模型链接可访问；全训练数据与所有modality配置未逐项运行复现。精读tail-pad、position penalty和any-to-any边界，列为核心历史补录。",
+  "index": "327"
+},
+{
+  "id": "lavida-o-elastic-discrete-umm",
+  "title": "Lavida-O: Elastic Large Masked Diffusion Models for Unified Multimodal Understanding and Generation",
+  "shortTitle": "LaViDa-O",
+  "date": "2025-09-23 · v3 2026-07-15 · backfill/checked 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "paradigm": "Elastic MoT / Masked Discrete Outputs / Continuous Understanding Input",
+  "priority": "精读",
+  "featured": false,
+  "kind": "Paper",
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2509.19244",
+  "project": "https://homepage.jackli.org/projects/lavida_o/index.html",
+  "code": "https://github.com/adobe-research/LaVida-O",
+  "summary": "把LaViDa理解模型扩展到1024px生成、编辑、grounding与交错图文，Elastic-MoT连接大理解分支与轻量生成分支；配合token compression、universal text conditioning和stratified sampling。离散生成并不代表理解视觉入口同样离散。",
+  "why": "是MoT/Router与离散UMM交叉的直接相关工作，不能只读单骨干MMaDA。对Qwen3+IBQ，需要区分“生成ID离散”“输入视觉离散”“主干全共享”三个声明，避免把分支效率错归统一概率模型。",
+  "inspiration": "研究假设：固定IBQ与Qwen3，比较单共享stream和固定Elastic-MoT分支，再比较learned Router；所有分支计总参数与激活。理解入口保持连续semantic或改IBQ是第二条轴，glyph/DocVQA不能由通用理解均值替代。",
+  "experiment": "固定主干/codec/数据与有效训练FLOPs，分开比较共享单stream、固定分支MoT、动态Router；每结构各用MASK/URSA。报OCRBench/DocVQA/TextVQA、grounding、生成文字、GenEval、branch梯度冲突、总参数/active FLOPs/显存与NFE。planning/reflection另加相同候选和judge预算。",
+  "state": "理解输入沿LaViDa使用SigLIP连续semantic embeddings，输出文本为离散masked IDs；视觉生成输出离散image IDs。因此归离散输出UMM，不归全离散输入、单codec共享UMM；内部连续embedding不是ELF运输。",
+  "objective": "MASK-based clean-token categorical预测，Elastic-MoT改变计算共享；planning/reflection和采样策略是额外机制。不是URSA metric corruption，也非continuous Flow velocity目标。",
+  "decoding": "从mask序列逐步恢复，stratified sampling等控制质量/预算，token compression降低生成计算。理解分支/生成分支规模和推理频率需共同计账；具体任务NFE、训练总FLOPs本次未核验，不外推论文速度到Qwen3。",
+  "sharing": "大理解与轻生成Transformer分支通过Elastic-MoT耦合，非全部层/FFN同权；理解SigLIP与生成codec不同，输出头不应默认绑权。继承LaViDa预训练能力，直接Qwen3初始化与IBQ适配仍需验证。",
+  "open": "Adobe官方仓库含llava/scripts/eval、推理notebook、checkpoint下载与训练说明；模型和代码为Adobe Research License，不能泛称宽松商业开源。精读Elastic-MoT、token compression和采样，作为离散输出/混合输入边界案例。",
+  "index": "328"
+},
+{
+  "id": "sparse-lavida-register-truncation",
+  "title": "Sparse-LaViDa: Sparse Multimodal Discrete Diffusion Language Models",
+  "shortTitle": "Sparse-LaViDa",
+  "date": "2025-12-16 · v2 2026-07-15 · backfill/checked 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "paradigm": "Masked Discrete UMM / Register Tokens / Dynamic Truncation",
+  "priority": "精读",
+  "featured": false,
+  "kind": "Paper",
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2512.14008",
+  "project": "https://homepage.jackli.org/projects/sparse-lavida/index.html",
+  "code": "https://github.com/adobe-research/Sparse-LaViDa",
+  "summary": "在LaViDa-O的masked discrete UMM上动态截断当前不必显式处理的MASK位置，以register tokens压缩其信息，再用匹配截断行为的训练attention mask避免train/inference错位。它改变活跃token计算，而不是减少原图ID词表或发明新codec。",
+  "why": "直接对应2×2 folding、稀疏token和局部解码的效率论证。若ICML工作减少Qwen3视觉计算，必须区分永久压缩token与推理时临时省略MASK；两者可在相同IBQ和序列预算下作为不同控制端点。",
+  "inspiration": "研究假设：保留IBQ原始网格，按去噪阶段只展开高风险/OCR/边界位置，register概括其他MASK；最终恢复所有原ID。与固定2×2 merge比较时，单独核算register、位置编码与恢复head，不能将缩短序列当免费。",
+  "experiment": "固定Qwen3、IBQ、训练数据/FLOPs、输出分辨率与NFE，比较dense MDM、固定folding、Sparse-LaViDa式动态截断；再在相同活跃token预算切MASK/URSA。报glyph/稀有code、OCRBench/DocVQA/TextVQA、GenEval、编辑/inpainting、总active-token×layer、峰值显存及真实延迟。",
+  "state": "生成仍是离散visual/text IDs及MASK；被截断位置由少量连续hidden register概括，最后仍恢复完整token图，不形成新的merged ID。理解入口继承LaViDa-O连续SigLIP，不能归全离散输入/输出同codec。",
+  "objective": "保持masked clean-token离散去噪目标，增加与稀疏采样一致的attention参数化和register训练。不是ELF embedding velocity，也不是URSA metric kernel；目标改进和token计算调度应分开比较。",
+  "decoding": "每步动态保留/截断任意位置，不限左到右block；特殊register代替未处理MASK，双向条件仍可用于编辑。需要稀疏适配SFT，不是完全training-free drop。官方示例register64/64、groups25/25；统一NFE/完整FLOPs本次未核验。",
+  "sharing": "沿用LaViDa-O elastic理解/生成分支、分离codec与head边界；新增register和attention mask改变参数/激活，不等于全层共享或同head。可作为AR/URSA/ELF之外计算调度参考，但只有同目标/预算才是严格控制。",
+  "open": "官方adobe-research/Sparse-LaViDa已含demo_sparse_lavida.py、稀疏SFT脚本和HF checkpoint链接，不再只依赖项目页旧placeholder。代码/模型为Adobe Research License；全数据及所有权重未逐项运行复现。精读稀疏参数化/attention一致性与延迟测量。",
+  "index": "329"
+},
+{
+  "id": "gestalt-ibq-interplay-diffusion",
+  "title": "Gestalt: Large Multimodal Interplay Model",
+  "shortTitle": "Gestalt",
+  "date": "2026-09-30 · v2 2026-10-08 · backfill/checked 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "paradigm": "IBQ Discrete UMM / Interplay Tokens / Partitioned Transformer",
+  "priority": "精读",
+  "featured": false,
+  "kind": "Paper",
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2610.00576",
+  "project": "https://gewu-lab.github.io/Gestalt/",
+  "code": "https://github.com/GeWu-Lab/Gestalt",
+  "summary": "以离散diffusion和interplay-partitioned架构组织模态内学习、跨模态对齐和协同，learnable interplay tokens承担跨模态交换。官方模型依赖IBQ-Tokenizer-16384，是与当前IBQ离散UMM最直接的新近邻之一。",
+  "why": "若工作涉及共享离散视觉表示、模态信息路由或理解生成相互促进，不能漏掉Gestalt。它也明确指出VQ压缩可能丢失理解证据，适合将OCR可读性和共享语义入口作为独立贡献轴。",
+  "inspiration": "研究假设：固定Qwen3+IBQ，对比普通full attention、固定分区+interplay tokens、learned Router；同时做只改语义入口、不改MASK/URSA的实验。将code palette与glyph保真纳入过滤，避免用合成teacher替代真实证据。",
+  "experiment": "固定IBQ、Qwen3、数据、参数/FLOPs，先比较互通方式，再独立切AR/MASK/URSA。报跨任务concept transfer、OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、路由/activation成本；对多帧威胁保留遮挡前身份与关键OCR并做帧删除。",
+  "state": "text IDs和IBQ16384视觉ID的统一序列，masked discrete生成；理解也通过离散视觉表示。网络连续embedding与interplay hidden不是ELF的连续运输状态，不能仅凭hidden连续重新分类。",
+  "objective": "joint masked prediction与conditional masked prediction，再interplay-oriented SFT；categorical clean-token/logit监督。与URSA差在corruption/path，和ELF差在离散状态与目标；不把数据课程作用混算生成范式。",
+  "decoding": "双向离散恢复，Transformer按zone控制跨模态交换；官方配置8B+0.6B、32层、4096hidden，HF模型卡给最大4096token。统一NFE/完整训练FLOPs本次未核验；long-doc与视频不能直接由短序列分数外推。",
+  "sharing": "共享离散token空间与主体架构，但前区有模态特定FFN/受限attention、后区协同，非所有权重全绑。IBQ codec与text tokenizer仍不同；Qwen3.8蒸馏来源或初始化细节须按具体checkpoint核查，不当作当前Qwen3适配已验证。",
+  "open": "官方代码及HF权重可访问，模型卡Apache-2.0；HF当前checkpoint标continual pretraining，不等于完整SFT模型。卡列70M pretrain、8M continual、13.7M加约2.5M T2I SFT；所有数据下载/阶段权重未逐项复现。精读分区与数据质量控制。",
+  "index": "330"
+},
+{
+  "id": "unidflow-mora-discrete-flow",
+  "title": "Best of Both Worlds: Multimodal Reasoning and Generation via Unified Discrete Flow Matching",
+  "shortTitle": "UniDFlow",
+  "date": "2026-02-12 · v2 2026-06-02 · backfill/checked 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "paradigm": "Discrete Flow Matching / Task LoRA / Mixture-of-LoRA Router",
+  "priority": "精读",
+  "featured": false,
+  "kind": "Paper",
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2602.12221",
+  "project": "https://plan-lab.github.io/projects/unidflow/",
+  "summary": "冻结backbone，分别训练理解与图像生成LoRA，再用Mixture-of-LoRA Router在离散diffusion中组合，mRef-DPO用相同条件、冻结reference policy和视觉reference对齐编辑。统一目标并不要求理解/生成占用完全相同可训练参数。",
+  "why": "与离散UMM、MoT/Router及减少梯度冲突高度接近，也是ICML2026相关工作。若论文强调路由与离散flow结合，需明确与task-specific LoRA、reference-based preference alignment的区别，而不只比较旧AR。",
+  "inspiration": "研究假设：Qwen3+IBQ先比较全共享adapter、固定理解/生成LoRA与动态MoRA，再独立切MASK/URSA。OCR与generation的冲突可按层/任务gradient cosine审计，不能只按总分判断“统一”。",
+  "experiment": "固定codec、主干、数据、active/total参数、训练FLOPs和NFE，比较共享、分adapter、动态router；在每结构同设MASK/metric path。报理解OCR、DocVQA/TextVQA、文字生成、GenEval、concept transfer、梯度冲突、显存/延迟；mRef-DPO另计reference/teacher/偏好数据预算。",
+  "state": "预训练tokenizer把图像转为离散visual IDs，与文本token进入双向模型；DFM的状态与类别跳转不同于ELF连续embedding。具体视觉codebook/理解codec共享细节本次未完整核验，不默认完全同入口。",
+  "objective": "离散flow matching适配理解/生成，KL帮助保留语言能力；mRef-DPO为后续偏好对齐。论文标题的Flow不等于连续velocity MSE，亦不能无推导就视为URSA的同一metric path。",
+  "decoding": "并行离散更新，route组合低秩adapter；原文4B模型及三阶段训练。统一采样步数、前向加噪核和完整训练FLOPs本次未核验，需复现配置后才做严格速度对比；Qwen迁移为实验假设。",
+  "sharing": "backbone冻结共享，理解/生成LoRA分开，router组合；这改变梯度与参数共享边界，非单一全绑权head结论。比较时统计所有LoRA与router参数，固定tokenizer后才可归因到生成目标。",
+  "open": "官方项目页与arXiv可访问，页上Code/Checkpoint仍标coming soon，不能称可复现开源。精读adapter解耦、MoRA和mRef-DPO；所述SOTA为作者报告，不当作相同资源下的独立验证。",
+  "index": "331"
+},
+{
+  "id": "nld-uni-self-refining-discrete",
+  "title": "Nemotron-Labs-Diffusion-Uni: Elastic Self-Refining Unified Diffusion LLM with Cross-Paradigm On-Policy Distillation",
+  "shortTitle": "NLD-Uni",
+  "date": "2026-10-27 · v1 · backfill/checked 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "paradigm": "Elastic-MoT / Progressive Discrete Self-Refinement / Cross-Paradigm OPD",
+  "priority": "精读",
+  "featured": false,
+  "kind": "Paper",
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2610.36466",
+  "project": "https://huggingface.co/nvidia/NLD-Uni",
+  "code": "https://github.com/NVlabs/Nemotron-Labs-Diffusion-Uni",
+  "summary": "以Elastic-MoT构造理解/生成任务视图，跨范式on-policy蒸馏VLM理解与continuous diffusion生成teacher；图像采用逐级corruption和intermediate mask states，使离散token能渐进commit/自修正，而非一次unmask后永不变。",
+  "why": "与URSA/ELF对照和student-state蒸馏最接近的新近离散UMM之一。它直接挑战“masked模型缺乏纠错”的粗分类；若主张离散token修正能力，应比较forward state与commit机制而非只比较采样步数。",
+  "inspiration": "研究假设：固定Qwen3+IBQ，比较absorbing mask、URSA metric替换、层级中间mask；再独立加入相同teacher的student-state OPD。把teacher提供的知识与self-refinement本身拆开，检查glyph/rare-code是否被蒸馏成高频palette。",
+  "experiment": "固定主干/IBQ/数据/总参数与训练FLOPs，先对比三种离散corruption/commit规则；所有端点使用相同teacher预算后再加OPD。报重写/纠错率、coverage、OCRBench/DocVQA/TextVQA、生成OCR、GenEval、teacher/free-running差距、NFE/显存/延迟；计所有teacher decode与学生rollout。",
+  "state": "理解输入为连续visual encoder，图像生成用离散image tokenizer；视觉corruption包含层级intermediate mask states与逐步commit，文本仍标准MDM。不是理解生成共单IBQ入口，也不是ELF连续VAE/embedding运输。",
+  "objective": "text masked离散目标、image self-refining discrete目标，额外跨范式on-policy蒸馏。continuous teacher的velocity不意味着student输出velocity；原文类别更新/kernel与URSA差别需按公式审计。",
+  "decoding": "任务视图按需加载：理解8B、T2I为4B理解+8B生成、交错全16B；并行离散逐级恢复。不能只报8B掩盖全模型16B，亦不能把activation参数当总参数。精确共同NFE/总训练FLOPs本次未核验。",
+  "sharing": "Elastic理解/生成Transformer路径有共享信息接口，连续理解encoder与离散生成codec分开；三视图使用不同参数子集。AR/VLM与continuous模型为teacher而非证明同权重初始化，需单列蒸馏资源及codec差异。",
+  "open": "官方NVlabs仓库含推理、SGLang、minimal_training/SFT及online OPD说明，HF nvidia/NLD-Uni可独立加载；NVIDIA LICENSE，不能默认宽松商业许可。完整预训练数据与全实验权重未运行核验，精读self-refinement与OPD。",
+  "index": "332"
+},
+{
+  "id": "unid3-foundation-joint-discrete",
+  "title": "Unified Discrete Diffusion for Simultaneous Vision-Language Generation",
+  "shortTitle": "UniD3",
+  "date": "2022-11-27 · v1 · backfill/checked 2026-11-27",
+  "category": "离散 UMM",
+  "domain": "UMM",
+  "paradigm": "Unified Transition Matrix / Mutual Attention / Joint Discrete Generation",
+  "priority": "精读",
+  "featured": false,
+  "kind": "Paper",
+  "idea": true,
+  "paper": "https://arxiv.org/abs/2211.14842",
+  "project": "https://mhh0318.github.io/unid3/",
+  "code": "https://github.com/mhh0318/UniD3",
+  "summary": "早于现代UMM的大规模模型浪潮，使用统一离散transition matrix、fused embedding和mutual attention，支持T2I、I2T及图文同时生成。是joint multimodal discrete diffusion的历史基础，但不是现代通用指令VQA/OCR能力的证明。",
+  "why": "为ICML相关工作补齐时间起点，避免把联合离散diffusion首次提出误写到2025/2026。对当前Qwen3+IBQ最有价值的是corruption矩阵与跨模态耦合思想，而非直接比较年代不同的最终分数。",
+  "inspiration": "研究假设：在同一Qwen3+IBQ框架中比较模态独立mask与joint corruption耦合，再固定最优路径扫描共享attention。联合生成不是自动双向理解，要用图文证据干预和OCR任务实际验证。",
+  "experiment": "固定主干/IBQ/数据/预算，比较独立与统一transition schedule，保持clean-token head不变；另切AR、MASK、URSA作现代端点。报T2I/I2T、joint completion、OCRBench/DocVQA/TextVQA、生成文字、code coverage及NFE/吞吐显存；原文模型只作基础思想，非同资源baseline。",
+  "state": "图像离散码与文本token的联合categorical状态，统一transition matrix控制forward离散corruption；不是连续VAE或embedding Gaussian diffusion。两模态tokenizer不同，fused embedding不等于共享物理codec。",
+  "objective": "统一离散逆向去噪目标预测类别/clean token并学习模态互依赖；不是ELF velocity/average velocity，也不是已证明等同URSA metric path的kernel。精确loss权重按原文配置核对。",
+  "decoding": "离散reverse chain并行恢复图文，可固定一模态条件或同时生成两模态。原文不以LLM/AR初始化为贡献；训练预算、统一NFE及大型主干移植本次未核验，勿把早期small-scale结果外推Qwen3。",
+  "sharing": "通过mutual attention和fused embedding建立共同建模，但保留模态词表/codec；不是现代单一LLM全绑权主干的同义词。属于foundation generation方法，不声称已覆盖所有通用理解benchmark。",
+  "open": "作者项目与官方GitHub链接可访问性需在使用时再核对；原文公开，完整数据/模型下载本次未运行验证。泛读历史动机与transition/mutual attention，精读仅在研究联合corruption时；标明基础补录。",
+  "index": "333"
 },
 ];
 
@@ -7479,6 +8538,25 @@ const categoryIcons: Record<string, string> = {
   "评测诊断": "M3 4h3M9 4h8M3 10l2 2 3-4M10 11h7M3 16h3M9 16h8",
 };
 
+type DiscreteScope = "core" | "decoupled" | "enabler" | "boundary";
+type DiscreteRoute = "ar" | "masked" | "metric" | "codec" | "diagnostic" | "continuous";
+const discreteCatalog: Record<string, { scope: DiscreteScope; route: DiscreteRoute }> = {
+"cm3-causal-infilling":{"scope": "core", "route": "ar"},"ofa-seq2seq-discrete-output":{"scope": "decoupled", "route": "ar"},"unified-io-original":{"scope": "core", "route": "ar"},"magvlt-masked-vl":{"scope": "core", "route": "masked"},"cm3leon-retrieval-ar":{"scope": "core", "route": "ar"},"4m-multimodal-masked":{"scope": "core", "route": "masked"},"unified-io2-anytoany":{"scope": "decoupled", "route": "ar"},"4m21-anytoany-discrete":{"scope": "core", "route": "masked"},"chameleon-early-fusion-discrete":{"scope": "core", "route": "ar"},"vila-u-rq-unified-ar":{"scope": "core", "route": "ar"},"seed-llama-semantic-discrete":{"scope": "boundary", "route": "ar"},"anygpt-discrete-anytoany":{"scope": "boundary", "route": "ar"},"lavit-dynamic-discrete-umm":{"scope": "boundary", "route": "ar"},"janus-decoupled-original":{"scope": "decoupled", "route": "ar"},"anole-open-chameleon-extension":{"scope": "core", "route": "ar"},"lwm-million-context-discrete":{"scope": "core", "route": "ar"},"lumina-mgpt-unirep-omnisft":{"scope": "core", "route": "ar"},"unicode2-cascaded-codebooks":{"scope": "boundary", "route": "ar"},"sensenova-u1-neo-unify-boundary":{"scope": "boundary", "route": "continuous"},"liquid-shared-discrete-space":{"scope": "core", "route": "ar"},"unitok-multicodebook-umm":{"scope": "enabler", "route": "codec"},"qlip-text-aligned-bsq":{"scope": "enabler", "route": "codec"},"video-lavit-visual-motion-discrete":{"scope": "boundary", "route": "ar"},"lumina-mgpt2-speculative-jacobi":{"scope": "enabler", "route": "ar"},"mio-multimodal-discrete-tokens":{"scope": "boundary", "route": "ar"},"orthus-continuous-local-diffusion":{"scope": "boundary", "route": "continuous"},"unitoken-mixed-visual-encoding":{"scope": "boundary", "route": "ar"},"emu35-dida-native-discrete":{"scope": "core", "route": "ar"},"unidisc-joint-discrete-diffusion":{"scope": "core", "route": "masked"},"mmada-unified-masked-diffusion":{"scope": "core", "route": "masked"},"fudoki-metric-discrete-umm":{"scope": "decoupled", "route": "metric"},"muddit-unified-discrete-diffusion":{"scope": "decoupled", "route": "masked"},"lumina-dimoo-discrete-umm":{"scope": "core", "route": "masked"},"mmada-parallel-joint-denoising":{"scope": "core", "route": "masked"},"omni-diffusion-anytoany-discrete":{"scope": "core", "route": "masked"},"lavida-o-elastic-discrete-umm":{"scope": "decoupled", "route": "masked"},"sparse-lavida-register-truncation":{"scope": "decoupled", "route": "masked"},"gestalt-ibq-interplay-diffusion":{"scope": "core", "route": "masked"},"unidflow-mora-discrete-flow":{"scope": "decoupled", "route": "metric"},"nld-uni-self-refining-discrete":{"scope": "decoupled", "route": "masked"},"unid3-foundation-joint-discrete":{"scope": "core", "route": "masked"},"emu3":{"scope": "core", "route": "ar"},"show-o":{"scope": "core", "route": "masked"},"uniar":{"scope": "core", "route": "ar"},"synergen-vl":{"scope": "core", "route": "ar"},"llada2-uni":{"scope": "boundary", "route": "masked"},"scanar-row-parallel-umm":{"scope": "core", "route": "ar"},"janus-pro":{"scope": "decoupled", "route": "ar"},"argus-unified":{"scope": "decoupled", "route": "ar"},"vivas-unified-ar-supervision":{"scope": "decoupled", "route": "ar"},"ursa":{"scope": "enabler", "route": "metric"},"ursa-code-audit":{"scope": "enabler", "route": "metric"},"unifusion":{"scope": "enabler", "route": "metric"},"context-weighted-dfm":{"scope": "enabler", "route": "metric"},"discrete-flow-matching-foundation":{"scope": "enabler", "route": "metric"},"lkf-discrete-flow":{"scope": "enabler", "route": "metric"},"maskgit":{"scope": "enabler", "route": "masked"},"d3pm-foundation":{"scope": "enabler", "route": "masked"},"sedd-score-entropy":{"scope": "enabler", "route": "masked"},"mdlm":{"scope": "enabler", "route": "masked"},"block-diffusion-foundation":{"scope": "enabler", "route": "masked"},"mage-masked-generative-encoder":{"scope": "enabler", "route": "masked"},"vq-vae-codec-contract":{"scope": "enabler", "route": "codec"},"ibq-index-backprop":{"scope": "enabler", "route": "codec"},"magvit-v2":{"scope": "enabler", "route": "codec"},"toklip":{"scope": "enabler", "route": "codec"},"tokenflow-dual-codebook":{"scope": "enabler", "route": "codec"},"wintok-hybrid-tokenizer":{"scope": "enabler", "route": "codec"},"titok":{"scope": "enabler", "route": "codec"},"imagefolder":{"scope": "enabler", "route": "codec"},"recap-decoder-aware-token-map":{"scope": "enabler", "route": "codec"},"x-omni":{"scope": "enabler", "route": "ar"},"llamagen":{"scope": "enabler", "route": "ar"},"mtar-multi-token-ar-image":{"scope": "enabler", "route": "ar"},"token-shuffle":{"scope": "enabler", "route": "ar"},"dpar":{"scope": "enabler", "route": "ar"},"pard":{"scope": "enabler", "route": "ar"},"block-transformer":{"scope": "enabler", "route": "ar"},"megabyte":{"scope": "enabler", "route": "ar"},"infinity-bitwise-ar":{"scope": "enabler", "route": "ar"},"ktp-visual-knowledge-transfer":{"scope": "enabler", "route": "diagnostic"},"entry-point-umm":{"scope": "enabler", "route": "diagnostic"},"umm-transferability":{"scope": "enabler", "route": "diagnostic"},"umm-one-space":{"scope": "enabler", "route": "diagnostic"},"cross-modal-forgetting-transfer":{"scope": "enabler", "route": "diagnostic"},"alignment-illusion-mllm":{"scope": "enabler", "route": "diagnostic"},"visual-token-break-even":{"scope": "enabler", "route": "diagnostic"},"elf":{"scope": "boundary", "route": "continuous"},"transfusion":{"scope": "boundary", "route": "continuous"},"mar":{"scope": "boundary", "route": "continuous"},"libra-decoupled-umm":{"scope": "boundary", "route": "continuous"},"integral-abstraction-blockmot":{"scope": "boundary", "route": "continuous"},"core-joint-contextual-representation":{"scope": "boundary", "route": "continuous"},"hiuni-pixel-shared-space":{"scope": "boundary", "route": "continuous"},"vilflow-parallel-readout":{"scope": "boundary", "route": "continuous"},"umm-jepa-next-scale":{"scope": "boundary", "route": "continuous"},"unispark-hybrid-context":{"scope": "boundary", "route": "continuous"}
+};
+const discreteScopeLabels = {
+  core: ["Discrete-state UMM", "离散状态 UMM"],
+  decoupled: ["Decoupled discrete-output UMM", "理解解耦的离散输出 UMM"],
+  enabler: ["Enabling methods & diagnostics", "支撑方法与诊断"],
+  boundary: ["Continuous / hybrid boundary", "连续／混合边界对照"],
+};
+const discreteRouteLabels = {
+  ar: ["Autoregressive & parallel AR", "自回归与并行 AR"],
+  masked: ["Masked / discrete diffusion", "掩码／离散扩散"],
+  metric: ["Metric paths / discrete Flow", "Metric path／离散 Flow"],
+  codec: ["Codec / grouped tokenization", "Codec／分组 Token"],
+  diagnostic: ["Sharing / transfer diagnostics", "共享与迁移诊断"],
+  continuous: ["Continuous boundary", "连续边界"],
+};
 const PAGE_SIZE = 10;
 type Language = "en" | "zh";
 
@@ -7515,6 +8593,7 @@ const englishLabels: Record<string, string> = {
   "精读清单": "Deep Reads",
   "借鉴优先": "Experiment Ideas",
   "已保存": "Saved Reads",
+  "离散 UMM": "Discrete UMM",
   "图像生成": "Image Generation",
   "视频生成": "Video Generation",
   "可解释性": "Interpretability",
@@ -8529,6 +9608,457 @@ const englishOverrides: Record<string, Partial<EnglishPaperCopy>> = {
   "rollout": "Autoregressive16/32-horizon state prediction and OGBench/LIBERO policy tasks. Control uses goal-conditioned behavior cloning,not demonstrated MPC search. Windowed Markov approximation,occlusion and degenerate primitives require longer audits; OCR is not a primary validated capability.",
   "evaluation": "Beyond FVD/LPIPS/PSNR,measure task success,cross-view geometry,object/contact/action causal errors and horizon accumulation. Joint policy gradients can degrade prediction;render supervision mitigates it. Threat applications also require rare-event recall and text preservation."
 },
+"cm3-causal-infilling":{
+  "summary": "VQ image IDs + text/HTML IDs; masked spans move to the sequence end, then causal next-token CE. Causal masking is not iterative discrete diffusion.",
+  "why": "A foundational ICML related-work reference: unified tasks,vocabularies,visual input representations and generation objectives are different claims. Use it to audit which factors AR/MaskGiT/URSA experiments actually hold fixed.",
+  "inspiration": "Hypothesis: hold Qwen3 and the chosen visual codec fixed and test a shared semantic interface. Factor continuous/discrete input,masking and grouped-head dependence; parameter sharing alone does not establish knowledge transfer.",
+  "experiment": "Fix Qwen3,codec,data,parameters/training FLOPs and compare causal,masked and metric-path objectives; change codec/sharing separately. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,group correlations,forgetting,throughput,memory and stability. Count pretraining,retrieval,teachers and candidates.",
+  "state": "VQ image IDs + text/HTML IDs; masked spans move to the sequence end, then causal next-token CE. Causal masking is not iterative discrete diffusion.",
+  "objective": "Discrete token logits with causal/seq2seq next-token CE or task reconstruction. Span corruption in pretraining does not imply masked-diffusion inference. No ELF continuous-velocity target.",
+  "decoding": "AR text/visual IDs followed by modality codecs;serial cost scales with length/cache. This is not a training-free conversion from AR to bidirectional masking. Exact updates,FLOPs and common-hardware latency not reverified.",
+  "sharing": "Shared task Transformers do not imply identical encoders,tokenizers,embeddings or heads. VQ image IDs + text/HTML IDs; masked spans move to the sequence end, then causal next-token CE. Causal masking is not iterative discrete diffusion. Related to URSA through discrete states,but different paths/factorization. ELF is an external continuous boundary.",
+  "open": "Paper/author page accessible;complete training code and usable generative checkpoints not verified,so not labeled fully open. Historical backfill,not a publication from today. Deep-read methods/training/evaluation;different-budget leaderboard comparisons are not causal controls."
+},
+"ofa-seq2seq-discrete-output":{
+  "summary": "Image input uses visual features while generated images use discrete visual codes; a shared seq2seq Transformer and task instructions support captioning,VQA,grounding and image generation. Output discreteness is not an all-discrete input pathway.",
+  "why": "A foundational ICML related-work reference: unified tasks,vocabularies,visual input representations and generation objectives are different claims. Use it to audit which factors AR/MaskGiT/URSA experiments actually hold fixed.",
+  "inspiration": "Hypothesis: hold Qwen3 and the chosen visual codec fixed and test a shared semantic interface. Factor continuous/discrete input,masking and grouped-head dependence; parameter sharing alone does not establish knowledge transfer.",
+  "experiment": "Fix Qwen3,codec,data,parameters/training FLOPs and compare causal,masked and metric-path objectives; change codec/sharing separately. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,group correlations,forgetting,throughput,memory and stability. Count pretraining,retrieval,teachers and candidates.",
+  "state": "Image input uses visual features while generated images use discrete visual codes; a shared seq2seq Transformer and task instructions support captioning,VQA,grounding and image generation. Output discreteness is not an all-discrete input pathway.",
+  "objective": "Discrete token logits with causal/seq2seq next-token CE or task reconstruction. Span corruption in pretraining does not imply masked-diffusion inference. No ELF continuous-velocity target.",
+  "decoding": "AR text/visual IDs followed by modality codecs;serial cost scales with length/cache. This is not a training-free conversion from AR to bidirectional masking. Exact updates,FLOPs and common-hardware latency not reverified.",
+  "sharing": "Shared task Transformers do not imply identical encoders,tokenizers,embeddings or heads. Image input uses visual features while generated images use discrete visual codes; a shared seq2seq Transformer and task instructions support captioning,VQA,grounding and image generation. Output discreteness is not an all-discrete input pathway. Related to URSA through discrete states,but different paths/factorization. ELF is an external continuous boundary.",
+  "open": "Official repository accessible with code/model links;full data licensing,checkpoint completeness and retraining reproducibility require individual checks. Historical backfill,not a publication from today. Deep-read methods/training/evaluation;different-budget leaderboard comparisons are not causal controls."
+},
+"unified-io-original":{
+  "summary": "Homogenizes supported image,text,dense and sparse outputs into discrete vocabulary sequences for a single Transformer. Joint training on90datasets covers generation and vision/language tasks; task unification predates current decoder-only UMMs.",
+  "why": "A foundational ICML related-work reference: unified tasks,vocabularies,visual input representations and generation objectives are different claims. Use it to audit which factors AR/MaskGiT/URSA experiments actually hold fixed.",
+  "inspiration": "Hypothesis: hold Qwen3 and the chosen visual codec fixed and test a shared semantic interface. Factor continuous/discrete input,masking and grouped-head dependence; parameter sharing alone does not establish knowledge transfer.",
+  "experiment": "Fix Qwen3,codec,data,parameters/training FLOPs and compare causal,masked and metric-path objectives; change codec/sharing separately. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,group correlations,forgetting,throughput,memory and stability. Count pretraining,retrieval,teachers and candidates.",
+  "state": "Homogenizes supported image,text,dense and sparse outputs into discrete vocabulary sequences for a single Transformer. Joint training on90datasets covers generation and vision/language tasks; task unification predates current decoder-only UMMs.",
+  "objective": "Discrete token logits with causal/seq2seq next-token CE or task reconstruction. Span corruption in pretraining does not imply masked-diffusion inference. No ELF continuous-velocity target.",
+  "decoding": "AR text/visual IDs followed by modality codecs;serial cost scales with length/cache. This is not a training-free conversion from AR to bidirectional masking. Exact updates,FLOPs and common-hardware latency not reverified.",
+  "sharing": "Shared task Transformers do not imply identical encoders,tokenizers,embeddings or heads. Homogenizes supported image,text,dense and sparse outputs into discrete vocabulary sequences for a single Transformer. Joint training on90datasets covers generation and vision/language tasks; task unification predates current decoder-only UMMs. Related to URSA through discrete states,but different paths/factorization. ELF is an external continuous boundary.",
+  "open": "Paper/author page accessible;complete training code and usable generative checkpoints not verified,so not labeled fully open. Historical backfill,not a publication from today. Deep-read methods/training/evaluation;different-budget leaderboard comparisons are not causal controls."
+},
+"magvlt-masked-vl":{
+  "summary": "VQGAN image IDs and BPE text IDs enter a bidirectional Transformer. Joint,I2T and T2I masked prediction plus iterative parallel refinement are compared with ARGVLT. It is a direct historical AR-versus-masked control.",
+  "why": "A foundational ICML related-work reference: unified tasks,vocabularies,visual input representations and generation objectives are different claims. Use it to audit which factors AR/MaskGiT/URSA experiments actually hold fixed.",
+  "inspiration": "Hypothesis: hold Qwen3 and the chosen visual codec fixed and test a shared semantic interface. Factor continuous/discrete input,masking and grouped-head dependence; parameter sharing alone does not establish knowledge transfer.",
+  "experiment": "Fix Qwen3,codec,data,parameters/training FLOPs and compare causal,masked and metric-path objectives; change codec/sharing separately. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,group correlations,forgetting,throughput,memory and stability. Count pretraining,retrieval,teachers and candidates.",
+  "state": "VQGAN image IDs and BPE text IDs enter a bidirectional Transformer. Joint,I2T and T2I masked prediction plus iterative parallel refinement are compared with ARGVLT. It is a direct historical AR-versus-masked control.",
+  "objective": "MASK/random visible-token training predicts clean categorical logits/CE with iterative recovery. Audit modality heads and schedules in the implementation; this is not continuous velocity or average velocity.",
+  "decoding": "Parallel unknown-token prediction with iterative commitment/refinement,not pixel Flow. Exact updates,iterations and matched-hardware memory were not reverified; declare them per task/checkpoint.",
+  "sharing": "Shared task Transformers do not imply identical encoders,tokenizers,embeddings or heads. VQGAN image IDs and BPE text IDs enter a bidirectional Transformer. Joint,I2T and T2I masked prediction plus iterative parallel refinement are compared with ARGVLT. It is a direct historical AR-versus-masked control. Related to URSA through discrete states,but different paths/factorization. ELF is an external continuous boundary.",
+  "open": "Paper/author page accessible;complete training code and usable generative checkpoints not verified,so not labeled fully open. Historical backfill,not a publication from today. Deep-read methods/training/evaluation;different-budget leaderboard comparisons are not causal controls."
+},
+"cm3leon-retrieval-ar":{
+  "summary": "Retrieval-augmented causal mixed-modal pretraining plus multitask SFT;1024VQ codes per256²image with8192image-code vocabulary,alongside text tokens. Infilling uses causal span relocation,not masked-diffusion sampling.",
+  "why": "A foundational ICML related-work reference: unified tasks,vocabularies,visual input representations and generation objectives are different claims. Use it to audit which factors AR/MaskGiT/URSA experiments actually hold fixed.",
+  "inspiration": "Hypothesis: hold Qwen3 and the chosen visual codec fixed and test a shared semantic interface. Factor continuous/discrete input,masking and grouped-head dependence; parameter sharing alone does not establish knowledge transfer.",
+  "experiment": "Fix Qwen3,codec,data,parameters/training FLOPs and compare causal,masked and metric-path objectives; change codec/sharing separately. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,group correlations,forgetting,throughput,memory and stability. Count pretraining,retrieval,teachers and candidates.",
+  "state": "Retrieval-augmented causal mixed-modal pretraining plus multitask SFT;1024VQ codes per256²image with8192image-code vocabulary,alongside text tokens. Infilling uses causal span relocation,not masked-diffusion sampling.",
+  "objective": "Discrete token logits with causal/seq2seq next-token CE or task reconstruction. Span corruption in pretraining does not imply masked-diffusion inference. No ELF continuous-velocity target.",
+  "decoding": "AR text/visual IDs followed by modality codecs;serial cost scales with length/cache. This is not a training-free conversion from AR to bidirectional masking. Exact updates,FLOPs and common-hardware latency not reverified.",
+  "sharing": "Shared task Transformers do not imply identical encoders,tokenizers,embeddings or heads. Retrieval-augmented causal mixed-modal pretraining plus multitask SFT;1024VQ codes per256²image with8192image-code vocabulary,alongside text tokens. Infilling uses causal span relocation,not masked-diffusion sampling. Related to URSA through discrete states,but different paths/factorization. ELF is an external continuous boundary.",
+  "open": "Paper/author page accessible;complete training code and usable generative checkpoints not verified,so not labeled fully open. Historical backfill,not a publication from today. Deep-read methods/training/evaluation;different-budget leaderboard comparisons are not causal controls."
+},
+"4m-multimodal-masked":{
+  "summary": "Modality-specific discrete tokenizers cover RGB,text,geometry,semantics and neural features. A shared encoder-decoder learns masked multimodal prediction on random token subsets; arbitrary modality conditioning extends beyond RGB captioning.",
+  "why": "A foundational ICML related-work reference: unified tasks,vocabularies,visual input representations and generation objectives are different claims. Use it to audit which factors AR/MaskGiT/URSA experiments actually hold fixed.",
+  "inspiration": "Hypothesis: hold Qwen3 and the chosen visual codec fixed and test a shared semantic interface. Factor continuous/discrete input,masking and grouped-head dependence; parameter sharing alone does not establish knowledge transfer.",
+  "experiment": "Fix Qwen3,codec,data,parameters/training FLOPs and compare causal,masked and metric-path objectives; change codec/sharing separately. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,group correlations,forgetting,throughput,memory and stability. Count pretraining,retrieval,teachers and candidates.",
+  "state": "Modality-specific discrete tokenizers cover RGB,text,geometry,semantics and neural features. A shared encoder-decoder learns masked multimodal prediction on random token subsets; arbitrary modality conditioning extends beyond RGB captioning.",
+  "objective": "MASK/random visible-token training predicts clean categorical logits/CE with iterative recovery. Audit modality heads and schedules in the implementation; this is not continuous velocity or average velocity.",
+  "decoding": "Parallel unknown-token prediction with iterative commitment/refinement,not pixel Flow. Exact updates,iterations and matched-hardware memory were not reverified; declare them per task/checkpoint.",
+  "sharing": "Shared task Transformers do not imply identical encoders,tokenizers,embeddings or heads. Modality-specific discrete tokenizers cover RGB,text,geometry,semantics and neural features. A shared encoder-decoder learns masked multimodal prediction on random token subsets; arbitrary modality conditioning extends beyond RGB captioning. Related to URSA through discrete states,but different paths/factorization. ELF is an external continuous boundary.",
+  "open": "Official repository accessible with code/model links;full data licensing,checkpoint completeness and retraining reproducibility require individual checks. Historical backfill,not a publication from today. Deep-read methods/training/evaluation;different-budget leaderboard comparisons are not causal controls."
+},
+"unified-io2-anytoany":{
+  "summary": "Shared encoder-decoder handles image,text,audio,actions and spatial tokens. Image inputs use ViT patch features; image outputs use VQGAN discrete codes. Multimodal denoiser pretraining does not imply diffusion sampling of every generated image.",
+  "why": "A foundational ICML related-work reference: unified tasks,vocabularies,visual input representations and generation objectives are different claims. Use it to audit which factors AR/MaskGiT/URSA experiments actually hold fixed.",
+  "inspiration": "Hypothesis: hold Qwen3 and the chosen visual codec fixed and test a shared semantic interface. Factor continuous/discrete input,masking and grouped-head dependence; parameter sharing alone does not establish knowledge transfer.",
+  "experiment": "Fix Qwen3,codec,data,parameters/training FLOPs and compare causal,masked and metric-path objectives; change codec/sharing separately. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,group correlations,forgetting,throughput,memory and stability. Count pretraining,retrieval,teachers and candidates.",
+  "state": "Shared encoder-decoder handles image,text,audio,actions and spatial tokens. Image inputs use ViT patch features; image outputs use VQGAN discrete codes. Multimodal denoiser pretraining does not imply diffusion sampling of every generated image.",
+  "objective": "Discrete token logits with causal/seq2seq next-token CE or task reconstruction. Span corruption in pretraining does not imply masked-diffusion inference. No ELF continuous-velocity target.",
+  "decoding": "AR text/visual IDs followed by modality codecs;serial cost scales with length/cache. This is not a training-free conversion from AR to bidirectional masking. Exact updates,FLOPs and common-hardware latency not reverified.",
+  "sharing": "Shared task Transformers do not imply identical encoders,tokenizers,embeddings or heads. Shared encoder-decoder handles image,text,audio,actions and spatial tokens. Image inputs use ViT patch features; image outputs use VQGAN discrete codes. Multimodal denoiser pretraining does not imply diffusion sampling of every generated image. Related to URSA through discrete states,but different paths/factorization. ELF is an external continuous boundary.",
+  "open": "Official repository accessible with code/model links;full data licensing,checkpoint completeness and retraining reproducibility require individual checks. Historical backfill,not a publication from today. Deep-read methods/training/evaluation;different-budget leaderboard comparisons are not causal controls."
+},
+"4m21-anytoany-discrete":{
+  "summary": "Expands4M to21modalities including DINOv2/ImageBind features,geometry,structured labels and metadata through discrete tokenization and joint masked modeling. Scales to3Bparameters; semantic-code utility and RGB reconstruction must be audited separately.",
+  "why": "A foundational ICML related-work reference: unified tasks,vocabularies,visual input representations and generation objectives are different claims. Use it to audit which factors AR/MaskGiT/URSA experiments actually hold fixed.",
+  "inspiration": "Hypothesis: hold Qwen3 and the chosen visual codec fixed and test a shared semantic interface. Factor continuous/discrete input,masking and grouped-head dependence; parameter sharing alone does not establish knowledge transfer.",
+  "experiment": "Fix Qwen3,codec,data,parameters/training FLOPs and compare causal,masked and metric-path objectives; change codec/sharing separately. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,group correlations,forgetting,throughput,memory and stability. Count pretraining,retrieval,teachers and candidates.",
+  "state": "Expands4M to21modalities including DINOv2/ImageBind features,geometry,structured labels and metadata through discrete tokenization and joint masked modeling. Scales to3Bparameters; semantic-code utility and RGB reconstruction must be audited separately.",
+  "objective": "MASK/random visible-token training predicts clean categorical logits/CE with iterative recovery. Audit modality heads and schedules in the implementation; this is not continuous velocity or average velocity.",
+  "decoding": "Parallel unknown-token prediction with iterative commitment/refinement,not pixel Flow. Exact updates,iterations and matched-hardware memory were not reverified; declare them per task/checkpoint.",
+  "sharing": "Shared task Transformers do not imply identical encoders,tokenizers,embeddings or heads. Expands4M to21modalities including DINOv2/ImageBind features,geometry,structured labels and metadata through discrete tokenization and joint masked modeling. Scales to3Bparameters; semantic-code utility and RGB reconstruction must be audited separately. Related to URSA through discrete states,but different paths/factorization. ELF is an external continuous boundary.",
+  "open": "Official repository accessible with code/model links;full data licensing,checkpoint completeness and retraining reproducibility require individual checks. Historical backfill,not a publication from today. Deep-read methods/training/evaluation;different-budget leaderboard comparisons are not causal controls."
+},
+"chameleon-early-fusion-discrete":{
+  "summary": "Early fusion from pretraining unifies image understanding,text and image generation. QK normalization and z-loss address norm/logit instability in mixed-modal training.",
+  "why": "Essential early-fusion discrete-UMM baseline with interleaved image/text input and output. Its stability work makes multimodal normalization and logit drift relevant beyond generation loss alone.",
+  "state": "VQ images use8192visual codes and1024IDs per512²image,interleaved with text IDs. Continuous internal embeddings do not make the categorical sampling process continuous diffusion.",
+  "sharing": "Understanding/generation use one visual tokenizer and mixed-sequence Transformer/expanded vocabulary; image decoding remains a separate codec component. Distinguish paper capabilities from released checkpoint scope.",
+  "objective": "The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. The initial official release focused on mixed inputs/text outputs; do not assume released checkpoints expose all paper image-generation capabilities. Anole is an important open extension.",
+  "decoding": "AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.",
+  "inspiration": "Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.",
+  "experiment": "Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.",
+  "open": "Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. The initial official release focused on mixed inputs/text outputs; do not assume released checkpoints expose all paper image-generation capabilities. Anole is an important open extension."
+},
+"vila-u-rq-unified-ar":{
+  "summary": "A unified vision tower combines reconstruction and image-text contrastive learning. The LLM models spatial positions while a depth Transformer predicts residual codes, supporting image/video understanding and generation.",
+  "why": "Direct precedent for jointly semantic and reconstructive discrete tokens with spatial/depth AR. Residual-code depth is not a2x2 spatial slot,so its local prediction cannot be equated with spatial-block decoding.",
+  "state": "SigLIP-based vision tower with residual quantization,16384codebook entries and multiple depth IDs per spatial location; not one ID per merged spatial block.",
+  "sharing": "Understanding/generation share the vision tower and main AR framework,while a depth Transformer and pixel decoder remain separate. Extends a pretrained language model; keep residual depth fixed in codec controls.",
+  "objective": "The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. ",
+  "decoding": "AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.",
+  "inspiration": "Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.",
+  "experiment": "Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.",
+  "open": "Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. "
+},
+"seed-llama-semantic-discrete":{
+  "summary": "Semantic discrete tokens trained for discriminativeness and reconstruction let LLaMA model interleaved image/text through next-word prediction. A separate pretrained UNet diffusion decoder renders pixels.",
+  "why": "Early semantic-token UMM foundation. Unlike reconstruction-oriented IBQ IDs,its short sequence depends on a semantic bottleneck and external diffusion rendering,not necessarily cheaper modeling of the same detail.",
+  "state": "ViT,Causal Q-Former and VQ produce1D semantic IDs with8192added visual codes,then map them to unCLIP-SD conditioning. Not a dense pixel-grid VQ codec.",
+  "sharing": "Shares LLM,expanded vocabulary and semantic visual IDs,but not the AR head with its pixel renderer. LLaMA initialization adds visual embeddings/head rows. Discrete semantic interface plus continuous renderer boundary.",
+  "objective": "The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. ",
+  "decoding": "AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.",
+  "inspiration": "Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.",
+  "experiment": "Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.",
+  "open": "Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. "
+},
+"anygpt-discrete-anytoany":{
+  "summary": "Unified AR training and any-to-any instruction tuning over composable discrete modality sequences. Image rendering follows the separate SEED decoder,not one universal pixel decoder.",
+  "why": "Shows how image,speech,music and text enter a unified discrete sequence,an Omni/discrete-UMM vocabulary precedent. Its semantic image tokens/decoder costs are not directly comparable to dense IBQ reconstruction.",
+  "state": "Modality-specific discrete codecs; images useSEED with32IDs/image and8192entries,while speech/music use their own RVQ tokens. Several codecs do not imply one shared physical codebook.",
+  "sharing": "Unified LLM sequence modeling/expanded token interface with separate modality tokenizers/detokenizers. The image path is a discrete semantic interface plus external renderer,not fully discrete pixel reconstruction UMM.",
+  "objective": "The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. ",
+  "decoding": "AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.",
+  "inspiration": "Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.",
+  "experiment": "Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.",
+  "open": "Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. "
+},
+"lavit-dynamic-discrete-umm":{
+  "summary": "Treats visual tokens as a foreign language with dynamic-length tokenization,allowing one LLM to understand and generate them. A diffusion visual detokenizer renders generated codes.",
+  "why": "Historical baseline for dynamic token lengths and semantic selection versus fixed grids/merging. Separate redundancy reduction from improved generative modeling; semantic selection may discard OCR detail.",
+  "state": "Dynamically selected/merged visual features are quantized into discrete codes in a unified AR sequence. An independent denoising UNet renders pixels. Count selection and AR sequence costs separately.",
+  "sharing": "Shares a discrete interface and AR LLM across tasks,but has separate visual tokenizer/denoising renderer. Extends pretrained LLaMA. Discrete interface plus continuous rendering,not a pure VQ-decoder endpoint.",
+  "objective": "The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. ",
+  "decoding": "AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.",
+  "inspiration": "Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.",
+  "experiment": "Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.",
+  "open": "Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. "
+},
+"janus-decoupled-original":{
+  "summary": "Decouples understanding/generation visual encoders while retaining a unified Transformer. Semantic features serve understanding; AR reconstructive visual IDs serve generation.",
+  "why": "Essential sharing-boundary control: a shared Transformer need not share the visual encoder. Understanding gains may come from the SigLIP input path rather than better visual-ID modeling.",
+  "state": "Understanding uses continuous SigLIP-Large features via an adapter; generation uses16384VQ IDs with16x downsampling,24x24positions at384². Not identical discrete visual input/output representations.",
+  "sharing": "Shares the LLM backbone with distinct visual encoders/adapters and text/visual output interfaces. Boundary comparator: discrete generation plus continuous understanding. Existing Janus-Pro does not replace the original decoupling argument.",
+  "objective": "The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. ",
+  "decoding": "AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.",
+  "inspiration": "Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.",
+  "experiment": "Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.",
+  "open": "Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. "
+},
+"anole-open-chameleon-extension":{
+  "summary": "Extends Chameleon with efficient instruction tuning for open interleaved image/text generation. Primarily a tuning/release contribution rather than a new discrete forward process.",
+  "why": "Distinguishes Chameleon architecture from publicly reproducible image generation. For ICML comparisons,document the released checkpoint’s modalities and tuning data rather than inferring capabilities from model names.",
+  "state": "Inherits Chameleon discrete image/text sequences and VQ codec. AR samples visual IDs and the VQ decoder renders them,without an external diffusion generator.",
+  "sharing": "Inherits one backbone,mixed sequence and visual tokenizer. It extends an existing family rather than being an independent from-scratch baseline; account for parent-model and adaptation budgets separately.",
+  "objective": "The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. ",
+  "decoding": "AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.",
+  "inspiration": "Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.",
+  "experiment": "Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.",
+  "open": "Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. "
+},
+"lwm-million-context-discrete":{
+  "summary": "Progressively extends Llama to million-token context using Blockwise RingAttention for video/language understanding and generation. Main contribution is context/system scaling,not a new visual-token probability target.",
+  "why": "Foundation for discrete video/text long context and historical evidence in multi-frame threat tasks. Its world-model title does not establish action-conditioned closed-loop dynamics;1M context is not1M-step rollout.",
+  "state": "Video frames become discrete visual tokens with EOF/EOV boundaries,interleaved with text in a long AR sequence. State is visual IDs rather than a continuous VAE/noise field.",
+  "sharing": "Shares a long-sequence LLM and discrete visual interface with a separate codec. AR initialization is supported,but context memory/communication dominate cost. Do not compare total scores against short-context UMMs without budget controls.",
+  "objective": "The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. ",
+  "decoding": "AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.",
+  "inspiration": "Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.",
+  "experiment": "Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.",
+  "open": "Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. "
+},
+"lumina-mgpt-unirep-omnisft":{
+  "summary": "Initializes from multimodal generative pretraining,uses Flexible Progressive SFT for images,and explores VQA,segmentation and depth through Omni-SFT. Distinguish checkpoint capabilities across stages.",
+  "why": "Aspect ratios,row boundaries and multitask SFT matter for discrete grids,making this relevant to ScanAR,block decoding and OCR layout. Separate AR targets from inherited pretraining/SFT data gains.",
+  "state": "VQ-VAE image IDs and text form a decoder-only sequence. UniRep explicitly describes image shape/row structure to disambiguate different aspect ratios with equal token counts.",
+  "sharing": "Shares decoder-only sequence modeling and visual IDs with a separate VQ codec. Omni-SFT expands tasks; do not assume a T2I checkpoint validates all understanding capabilities.",
+  "objective": "The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. ",
+  "decoding": "AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.",
+  "inspiration": "Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.",
+  "experiment": "Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.",
+  "open": "Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. "
+},
+"unicode2-cascaded-codebooks":{
+  "summary": "Cascaded large codebooks preserve semantics and target utilization/stability. Discrete semantic tokens interface with a pretrained diffusion decoder. Boundary model:discrete interface plus continuous renderer,not purely discrete pixel reconstruction.",
+  "why": "Directly relevant to large-vocabulary utilization/stability:500K semantic codes from SigLIP and a frozen/trainable cascade to anchor geometry. Separate semantic-code/decoder gains from AR modeling.",
+  "state": "Clusters SigLIP sequence embeddings into500Ksemantic codes with frozen anchor and trainable refinement codebooks. Not equivalent to simply enlarging an IBQ reconstruction codebook.",
+  "sharing": "Understanding/generation use aligned semantic codes with an independent pixel diffusion decoder. Complete LLM/visual-embedding tying was not audited; the unified label does not establish it.",
+  "objective": "The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. ",
+  "decoding": "AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.",
+  "inspiration": "Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.",
+  "experiment": "Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.",
+  "open": "Paper verified; no official implementation/weight download verified in this audit. Foundational related-work backfill. Deep-read codebook construction/cascade ablations; report decoder changes and500K-head cost separately."
+},
+"sensenova-u1-neo-unify-boundary":{
+  "summary": "Native MoT couples text AR with pixel-space Flow on8Bdense and30B-A3B understanding baselines. A continuous-generation boundary comparator,not strict discrete UMM.",
+  "why": "Important external architecture comparator for discrete UMM: native MoT and near-lossless input preserve semantics/pixels,but visual generation is pixel Flow rather than IDs. Separate sharing architecture from AR/masked/metric-path targets.",
+  "state": "Near-lossless native pixel interface with continuous pixels/patches,no pretrained VE/VAE or discrete visual codebook. Resolution-adapted Gaussian noise supplies a linear generation path.",
+  "sharing": "Understanding/generation interact through MoT with distinct objectives/heads,not a shared visual-ID vocabulary. Encoder-free does not imply all tokenizer sharing. Separate continuous pixel interfaces from fixed-codec controls.",
+  "objective": "Text uses AR CE. The visual network predicts clean pixels,then converts them to velocity for v-space MSE. This x-prediction parameterization with velocity loss differs from clean-ID CE and is neither masked discrete diffusion nor URSA metric paths.",
+  "decoding": "Text is causal AR;vision uses parallel iterative Flow. Match dense/MoE model,resolution and budget; not all original configurations were re-audited. Current U1.6 examples use50base steps and separate4/8-step distilled variants; do not attribute later timings to the U1 paper.",
+  "inspiration": "Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.",
+  "experiment": "Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.",
+  "open": "Paper,official blog and OpenSenseNova/SenseNova-U1 repository verified,including inference/training directories and checkpoint links. U1.6 released2026-11-24. EvolvingLMMs-Lab/NEO is a family entry; NEO understanding weights are not U1 generative weights. Deep-read Section3 and version-specific documentation."
+},
+"liquid-shared-discrete-space":{
+  "summary": "Extends existing LLMs directly with discrete visual IDs for understanding/generation in a shared feature space,and studies task interference across scale. Codec reconstruction and LLM extension are separate stages.",
+  "why": "Extending existing Qwen/Gemma LLMs into a shared discrete space is a necessary baseline for fixed-backbone UMM studies. Account for inherited tokenizer quality rather than attributing all gains to the AR objective.",
+  "state": "Chameleon VQGAN maps512²images to32x32IDs over8192visual entries. Image/text share the expanded sequence with learned visual embeddings,without a separate CLIP understanding input.",
+  "sharing": "Understanding/generation share a visual tokenizer and LLM sequence interface,with a separate VQ image decoder. Explicit pretrained-LLM initialization is not the same budget as training Chameleon from scratch.",
+  "objective": "The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. ",
+  "decoding": "AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.",
+  "inspiration": "Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.",
+  "experiment": "Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.",
+  "open": "Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. "
+},
+"unitok-multicodebook-umm":{
+  "summary": "Multi-codebook quantization expands discrete capacity under reconstruction and semantic supervision; Liquid integration validates understanding/generation. Primarily a tokenizer study,not a generation-paradigm-only control.",
+  "why": "Directly addresses discrete-UMM bottlenecks: reconstruction/semantic losses need not inherently conflict; limited discrete capacity can be responsible. Separate codebook/bottleneck changes from AR,masking or metric-path targets.",
+  "state": "Splits visual channels into chunks quantized by separate small sub-codebooks,exponentially expanding the composite vocabulary. Channel factorization is neither four spatial IBQ IDs nor residual-depth coding.",
+  "sharing": "One tokenizer can serve both tasks,but Transformer/head sharing depends on downstream Liquid configuration. A shared codec space does not establish universal parameter tying.",
+  "objective": "Tokenizer reconstruction and semantic alignment with multi-codebook capacity expansion,not itself an AR/Flow sampling objective. Downstream Liquid uses discrete next-token CE. Separate codec and LLM training budgets.",
+  "decoding": "The tokenizer emits sub-codebook IDs and reconstructs pixels; downstream Liquid/AR models determine generation order. LLM sampling counts,initialization and memory are not intrinsic tokenizer properties. Common-budget configurations were not re-audited.",
+  "inspiration": "Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.",
+  "experiment": "Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.",
+  "open": "Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. "
+},
+"qlip-text-aligned-bsq":{
+  "summary": "Dynamically balances alignment/reconstruction through two stages accommodating large-batch contrastive learning and memory-intensive reconstruction. Evaluates LLaVA,LlamaGen and unified mixed-modality AR uses.",
+  "why": "Important discrete semantic-alignment reference: BSQ reconstruction and language-image alignment coexist through staged training. For OCR/reconstruction tradeoffs,control token capacity and supervision.",
+  "state": "Binary Spherical Quantization uses implicit discrete codes at spherical-hypercube corners,not a learned dense IBQ lookup or continuous embedding diffusion.",
+  "sharing": "An enabler for a shared discrete codec; separate downstream experiments do not imply one fully shared Transformer across all tasks. Distinguish unified AR results from standalone LLaVA/LlamaGen uses.",
+  "objective": "Stage1 combines alignment and MSE;stage2 drops the text encoder,freezes the visual encoder and refines quantizer/decoder reconstruction. Downstream unified modeling uses AR CE,not discrete diffusion to repair semantic tokens.",
+  "decoding": "Separate BSQ encoding/reconstruction from downstream AR sampling;the tokenizer has no intrinsic ODE NFE. Account for large-batch alignment and reconstruction memory separately. Not all downstream LLM initializations/timings were re-audited.",
+  "inspiration": "Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.",
+  "experiment": "Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.",
+  "open": "Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. "
+},
+"video-lavit-visual-motion-discrete":{
+  "summary": "Extends LaVIT with decoupled visual/motional tokenization for unified image,video and text understanding/generation. Render the keyframe first,then condition subsequent frames on keyframe plus motion.",
+  "why": "Relevant to video discrete UMM and multi-frame threat analysis: separate keyframe appearance from temporal motion to avoid redundant static tokens. Motion codes are not executable actions,and visual quality does not establish closed-loop physics.",
+  "state": "Decomposes videos into keyframe and temporal-motion tokens,discretized separately and interleaved with text. Conditional denoising UNets render video pixels. Not one dense reconstruction-ID type for every frame.",
+  "sharing": "Shares the LLM AR sequence for text,visual and motion tokens,but uses separate codecs and image/video denoising renderers. Discrete temporal interface plus continuous rendering,not demonstrated action-conditioned closed-loop world modeling.",
+  "objective": "The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. ",
+  "decoding": "AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.",
+  "inspiration": "Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.",
+  "experiment": "Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.",
+  "open": "Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. "
+},
+"lumina-mgpt2-speculative-jacobi":{
+  "summary": "Trains a stand-alone AR image model from scratch for editing,subject-driven/control tasks and dense prediction,adding inference-time scaling and speculative Jacobi decoding for quality/speed.",
+  "why": "Important neighboring work for discrete-UMM decoding and visual multitasking: speculative Jacobi accelerates AR via prediction/verification,not masked diffusion. Evidence centers on generation/dense prediction,not automatically strong general VQA.",
+  "state": "Unified discrete image tokens with decoder-only AR under the2.0configuration;do not substitute1.0initialization. Jacobi candidates are decoding states,not a new visual codebook.",
+  "sharing": "Shares tokenization/backbone across visual generation tasks,but emphasizes multimodal generation rather than fully validated general understanding-generation sharing. A neighboring decoding/initialization enabler,not a replacement for Chameleon/Emu3 understanding baselines.",
+  "objective": "The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. ",
+  "decoding": "Trained from scratch,unlike1.0multimodal-pretrained initialization. Uses standard AR or speculative Jacobi,with optional candidate selection/test-time scaling. Count drafts,verification and every candidate;common-budget latency not re-audited.",
+  "inspiration": "Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.",
+  "experiment": "Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.",
+  "open": "Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. "
+},
+"mio-multimodal-discrete-tokens":{
+  "summary": "Any-to-any AR over four modality-token types,using alignment,interleaved,speech-enhanced pretraining and comprehensive SFT,supporting interleaved video/text and visual guidelines.",
+  "why": "Fills the any-to-any discrete sequence and interleaved video/speech branch. Staged training and multimodal data matter; do not attribute all gains to discrete-token modeling.",
+  "state": "SEED encodes224²images into32semantic IDs over8192entries;videos become frame sequences and speech uses a separate SpeechTokenizer. Image rendering follows SEED rather than direct dense-IBQ decoding.",
+  "sharing": "One LLM models discrete modality sequences with separate codecs/detokenizers. SEED images require external rendering costs. Semantic-token UMM plus rendering,not a purely discrete pixel world model.",
+  "objective": "The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. ",
+  "decoding": "AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.",
+  "inspiration": "Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.",
+  "experiment": "Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.",
+  "open": "Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. "
+},
+"orthus-continuous-local-diffusion":{
+  "summary": "An AR backbone models cross-modal sequences;the LM head predicts text categories and a modality-specific diffusion head generates continuous image features conditioned on backbone outputs.",
+  "why": "External comparator for quantization loss: retains AR cross-modal dependencies but replaces visual IDs with continuous features and a local diffusion head. AR order and discrete output state are independent axes.",
+  "state": "Text uses IDs;images use continuous VAE patch features after replacing hard VQ with a soft alternative. Visual states are not codebook IDs;exclude from strict discrete UMM.",
+  "sharing": "Shares an AR backbone with separate LM/diffusion heads and continuous visual codec. Conversion from a discrete UMM changes states as well as targets,not only CE supervision.",
+  "objective": "Text next-token CE plus a local diffusion head over continuous image features,not visual clean-ID CE. Exact diffusion parameterization not fully re-audited;do not label it ELF velocity/average velocity.",
+  "decoding": "Cross-modal/patch ordering remains AR while the diffusion head samples local image features;count its extra iterations.72A100-hours describes base construction,not total training. Exact NFE/common latency unverified.",
+  "inspiration": "Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.",
+  "experiment": "Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.",
+  "open": "Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. "
+},
+"unitoken-mixed-visual-encoding":{
+  "summary": "Unified visual encoding combines high-level semantics and detail in shared AR modeling,studying task-data ratios and representation choice as causes of interference.",
+  "why": "Distinct from UniTok: combines continuous semantics and discrete detail at visual input. Understanding gains may come from the added continuous path rather than discrete IDs alone.",
+  "state": "Visual inputs combine continuous features and VQ-ID embeddings,with AR categorical visual output. Mixed input/discrete output,not purely discrete visual information for all understanding.",
+  "sharing": "Shares visual fusion/prediction while the continuous encoder supplies extra information. Compare discrete-only,continuous-only and mixed inputs at fixed backbone/data ratios. CVPR2025Workshop work,not UniTok.",
+  "objective": "The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. ",
+  "decoding": "AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.",
+  "inspiration": "Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.",
+  "experiment": "Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.",
+  "open": "Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. "
+},
+"emu35-dida-native-discrete":{
+  "summary": "Large-scale interleaved next-token pretraining plus RL;DiDA uses self-distilled data/modified attention to convert tokenwise decoding to bidirectional discrete prediction for interleaved and text-rich X2I generation.",
+  "why": "Important successor beyond Emu3:large-vocabulary IBQ,long interleaved pretraining and AR-to-discrete-diffusion adaptation directly precede URSA/mask-only comparisons. DiDA speedups do not establish metric-path gains.",
+  "state": "IBQ visual tokens with16x downsampling,256-dimensional codes and131072entries in a shared image/text sequence. DiDA adds noisy visual-sequence refinement while text stays AR.",
+  "sharing": "AR/DiDA reuse the family’s discrete visual representation/backbone. Noisy visual tokens attend bidirectionally within their image while clean/text tokens remain causal. Shares discrete endpoints with URSA,but not established as the same metric-aware corruption.",
+  "objective": "Base image/text next-token CE plus discrete-denoising adaptation using self-distilled data. Exact transition kernel/noise weighting not fully re-audited;do not identify it with URSA metric paths. RL rewards require separate controls.",
+  "decoding": "Text AR with parallel iterative DiDA vision. About20x/image is setting-specific,not a fixed-NFE cross-model result. Roughly13Tpretraining tokens preclude direct small-budget adaptation comparisons;exact inference counts/peak memory not standardized in this audit.",
+  "inspiration": "Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.",
+  "experiment": "Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.",
+  "open": "Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. "
+},
+"unidisc-joint-discrete-diffusion":{
+  "summary": "Jointly models discrete text/image tokens with random masking and bidirectional denoising for generation,captioning,retrieval and cross-modal inpainting. Variable-budget joint modeling is the contribution; early caption/retrieval results do not establish specialist OCR/VQA capability.",
+  "why": "An essential masked baseline for a discrete-UMM paper. Place Qwen3+IBQ AR,MaskGIT-style recovery and URSA metric paths on the same axes. Fix tokenizer and CFG so guidance is not mistaken for a paradigm gain.",
+  "inspiration": "Hypothesis: retain the same IBQ IDs,Qwen3 backbone and joint sequence; switch causal next-token prediction to joint masked recovery. Test bidirectional use with text/image inpainting,including glyph and rare-code retention at high mask rates.",
+  "experiment": "Fix Qwen3,IBQ,data,parameters and training FLOPs; compare AR,absorbing MASK and URSA metric paths. Sweep equal total-forward budgets/CFG and report OCRBench,DocVQA,TextVQA,generated-text OCR,GenEval,inpainting,code coverage,NFE,throughput and memory. Separate input-codec gains from sampling.",
+  "state": "Joint text IDs and discrete visual-code IDs. Random absorbing-MASK corruption; continuous internal embeddings do not make the modeled state continuous. An image decoder maps IDs to pixels,without Gaussian VAE-latent generation.",
+  "objective": "Predicts clean categorical token logits at masked positions with a discrete denoising objective,not ELF velocity/noise/average velocity. Like URSA it has discrete endpoints,but masking does not exploit the full visual metric path.",
+  "decoding": "Parallel iterative unmasking supports variable quality/compute and constrained inpainting. Paper includes115M/340M and1.4B models; a small-scale setup uses300L40S GPU-hours,not a Qwen end-to-end budget. Complete training FLOPs/common-evaluation NFE not verified in this audit.",
+  "sharing": "A joint Transformer processes text/image token regions,but their tokenizers and vocabulary ranges differ; shared modeling does not imply one codec or tied modality heads. Same-tokenizer AR comparisons are central. Qwen initialization is a proposed transfer,not a reported result.",
+  "open": "Official code and training/inference implementation accessible; paper announces models/data. Complete downloads and every checkpoint were not executed here. Read method,AR/CFG comparisons and budget appendix. A2025 foundational backfill,not a new publication."
+},
+"mmada-unified-masked-diffusion":{
+  "summary": "Extends LLaDA-8B-Instruct with MAGVIT-v2 image IDs for masked-diffusion text reasoning,visual understanding and T2I,followed by Mixed-CoT and UniGRPO. Separate the joint probabilistic model from data,CoT and reward gains.",
+  "why": "A mandatory LLM-initialized masked baseline for Qwen3+IBQ discrete UMM and AR-to-URSA adaptation. Final capabilities also depend on data/RL; final scores alone do not establish masked-objective superiority over AR.",
+  "inspiration": "Hypothesis: first adapt Qwen3+IBQ without CoT/RL,then add Mixed-CoT and rewards separately. Test evidence substitution/deletion for OCR explanation faithfulness; audit generated-text OCR and code diversity beyond language rewards.",
+  "experiment": "Fix backbone,IBQ,data and FLOPs; compare AR,text-AR/image-mask,fully masked text/image and URSA. On a fixed best architecture,cross CoT and RL in a2x2 design. Report OCRBench,DocVQA,TextVQA,GenEval,text rendering,palette,language retention and every rollout/reward cost.",
+  "state": "LLaDA text tokenizer plus Show-o MAGVIT-v2 discrete image quantizer in one sequence. Target tokens are randomly masked while prompts remain. Neither one image/text encoder nor Gaussian VAE states.",
+  "objective": "Unified masked clean-token prediction,then Mixed-CoT SFT and UniGRPO. Outputs remain categorical logits; multimask probability estimation for RL is not ELF velocity or a URSA uniform metric corruption kernel.",
+  "decoding": "Official demo uses semi-AR block text sampling and non-AR image/multimodal denoising. Fully diffusion-based does not mean identical global decoding for every task. Initializes LLaDA rather than directly converting AR. Complete FLOPs/common NFE require task-config auditing.",
+  "sharing": "Text/images share the dLLM backbone and masked formulation,but use separate text tokenizer and image codec. For Qwen transfer,control adapters,vocabulary expansion,IBQ heads and bidirectional attention separately; inherited LLaDA ability is not a new modeling gain.",
+  "open": "Official training,models,evaluation code plus Base/MixCoT checkpoint links accessible. README still labels final Max/UniGRPO checkpoint coming soon; not every stage is released. Read objective,sampling and UniGRPO. Historical core backfill."
+},
+"fudoki-metric-discrete-umm":{
+  "summary": "Initializes from AR Janus-1.5B and adapts to full attention/discrete flow matching. Metric-induced paths and kinetic-optimal velocities enable bidirectional context and iterative correction,beyond pure masking. A particularly close URSA-related work.",
+  "why": "Essential prior art if the ICML contribution involves metric paths,AR/Qwen adaptation or revisable tokens. Separate prior path/rate parameterizations from new shared-state,local-head or efficiency contributions.",
+  "inspiration": "Hypothesis: keep Qwen3+IBQ IDs/vocabulary fixed and reproduce MASK,generic DFM,FUDOKI metric and URSA paths before adding2x2 blocks or semantic entrances. Metric use and AR-to-discrete-flow adaptation alone are not unexplored novelty.",
+  "experiment": "Fix codec,backbone,data,parameters and train/sample FLOPs; vary corruption/path with a common clean-ID head,then independently vary head/rate parameterization. Report rewrite/error-correction rates,coverage,OCR/DocVQA/TextVQA,GenEval,memory and throughput. Count all test-time candidates/scorers.",
+  "state": "Discrete text/image generation IDs with metric-induced categorical paths permitting non-MASK replacement. Velocity means class-transition rates,not ELF Euclidean embedding velocity. Understanding still uses SigLIP features; generation uses a16384-code LlamaGen codec,so no single shared visual codec.",
+  "objective": "Discrete flow matching constructs sampling with kinetic-optimal rates from predicted clean categories. Like URSA it is metric-aware,but path,rate and initialization details differ; they are not interchangeable algorithms.",
+  "decoding": "Janus-1.5B initialization,full attention/logit shifting and parallel revisable sampling. Text vocabulary102400,image vocabulary16384. No direct Qwen3 transfer experiment. Complete training FLOPs/common NFE need configuration-level verification rather than guessed values.",
+  "sharing": "Shared Janus-style language backbone,but separate SigLIP understanding and VQ generation paths. Vocabulary/output adapters do not imply tied heads. Classify as discrete-output UMM,not fully shared discrete visual-input UMM. Fix codecs/budgets before ELF comparisons.",
+  "open": "Official inference,understanding/generation examples,evaluation code and HF model link public. Complete training pipeline/data reproducibility not verified. Read path/rate derivations,Janus conversion and appendix before positioning ICML novelty."
+},
+"muddit-unified-discrete-diffusion":{
+  "summary": "Starts from pretrained Meissonic T2I MM-DiT,adds a lightweight text decoder and jointly denoises discrete text/image targets for T2I,I2T and VQA. Complements LLM-initialized MMaDA by growing unification from visual priors.",
+  "why": "A necessary visual-generator-initialized discrete UMM baseline. Qwen3 understanding and Muddit T2I strengths inherit different resources; final scores without accounting for pretraining cannot establish objective superiority.",
+  "inspiration": "Hypothesis: with Qwen3/IBQ fixed,first isolate visual-teacher distillation,then compare MASK/URSA paths. A lightweight text decoder also motivates separating local-head capacity from global-backbone sharing.",
+  "experiment": "Fix IBQ,data,parameters/FLOPs; cross language-checkpoint initialization/visual-teacher assistance with MASK/metric paths. Account for teacher pretraining separately. Measure OCR,glyph rendering,GenEval,language retention,code co-occurrence,NFE and memory. Original Meissonic is a resource-mismatched reference,not a strict control.",
+  "state": "VQ image IDs and text tokens are discrete recovery targets. Image encoding and CLIP text embeddings feed MM-DiT with separate text readout. Continuous internal embeddings do not make this continuous-latent diffusion; modality codecs remain distinct.",
+  "objective": "Masked discrete denoising predicts clean-token logits/CE at masked positions while adapting visual priors and text heads. Neither ELF velocity/average velocity nor URSA uniform metric corruption.",
+  "decoding": "Parallel iterative recovery with cosine masking. Default64sampling steps;T2I/I2T CFG9.0/1.5. Training uses8M paired samples then1M instruction samples,77-token text and512² images. Full training FLOPs unverified; these settings do not establish long-document/OCR performance.",
+  "sharing": "Shared MM-DiT denoising with separate image codec,CLIP text inputs and lightweight text output. Not a fully tied single-LLM architecture. Meissonic initialization is not direct Qwen3/AR conversion; compare sharing boundaries explicitly.",
+  "open": "Official implementation with inference/training components and HF model link accessible. Some data are internal; full-data reproducibility is not established. Read initialization,shared-space and sampling sections; separate masked objectives from inherited visual resources."
+},
+"lumina-dimoo-discrete-umm":{
+  "summary": "A discrete dLLM unifies understanding,T2I,editing,inpainting and subject-driven generation,with predict-sample-remask decoding and Max-Logit Cache. Separate codec choice,multistage data,discrete objectives and caching when interpreting efficiency.",
+  "why": "A broader task-coverage discrete UMM endpoint beyond early MMaDA/UniDisc and a close IBQ/MaskGIT baseline. Better understanding/editing/generation does not alone establish bidirectional knowledge transfer; test matched entities/concepts.",
+  "inspiration": "Hypothesis: first retain standard masked updates on Qwen3+IBQ and isolate logit-stability caching,checking whether OCR settles later than background. Then compare URSA updates independently. MIGM shortcut acceleration on this model is not a new model-wide generation paradigm.",
+  "experiment": "Fix backbone,IBQ,data,parameters/FLOPs; compare MASK and URSA,then independently enable caching under equal effective forwards. Report OCR/DocVQA/TextVQA,generated text,GenEval,editing background/identity,coverage,NFE,latency and memory; audit stale-cache error and rare-ID bins.",
+  "state": "Discrete visual codes and text IDs processed by an adapted pretrained dLLM; masked rather than Gaussian VAE corruption. Visual reconstruction codec differs from the language tokenizer; audit final codebook/resolution configurations rather than inferring them from a model name.",
+  "objective": "Clean categorical/logit prediction with recovery/remasking. Caching reuses computation without changing targets into embedding velocity. Compared with URSA,the forward path and revision process differ; ELF is a continuous-space external control.",
+  "decoding": "Global parallel image refinement and blockwise text generation. A reported understanding setup uses256-token blocks/128sampling steps. Approximately2x ML-Cache speedup is configuration-dependent; count hit rates/errors. T2I NFE/full training FLOPs need per-configuration verification.",
+  "sharing": "Shared dLLM semantic computation/discrete formulation,but separate visual codec and text tokenizer,not one pixel-reconstruction head. Starts from a pretrained dLLM; direct Qwen AR adaptation needs its own experiment. Fix the backbone before path comparisons.",
+  "open": "Official implementation,usage instructions and HF links accessible; paper announces code/checkpoints. Complete data and every training-stage checkpoint were not run-verified. Read tokenizer,training stages and ML-Cache; historical backfill."
+},
+"mmada-parallel-joint-denoising":{
+  "summary": "Text/image responses co-evolve during denoising rather than fixing textual CoT before image generation. ParaRL promotes trajectory-level semantic consistency. A/M variants use different image codecs; their differences are not an isolated parallel-algorithm comparison.",
+  "why": "Key prior art for claims about joint text-image correction or unified reasoning. Test reciprocal influence rather than inferring unification from shared Transformer weights or final image scores.",
+  "inspiration": "Hypothesis: on fixed Qwen3+IBQ,compare text-then-image and joint masking with the same CoT data/heads. Intervene on one planned object/relation and test visual change; test whether image evidence corrects erroneous text in the reverse direction.",
+  "experiment": "Fix Qwen3,IBQ,data,parameters and total train/sample FLOPs; compare sequential CoT,joint MASK and joint URSA,then add ParaRL separately. Measure Output Alignment,independent GenEval/text OCR,CoT evidence faithfulness,palette and understanding. Count every text block/image update,not image steps alone.",
+  "state": "Sentinel/task-tagged text and image IDs jointly masked under bidirectional context. M uses MAGVIT-v2,A uses Amused-VQ. Continuous embeddings inside the network are not continuous diffusion states.",
+  "objective": "Joint masked clean-token prediction/SFT plus ParaRL semantic rewards on sampled denoising states. Neither ELF velocity nor URSA metric corruption. Reward consistency is not proof of CoT faithfulness; require counterfactual evidence tests.",
+  "decoding": "Cross-modal trajectories interact in parallel,but text may remain block/semi-AR. Official A example:image64steps,text128steps,block32; not a single64NFE system. Two8B checkpoints; full training FLOPs/reward budgets not verified.",
+  "sharing": "Joint discrete denoising backbone/context,with distinct image codec and text tokenizer. A/M are not same-codec controls. Adapted from MMaDA; inherited capability is not evidence of direct Qwen3 AR-to-diffusion conversion.",
+  "open": "Official A/M implementation,two HF checkpoints and A training code accessible; repository Apache-2.0. README notes limited exploration of human-face/real-photo OOD inputs. Full data completeness unverified. Read parallel schedules,ParaRL and ParaBench."
+},
+"omni-diffusion-anytoany-discrete":{
+  "summary": "Mask-based discrete diffusion supports any-to-any text,image and speech understanding/generation. Tail-pad masking handles length,position penalties reduce repeated image layouts,and special-token pre-infilling assists speech. Omni unification does not mean one physical tokenizer.",
+  "why": "A published ICML2026 all-discrete Omni neighbor that should accompany AR and image-mask related work. For Qwen3+IBQ,position/length heuristics are separate decoding controls,not hidden paradigm advantages.",
+  "inspiration": "Hypothesis: first restrict to text/images and fixed IBQ; test whether position penalties reduce top/bottom repetition while harming OCR layout. Vary tail-pad lengths independently from metric paths. Speech threat alerts are a future extension,not a validated task in this paper.",
+  "experiment": "Fix Qwen3,IBQ,data,parameters/FLOPs; compare MASK/URSA with and without position penalties/tail-pad policies. Report repeated patterns,text-line order,OCRBench,DocVQA,TextVQA,text rendering,GenEval,EOS calibration,NFE and memory. For three modalities,fix speech codecs/data and include every codec cost.",
+  "state": "Joint text IDs,MAGVIT-v2 image IDs and speech IDs. Image downsampling16/codebook8192; modality codecs differ. Mask corruption is distinct from continuous VAE diffusion.",
+  "objective": "Unified categorical clean-token denoising models the joint masked distribution. Tail-pad changes training masks;position penalties change sampling order. Neither is an embedding/noise/velocity/average-velocity objective.",
+  "decoding": "Bidirectional parallel unmasking with pad/EOS length handling,image position penalties and speech special-token prefill. Three-stage progressive training,batch128,max3072tokens. Common NFE/full FLOPs unverified; multimodal sequence budgets are not image-only budgets.",
+  "sharing": "A joint dLLM shares semantic computation/discrete denoising,but text,image/speech codecs,decoders and vocabulary regions differ. Head tying requires implementation audit,not an all-shared assumption. Different forward path from URSA,different state space from ELF.",
+  "open": "Official project,ICML2026 PMLR paper,repository and HF links accessible. Complete data and all modality configurations were not run-reproduced. Read tail-pad,position penalty and any-to-any boundaries; core historical backfill."
+},
+"lavida-o-elastic-discrete-umm":{
+  "summary": "Extends LaViDa understanding to1024px generation,editing,grounding and interleaved text/images. Elastic-MoT couples a large understanding branch with a smaller generation branch,plus compression,universal text conditioning and stratified sampling. Discrete generation does not imply discrete visual inputs.",
+  "why": "Direct prior art at the intersection of MoT/routing and discrete UMM. Distinguish discrete generated IDs,discrete understanding inputs and fully shared backbones; branch efficiency is not automatically a unified-probability-model gain.",
+  "inspiration": "Hypothesis: fix IBQ/Qwen3,compare a shared stream with fixed Elastic-MoT branches before learned routing. Count total parameters/activations. Continuous-semantic versus IBQ understanding inputs form a separate axis; glyph/DocVQA cannot be replaced by average understanding scores.",
+  "experiment": "Fix backbone,codec,data and effective train FLOPs; compare shared stream,fixed MoT and dynamic routing,each under MASK/URSA. Report OCRBench,DocVQA,TextVQA,grounding,text rendering,GenEval,branch-gradient conflict,total/active parameters,FLOPs,memory and NFE. Add planning/reflection only with matched candidate/judge budgets.",
+  "state": "Understanding retains continuous SigLIP semantic embeddings,with masked discrete text outputs; image generation predicts discrete image IDs. Classify as discrete-output UMM with mixed inputs,not fully discrete inputs or one shared codec. Internal embeddings are not ELF transport.",
+  "objective": "Masked categorical clean-token prediction; Elastic-MoT changes computation sharing. Planning/reflection and sampling are additional mechanisms,not URSA metric corruption or continuous Flow velocity objectives.",
+  "decoding": "Iterative masked recovery with stratified sampling and compressed generation tokens. Count both branches and their invocation frequencies. Task-specific NFE/full training FLOPs unverified; reported speed does not establish Qwen3 performance.",
+  "sharing": "Large understanding/small generation Transformer branches are coupled rather than fully tied across layers/FFNs. SigLIP understanding and generative codecs differ; do not assume tied output heads. LaViDa inheritance is not a demonstrated direct Qwen3/IBQ conversion.",
+  "open": "Adobe official repository includes implementation,evaluation,inference notebook,checkpoint downloads and training instructions. Code/model use Adobe Research License,not assumed permissive commercial open source. Read Elastic-MoT,compression and sampling as a discrete-output/mixed-input boundary case."
+},
+"sparse-lavida-register-truncation":{
+  "summary": "Dynamically truncates redundant MASK positions in LaViDa-O,using register tokens to summarize them and a training mask matched to sparse inference. Changes active-token computation rather than visual vocabulary or codec.",
+  "why": "Direct efficiency prior art for2x2 folding,sparse tokens and local decoding. Distinguish permanent token compression from temporarily omitted MASK positions; compare them with the same IBQ grid and compute budgets.",
+  "inspiration": "Hypothesis: preserve the original IBQ grid,expand OCR,boundary and high-risk positions by denoising stage,and summarize other MASK slots with registers. Restore every original ID. Count registers,position encodings and recovery heads when comparing fixed2x2 merging.",
+  "experiment": "Fix Qwen3,IBQ,data/train FLOPs,resolution and NFE; compare dense MDM,fixed folding and dynamic truncation. Then vary MASK/URSA under equal active-token budgets. Measure glyph/rare-code retention,OCRBench,DocVQA,TextVQA,GenEval,editing/inpainting,active-token-layer counts,peak memory and latency.",
+  "state": "Generation remains discrete text/image IDs and MASK. Continuous hidden registers summarize omitted positions; full ID maps are eventually restored without new merged IDs. Understanding inherits LaViDa-O continuous SigLIP inputs,not a fully shared discrete codec.",
+  "objective": "Retains masked categorical clean-token denoising,with sparse-consistent attention/register training. Neither ELF velocity nor URSA metric kernels. Separate objective changes from active-token scheduling.",
+  "decoding": "Dynamic arbitrary-position truncation avoids mandatory left-to-right blocks,retaining bidirectional editing conditions. Requires sparse-adaptation SFT rather than training-free dropping. Official flags use64/64register tokens and25/25groups;common NFE/full FLOPs unverified.",
+  "sharing": "Inherits LaViDa-O elastic branches and separate codec/head boundaries. Registers/masks change parameters and activations,not complete layer/head sharing. A computation-scheduling reference; strict controls require matching targets and budgets.",
+  "open": "Official adobe-research/Sparse-LaViDa now includes demo_sparse_lavida.py,sparse-SFT scripts and an HF checkpoint link,not just the project page’s old placeholder. Adobe Research License for code/model. Full data/every checkpoint not run-reproduced. Read sparse parameterization,attention consistency and latency protocols."
+},
+"gestalt-ibq-interplay-diffusion":{
+  "summary": "Discrete diffusion and an interplay-partitioned architecture organize unimodal learning,alignment and synergy,with learnable interplay tokens mediating exchange. The official model requires IBQ-Tokenizer-16384,making this a particularly close discrete-IBQ UMM neighbor.",
+  "why": "Mandatory prior art for shared discrete visual representations,routing or reciprocal understanding/generation. It explicitly audits visual evidence lost by VQ compression,motivating separate OCR-readability and semantic-interface contributions.",
+  "inspiration": "Hypothesis: fix Qwen3+IBQ and compare full attention,fixed partitions/interplay tokens and learned routing. Independently vary semantic entrances without changing MASK/URSA. Protect glyphs/palette;synthetic teachers do not replace real evidence.",
+  "experiment": "Fix IBQ,Qwen3,data,parameters/FLOPs;vary exchange mechanisms before AR/MASK/URSA. Report concept transfer,OCRBench,DocVQA,TextVQA,generated-text OCR,GenEval,coverage,routing/activation costs. For threats,test pre-occlusion identity/OCR and causal frame deletion.",
+  "state": "Joint text IDs and16384-code IBQ visual IDs under masked discrete generation,including discrete visual understanding inputs. Continuous embeddings/interplay hidden states are not ELF transport variables.",
+  "objective": "Joint/conditional masked prediction followed by interplay-oriented SFT,with categorical clean-token/logit targets. Different corruption/path from URSA and different state/target from ELF. Separate curriculum gains from modeling gains.",
+  "decoding": "Bidirectional discrete recovery with zone-dependent exchange. Official model card:8B+0.6B,32layers,hidden4096,max4096tokens. Common NFE/full FLOPs unverified;short-context results do not establish long-doc/video capability.",
+  "sharing": "Shared discrete space/main architecture,but modality-specific FFNs/restricted early attention and later synergy mean not all weights are tied. IBQ/text tokenizers differ. Check initialization/distillation sources per checkpoint;not a proven transfer to the user’s Qwen3 setup.",
+  "open": "Official code/HF checkpoint accessible;card Apache-2.0. Current HF checkpoint is continual-pretraining,not necessarily complete SFT. Card lists70Mpretrain,8Mcontinual,13.7Mplus roughly2.5MT2I SFT;all data/stage weights not reproduced. Read partitioning and evidence-quality controls."
+},
+"unidflow-mora-discrete-flow":{
+  "summary": "Freezes the backbone,learns separate understanding/image LoRAs and composes them with a Mixture-of-LoRA router. mRef-DPO aligns edits using matched conditions,a frozen policy and visual references. Unified objectives need not share every trainable parameter.",
+  "why": "Close ICML2026 prior art for discrete UMM,routing and gradient interference. Distinguish new contributions from task-specific LoRAs/routed discrete flows/reference preferences rather than comparing only older AR models.",
+  "inspiration": "Hypothesis: fix Qwen3+IBQ;compare shared adapters,separate task LoRAs and dynamic MoRA before MASK/URSA. Audit layer/task gradient cosines and OCR-generation conflicts instead of relying on aggregate scores.",
+  "experiment": "Fix codec,backbone,data,active/total parameters,train FLOPs and NFE;compare shared,separate-adapter and routed designs under matched MASK/metric paths. Report OCR,DocVQA,TextVQA,text generation,GenEval,concept transfer,gradient conflict,memory/latency. Account separately for mRef-DPO references,teachers and preference data.",
+  "state": "Pretrained image tokenizer produces discrete visual IDs alongside text tokens in a bidirectional model. Categorical flow states/jumps differ from ELF embeddings. Exact image codebook/perception-codec sharing not fully verified;do not assume identical inputs.",
+  "objective": "Discrete flow adaptation with KL for linguistic retention,then mRef-DPO. Flow in the title does not mean continuous velocity MSE,nor establish identity with URSA metric paths.",
+  "decoding": "Parallel discrete updates with routed low-rank adapters;paper reports a4B three-stage model. Common NFE,forward kernel and complete training FLOPs require implementation-level verification before strict speed comparisons. Qwen transfer remains proposed.",
+  "sharing": "Frozen shared backbone,separate understanding/generation LoRAs and a composing router change trainable-sharing boundaries. Not a claim that every head is tied. Count all adapters/router and fix tokenizer before objective attribution.",
+  "open": "Official project/arXiv public,but Code/Checkpoint remain coming soon on the page. Read adapter decoupling,MoRA and mRef-DPO;reported SOTA is not independent equal-resource validation."
+},
+"nld-uni-self-refining-discrete":{
+  "summary": "Elastic-MoT task views combine VLM understanding and continuous-generation teachers via cross-paradigm on-policy distillation. Progressive image corruption/intermediate mask states permit gradual token commitment and correction instead of irreversible one-shot unmasking.",
+  "why": "Close recent discrete UMM prior art for URSA/ELF comparisons and student-state distillation. Avoid blanket claims that masked models cannot correct;compare actual forward states/commit rules rather than step counts alone.",
+  "inspiration": "Hypothesis: on fixed Qwen3+IBQ,compare absorbing masks,URSA replacement and hierarchical masks;add identical-teacher student-state OPD separately. Isolate teacher knowledge from self-refinement,and audit glyph/rare-code collapse.",
+  "experiment": "Fix backbone,IBQ,data,total parameters and train FLOPs;first vary discrete corruption/commit rules,then add matched-teacher OPD. Measure rewrite/correction,coverage,OCRBench,DocVQA,TextVQA,text rendering,GenEval,teacher/free-running gaps,NFE,memory and latency. Count every teacher decode and student rollout.",
+  "state": "Continuous visual understanding encoder plus discrete image-generation codec. Image corruption uses hierarchical intermediate mask states/progressive commitments;text retains standard MDM. Not one shared IBQ perception/generation input or ELF continuous transport.",
+  "objective": "Masked text/discrete self-refining image objectives plus cross-paradigm OPD. A continuous teacher’s velocity does not make the student a velocity predictor;compare categorical kernels with URSA explicitly.",
+  "decoding": "Task-specific loading:8B understanding,4B understanding+8B generation forT2I,full16B forinterleaving. Parallel progressive recovery. Report total as well as active parameters;common NFE/full training FLOPs unverified.",
+  "sharing": "Elastic Transformer paths exchange information but use separate continuous-understanding/discrete-generation codecs and parameter subsets. Teachers from AR/VLM/continuous families are not proof of weight initialization. Account for distillation resources separately.",
+  "open": "Official NVlabs inference,SGLang,minimal SFT/online-OPD code and standalone HF nvidia/NLD-Uni accessible. NVIDIA LICENSE,not assumed permissive commercial use. Complete pretraining data/all experimental checkpoints not run-verified. Read self-refinement and OPD."
+},
+"unid3-foundation-joint-discrete":{
+  "summary": "An early foundation preceding modern large UMMs: unified discrete transition matrices,fused embeddings and mutual attention support T2I,I2T and simultaneous text-image generation. Not evidence of modern instruction-following OCR/VQA.",
+  "why": "Completes the historical starting point for ICML related work;do not date joint multimodal discrete diffusion’s origin to2025/2026. Transition/coupling ideas matter more than comparing scores across eras.",
+  "inspiration": "Hypothesis: within fixed Qwen3+IBQ,compare independent modality masks and coupled corruption before attention sharing. Joint generation does not automatically establish bidirectional understanding;test evidence interventions/OCR.",
+  "experiment": "Fix backbone,IBQ,data/budget and clean-token head;vary independent/unified transition schedules. Compare modern AR,MASK and URSA separately. Measure T2I/I2T,joint completion,OCRBench,DocVQA,TextVQA,text rendering,coverage,NFE,throughput and memory. Treat original models as conceptual rather than equal-resource baselines.",
+  "state": "Joint categorical image-code/text-token states under a unified corruption matrix,not continuous VAE/embedding diffusion. Modality tokenizers differ;fused embeddings do not imply one physical codec.",
+  "objective": "Unified discrete reverse denoising predicts categories/clean tokens and intermodal dependencies,not ELF velocity/average velocity. Kernel identity with URSA metric paths is not established;verify exact loss weights in original configs.",
+  "decoding": "Parallel reverse-chain recovery with one modality fixed or both generated. AR/LLM initialization is not the claimed contribution. Full budget/common NFE and large-backbone transfer unverified;do not extrapolate early small-scale results to Qwen3.",
+  "sharing": "Mutual attention/fused embeddings link modalities while preserving their vocabularies/codecs. Not synonymous with one fully tied modern LLM. A foundational multimodal generator,not a claim to every understanding benchmark.",
+  "open": "Original paper public;project/official GitHub downloads should be rechecked at use. Full data/model downloads not run-verified. Skim historical motivation/transitions;deep-read for joint-corruption research. Explicit foundational backfill."
+},
 };
 
 function getEnglishCopy(paper: Paper): EnglishPaperCopy {
@@ -8648,7 +10178,8 @@ function EnglishMatrices() {
       <section className="matrix-section" id="matrix">
         <div className="section-heading"><div><h2>UMM Generation Matrix</h2></div><p>Fix backbone, tokenizer, data, and compute</p></div>
         <div className="matrix-wrap" role="region" tabIndex={0} aria-label="Scrollable comparison table"><table><thead><tr><th>Route</th><th>State</th><th>Target</th><th>Decoding</th><th>Key control</th></tr></thead><tbody>
-          <tr><th>ScanAR / RecaP</th><td>Same discrete IDs / reassigned IDs via soft candidate search</td><td>Changed predecessor CE / offline reconstruction-plus-prior MAP</td><td>Row-parallel H+W depth / underlying generator unchanged</td><td>Match post-training and codec; audit horizontal OCR, prior bias and offline-search cost</td></tr>
+          <tr><th>Discrete UMM taxonomy</th><td>Core discrete IDs / decoupled inputs / enabling methods / continuous boundaries</td><td>AR CE;masked clean-token CE;metric-path categorical rates</td><td>Separate factorization,path,target,grouped head and sharing</td><td>Read Chameleon/Emu3/X-Omni,Show-o/MMaDA/UniDisc,FUDOKI;URSA is an enabling video method,not demonstrated UMM</td></tr>
+                  <tr><th>ScanAR / RecaP</th><td>Same discrete IDs / reassigned IDs via soft candidate search</td><td>Changed predecessor CE / offline reconstruction-plus-prior MAP</td><td>Row-parallel H+W depth / underlying generator unchanged</td><td>Match post-training and codec; audit horizontal OCR, prior bias and offline-search cost</td></tr>
                   <tr><th>CoRe / Nemotron</th><td>Shared continuous Z / fixed lattice token IDs</td><td>VP corruption;clean Z plus RGB/CE / causal next-token CE plus GRPO</td><td>Parallel257NFE or distilled9 / sequential AR plus optional harness</td><td>Separate state, target and codec changes; no FLOP-matched contrastive control; count every candidate/judge</td></tr>
                   <tr><th>Integral / DeFlowCritic</th><td>Shared AF continuous latent / model-specific VAE latent</td><td>Flow velocity / dense-reward Flow-GRPO</td><td>Block-boundary MoT / trusted-time ODE lookahead</td><td>Separate codec-semantic gains from routing; count critic, all candidates and lookahead</td></tr>
 <tr><th>Hindsight Forcing</th><td>Continuous video VAE plus historical KV</td><td>DMD with a selected-clean-step ST gradient bridge</td><td>Full four-step forward; surrogate cross-chunk backward</td><td>No new parameters does not mean free memory; biased gradient, fixed-codec controls required</td></tr>
@@ -8743,20 +10274,23 @@ function ArrowIcon() {
   return <span aria-hidden="true">↗</span>;
 }
 
-function selectResources(active: string, query: string, sourceType: string, sortOrder: string, saved: string[]) {
+function selectResources(active: string, query: string, sourceType: string, sortOrder: string, saved: string[], scope = "all", route = "all") {
   const q = query.trim().toLowerCase();
   const result = papers.filter((paper) => {
     const categoryMatch = (active === "今日精选" && paper.featured) || active === "全部内容"
       || (active === "Blog" && paper.kind === "Blog")
       || (active === "精读清单" && paper.priority === "精读")
       || (active === "借鉴优先" && paper.idea)
-      || (active === "已保存" && saved.includes(paper.id)) || inferDomain(paper) === active;
+      || (active === "已保存" && saved.includes(paper.id)) || inferDomain(paper) === active
+      || (active === "离散 UMM" && !!discreteCatalog[paper.id]);
     const sourceMatch = sourceType === "all" || (paper.kind ?? "Paper") === sourceType;
     const en = getEnglishCopy(paper);
     const queryMatch = !q || [paper.title, paper.titleEn, paper.shortTitle, paper.paradigm,
       paper.summary, en.summary, en.state, paper.category, inferDomain(paper), englishDomain(paper),
       paper.paper, paper.date].join(" ").toLowerCase().includes(q);
-    return categoryMatch && sourceMatch && queryMatch;
+    const entry = discreteCatalog[paper.id];
+    const discreteMatch = active !== "离散 UMM" || (!!entry && (scope === "all" || entry.scope === scope) && (route === "all" || entry.route === route));
+    return categoryMatch && sourceMatch && queryMatch && discreteMatch;
   });
   if (sortOrder === "published") result.sort((a, b) => b.date.slice(0, 10).localeCompare(a.date.slice(0, 10)));
   else if (active !== "今日精选") result.sort((a, b) => Number(b.index) - Number(a.index));
@@ -8771,8 +10305,17 @@ export default function Home() {
   const [saved, setSaved] = useState<string[]>([]);
   const [expanded, setExpanded] = useState<string[]>([]);
   const [sourceType, setSourceType] = useState("all");
+  const [discreteScope, setDiscreteScope] = useState("all");
+  const [discreteRoute, setDiscreteRoute] = useState("all");
   const [sortOrder, setSortOrder] = useState("curated");
   const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("track") === "discrete-umm") {
+      const timer = window.setTimeout(() => { setActive("离散 UMM"); setPage(1); }, 0);
+      return () => window.clearTimeout(timer);
+    }
+  }, []);
 
   useEffect(() => {
     const value = window.localStorage.getItem("umm-reading-list");
@@ -8835,9 +10378,14 @@ export default function Home() {
       : [...current, id]);
   };
 
-  const changeActive = (value: string) => { setActive(value); setPage(1); setMenuOpen(false); };
-  const visiblePapers = useMemo(() => selectResources(active, query, sourceType, sortOrder, saved),
-    [active, query, sourceType, sortOrder, saved]);
+  const changeActive = (value: string) => {
+    setActive(value); setPage(1); setMenuOpen(false);
+    const url = new URL(window.location.href);
+    if (value === "离散 UMM") url.searchParams.set("track", "discrete-umm"); else url.searchParams.delete("track");
+    window.history.replaceState(null, "", url);
+  };
+  const visiblePapers = useMemo(() => selectResources(active, query, sourceType, sortOrder, saved, discreteScope, discreteRoute),
+    [active, query, sourceType, sortOrder, saved, discreteScope, discreteRoute]);
 
   const pageCount = Math.max(1, Math.ceil(visiblePapers.length / PAGE_SIZE));
   const pagedPapers = visiblePapers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -8886,8 +10434,8 @@ export default function Home() {
       <div className="issue-strip" id="top">
         <span>{language === "en" ? "Research workspace" : "研究空间"}</span>
         <span aria-hidden="true">/</span>
-        <span>{language === "en" ? "Issue 064" : "第 064 期"}</span>
-        <time dateTime="2026-11-26">2026.11.26</time>
+        <span>{language === "en" ? "Issue 065" : "第 065 期"}</span>
+        <time dateTime="2026-11-27">2026.11.27</time>
       </div>
 
       <div className="workspace">
@@ -8910,14 +10458,17 @@ export default function Home() {
             <div className="nav-group">
               <h3>{language === "en" ? "Research tracks" : "研究方向"}</h3>
               {directions.map((category) => (
-                <button
+                <div key={category} className="track-group"><button
                   className={active === category ? "selected" : ""}
-                  key={category}
                   aria-pressed={active === category}
                   onClick={() => changeActive(category)}
                 >
                   <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d={categoryIcons[category]} stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" strokeLinecap="round"/></svg>{displayLabel(category, language)}
                 </button>
+                {category === "UMM" && <button className={`subtrack ${active === "离散 UMM" ? "selected" : ""}`} aria-pressed={active === "离散 UMM"} onClick={() => { changeActive("离散 UMM"); setQuery(""); setSourceType("all"); }}>
+                  {language === "en" ? "Discrete UMM" : "离散 UMM"}
+                  <span>{Object.keys(discreteCatalog).length}</span>
+                </button>}</div>
               ))}
             </div>
           </div>
@@ -8937,26 +10488,45 @@ export default function Home() {
               <p>{language === "en" ? "From a paper worth reading to an experiment worth running." : "从一篇值得读的论文，到一个值得做的实验。"}</p>
             </div>
             <div className="stats" aria-label={language === "en" ? "Library statistics" : "内容统计"}>
-              <div><span>{language === "en" ? "Added this issue" : "本期新增"}</span><b>{featuredCount}</b></div>
+              <div><span>{language === "en" ? "Featured reads" : "本期精读"}</span><b>{featuredCount}</b></div>
               <div><span>{language === "en" ? "Papers & blogs" : "全部内容"}</span><b>{papers.length}</b></div>
               <div><span>{language === "en" ? "Research blogs" : "研究 Blog"}</span><b>{blogCount}</b></div>
               <div><span>{language === "en" ? "Research tracks" : "研究方向"}</span><b>{directions.length}</b></div>
             </div>
             <div className="issue-focus">
-              <h2>{language === "en" ? "Choose tokens. Rethink their dependencies." : "重选token，重审依赖关系。"}</h2>
-              <p>{language === "en" ? "Three papers on decoder-aware assignment, parallel UMM decoding and explicit Gaussian world dynamics." : "三篇论文聚焦decoder感知重选、UMM并行解码与显式Gaussian世界动力学。"}</p>
-              <div className="hero-actions">
+              <h2>{language === "en" ? "Discrete UMM. A research reading map." : "离散 UMM：面向研究的阅读地图。"}</h2>
+              <p>{language === "en" ? "A dedicated UMM subcategory: foundational families, discrete diffusion, grouped decoding and explicit boundary controls." : "UMM专属子分类：基础谱系、离散扩散、分组解码与明确的边界对照。"}</p>
+              <div className="hero-actions"><button className="primary-button" onClick={() => { changeActive("离散 UMM"); setQuery(""); setSourceType("all"); }}>{language === "en" ? "Open Discrete UMM map" : "打开离散 UMM 阅读地图"}</button>
                 <button className="primary-button" onClick={() => { changeActive("今日精选"); setQuery(""); setSourceType("all"); }}>{language === "en" ? "Read this issue" : "阅读本期推荐"} <span aria-hidden="true">↓</span></button>
                 <a className="text-button" href="#matrix">{language === "en" ? "Compare modeling routes" : "比较建模路线"} ↗</a>
               </div>
             </div>
             <aside className="research-questions" aria-label={language === "en" ? "Questions to investigate" : "本期研究问题"}>
               <h2>{language === "en" ? "Start with a question" : "从问题出发"}</h2>
-              <button onClick={() => selectDeepReads("scanar-row-parallel-umm")}><span>{language === "en" ? "Which dependencies require serial decoding?" : "哪些依赖必须串行解码？"}</span><small>ScanAR ↗</small></button>
-              <button onClick={() => selectDeepReads("recap-decoder-aware-token-map")}><span>{language === "en" ? "Are nearest codes the best training targets?" : "最近邻code是最优训练标签吗？"}</span><small>RecaP ↗</small></button>
-              <button onClick={() => selectDeepReads("splatwam-gaussian-shortcut-dynamics")}><span>{language === "en" ? "What should the world state represent?" : "世界状态应该表示什么？"}</span><small>SplatWAM ↗</small></button>
+              <button onClick={() => selectDeepReads("fudoki-metric-discrete-umm")}><span>{language === "en" ? "How do metric paths change discrete UMM?" : "Metric path 如何改变离散 UMM？"}</span><small>FUDOKI ↗</small></button>
+              <button onClick={() => selectDeepReads("gestalt-ibq-interplay-diffusion")}><span>{language === "en" ? "How should IBQ branches exchange information?" : "IBQ 分支应如何交换信息？"}</span><small>Gestalt ↗</small></button>
+              <button onClick={() => selectDeepReads("unitok-multicodebook-umm")}><span>{language === "en" ? "Are channel groups the same as spatial slots?" : "通道分组等于空间槽位吗？"}</span><small>UniTok ↗</small></button>
             </aside>
           </section>
+
+          {active === "离散 UMM" && <section className="discrete-guide" id="discrete-umm" aria-label={language === "en" ? "Discrete UMM reading map" : "离散 UMM 阅读地图"}>
+            <h2>{language === "en" ? "Discrete UMM · ICML reading map" : "离散 UMM · ICML 阅读地图"}</h2>
+            <p>{language === "en" ? "Audited 27 November 2026. A family-based reading map, not a claim that every publication has been found. Originals, follow-up variants, codecs, decoding methods and boundary controls are separated. Publication dates remain distinct from this backfill date." : "核对日期：2026-11-27。按方法谱系梳理，不将检索结果冒充绝对穷尽；原作、后续变体、codec、解码方法与边界对照分开。补录日期不等于论文发表日期。"}</p>
+            <div className="discrete-route-nav">{[["FUDOKI","2505.20147"],["Gestalt","2610.00576"],["MMaDA","2505.15809"],["UniDisc","2503.20853"],["UniTok","2502.20321"],["Chameleon","2405.09818"],["Show-o","2408.12528"]].map(([label,id]) => <button key={id} onClick={() => { setDiscreteScope("all"); setDiscreteRoute("all"); setSourceType("all"); setQuery(id); setPage(1); }}>{label}</button>)}</div><div className="discrete-scopes">{Object.entries(discreteScopeLabels).map(([key, labels]) => <button key={key} aria-pressed={discreteScope === key} onClick={() => { setDiscreteScope(discreteScope === key ? "all" : key); setPage(1); }}><strong>{Object.values(discreteCatalog).filter(x => x.scope === key).length}</strong>{labels[language === "en" ? 0 : 1]}</button>)}</div>
+            <details open><summary>{language === "en" ? "Read in this order: assumptions before leaderboard scores" : "建议精读顺序：先核对假设，再看榜单"}</summary>
+              <ol>
+                <li>{language === "en" ? "Discrete unification: Chameleon, Emu3, VILA-U and Liquid. Audit input/output codecs, embeddings, vocabularies and heads separately; discrete outputs alone do not imply a fully discrete understanding path." : "离散统一：Chameleon、Emu3、VILA-U、Liquid。逐项审计输入／输出codec、embedding、词表与head；离散输出不代表理解路径全离散。"}</li>
+                <li>{language === "en" ? "Factorization: MAGVLT/4M, Show-o, UniDisc, MMaDA, FUDOKI, then Lavida-O/Muddit and extensions. Include Gestalt, UniDFlow and NLD-Uni as recent neighbors. Separate AR text plus masked images from fully non-AR text-and-image models; distinguish MASK paths from metric paths." : "概率分解：MAGVLT／4M、Show-o、UniDisc、MMaDA、FUDOKI，再读Lavida-O／Muddit、Gestalt、UniDFlow、NLD-Uni及扩展。区分文本AR＋图像mask与图文均非AR，区分MASK path与metric path。"}</li>
+                <li>{language === "en" ? "Grouped tokens and cost: tokenizer/assignment papers, Block Diffusion, MTAR and ScanAR. Keep original code IDs, distinguish spatial folding from codebook changes, and account for full-vocabulary logits, CFG, teachers and all sampling calls." : "分组token与成本：tokenizer／assignment论文、Block Diffusion、MTAR、ScanAR。保留原始ID，空间folding与codebook变化分开，计全词表logits、CFG、teacher与所有采样调用。"}</li>
+                <li>{language === "en" ? "Evidence of unification: concept-transfer probes, forgetting controls and OCR. Shared parameters do not establish shared knowledge. Keep ELF/Transfusion and continuous renderers as boundary comparisons rather than discrete core evidence." : "统一的证据：概念迁移probe、遗忘控制与OCR。共享参数不等于共享知识；ELF／Transfusion与连续renderer是边界对照，不作为离散主线证据。"}</li>
+              </ol>
+            </details>
+            <details><summary>{language === "en" ? "ICML experiment checklist and scope" : "ICML 实验清单与覆盖边界"}</summary>
+              <p>{language === "en" ? "Primary question: under fixed Qwen3 backbone, visual codec, data, trainable parameters and training FLOPs, how do AR, masked prediction and metric-path generation differ? Vary folding, grouped-head dependence, initialization, MoT routing and rehearsal separately. Report matched quality–cost frontiers, OCRBench/DocVQA/TextVQA, text rendering, code coverage, teacher-forcing versus rollout, throughput, memory and stability. Check group-wise CE versus joint ID likelihood. Continuous ELF is an external control, not required for the discrete main claim." : "主问题：固定Qwen3、视觉codec、数据、可训练参数与训练FLOPs时，AR、masked prediction与metric-path生成有何差异？folding、组内head依赖、初始化、MoT路由与rehearsal分别控制。报告同口径质量—成本曲线、OCRBench／DocVQA／TextVQA、生成文字、code覆盖、teacher-forcing／自由rollout差距、吞吐、显存与稳定性。区分逐组CE与联合ID似然。ELF仅作连续外部对照，不要求纳入离散主结论。"}</p>
+              <p>{language === "en" ? "Coverage includes foundational families and verified follow-ups through the audit date. X-Omni is an image-generation/AR-RL reference with an offline diffusion decoder, not standalone proof of general VQA. Specialist generation-only models are marked enablers; continuous-input or diffusion-rendered methods are explicitly qualified. New variants and uncitable/private reports can still be missing. No unpublished experimental results are included." : "覆盖基础谱系及核对日期前已验证的后续工作。X-Omni原作是图像生成／AR-RL参考且有离线diffusion decoder，不能独立证明通用VQA。纯生成模型标为支撑方法；连续理解输入或diffusion renderer明确限定。新变体、不可公开核验或私有报告仍可能缺漏；不收录未发表实验数值。"}</p>
+            </details>
+            <p><a href="./discrete-umm-reading-list.md" download>{language === "en" ? "Download bilingual reading list" : "下载双语阅读清单"}</a> · <a href="./discrete-umm-reading-list.json" download>JSON</a></p><div className="discrete-route-nav">{Object.entries(discreteRouteLabels).map(([key, labels]) => <button key={key} aria-pressed={discreteRoute === key} onClick={() => { setDiscreteRoute(discreteRoute === key ? "all" : key); setPage(1); }}>{labels[language === "en" ? 0 : 1]}</button>)}<button onClick={() => { setDiscreteScope("all"); setDiscreteRoute("all"); setQuery(""); setPage(1); }}>{language === "en" ? "Reset map filters" : "重置地图筛选"}</button></div>
+          </section>}
 
           <section className="papers-section" id="papers">
             <div className="section-heading">
@@ -8988,7 +10558,7 @@ export default function Home() {
                     <div className="paper-title-row">
                       <div>
                         <h3>{language === "en" ? (paper.titleEn ?? paper.title) : paper.title}</h3>
-                        <div className="tags"><span className="domain-tag">{language === "en" ? englishDomain(paper) : inferDomain(paper)}</span><span className="source-kind">{paper.kind === "Blog" ? "Blog" : (language === "en" ? "Paper" : "论文")}</span><span className="resource-date">{displayDate(paper.date, language)}</span></div>
+                        <div className="tags"><span className="domain-tag">{language === "en" ? englishDomain(paper) : inferDomain(paper)}</span>{active === "离散 UMM" && discreteCatalog[paper.id] && <span className="discrete-badge">{discreteScopeLabels[discreteCatalog[paper.id].scope][language === "en" ? 0 : 1]}</span>}<span className="source-kind">{paper.kind === "Blog" ? "Blog" : (language === "en" ? "Paper" : "论文")}</span><span className="resource-date">{displayDate(paper.date, language)}</span></div>
                       </div>
                       <button
                         className={`priority ${paper.priority === "精读" ? "high" : ""}`}
@@ -9076,6 +10646,7 @@ export default function Home() {
               <table>
                 <thead><tr><th>路线</th><th>状态空间</th><th>预测目标</th><th>生成顺序</th><th>最关键变量</th></tr></thead>
                 <tbody>
+                  <tr><th>离散 UMM 分类</th><td>全离散state / 输入解耦 / 支撑方法 / 连续边界</td><td>AR CE、masked clean-token CE、metric-path类别跳转率</td><td>分解/path/目标/组内head/共享分别控制</td><td>先读Chameleon/Emu3/X-Omni、Show-o/MMaDA/UniDisc、FUDOKI；URSA原作是video支撑方法，非已验证UMM</td></tr>
                   <tr><th>ScanAR / RecaP</th><td>同离散ID / soft候选搜索后重选ID</td><td>改predecessor CE / 离线重建+prior MAP</td><td>行并行H+W深度 / 下游生成规则不变</td><td>匹配后训练与codec，测横向OCR/prior偏差/离线成本</td></tr>
                   <tr><th>CoRe / Nemotron</th><td>共享连续Z / 固定lattice token ID</td><td>VP加噪、clean Z+RGB/CE / causal next-token CE+GRPO</td><td>并行257NFE或蒸馏9 / 顺序AR另加harness</td><td>状态/目标/codec分开；contrastive基线非FLOP匹配，计全候选/judge</td></tr>
                   <tr><th>Integral / DeFlowCritic</th><td>共享AF连续latent / 特定VAE latent</td><td>Flow velocity / 稠密reward Flow-GRPO</td><td>block边界MoT / 可信t的ODE lookahead</td><td>codec语义与路由分开，计critic/全候选/lookahead</td></tr>

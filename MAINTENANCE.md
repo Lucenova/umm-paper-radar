@@ -125,3 +125,12 @@ The existing task was found paused after its 2026-09-27 run and resumed on
 2026-10-19 without changing cadence. This file replaces dependence on the long
 chat for durable requirements. Read live source for current counts/issues and
 task controls for scheduling telemetry.
+
+## Discrete UMM subcategory (2026-11-27)
+
+- Preserve the nested UMM > Discrete UMM route (`?track=discrete-umm`), its scope/route filters and reading guide. Keep six top-level tracks.
+- Maintain the explicit `discreteCatalog`: core discrete states, decoupled discrete outputs, enabling methods/diagnostics, continuous/hybrid boundaries. Do not classify by title keywords.
+- URSA original is a video-generation enabling method, not evidence of complete UMM; ELF and SenseNova/NEO-unify pixel Flow are external continuous controls. Discrete semantic IDs plus diffusion rendering are boundary methods.
+- ICML reading focus: AR / masked / metric-path controls with codec/backbone/data/parameters/FLOPs fixed; grouped-head/folding, MoT, initialization and rehearsal tested independently. Do not publish private results.
+- Update both public reading-list exports when the catalog changes; preserve original publication versus backfill dates and no-exhaustiveness qualification.
+- App page is larger than1MiB: read it in bounded chunks before GitHub App mirroring and verify blob hashes against local `git hash-object`. A successful upload alone does not establish full content.

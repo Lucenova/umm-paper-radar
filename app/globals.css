@@ -265,3 +265,20 @@ footer p { margin: 0; font-size: 12px; color: var(--muted); }
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+/* Discrete UMM is a child of UMM, preserving all six top-level tracks. */
+.nav-group .subtrack { margin-left:1rem; width:calc(100% - 1rem); border-left:2px solid var(--line, #d9e1dc); padding-left:1rem; font-size:.875rem; }
+.subtrack span { margin-left:auto; font-variant-numeric:tabular-nums; }
+.discrete-guide { border:1px solid #d9e1dc; border-radius:8px; background:#fff; padding:1.5rem; margin:0 0 1.5rem; scroll-margin-top:5rem; }
+.discrete-guide h2 { font-size:1.25rem; margin:0 0 .75rem; }
+.discrete-guide p,.discrete-guide li { font-size:1rem; line-height:1.7; color:#45554c; }
+.discrete-guide ol { padding-left:1.3rem; }
+.discrete-guide li { margin:.65rem 0; }
+.discrete-guide summary { cursor:pointer; font-size:1rem; padding:.75rem 0; font-weight:600; }
+.discrete-scopes { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.5rem; margin:1rem 0; }
+.discrete-scopes button,.discrete-route-nav button { text-align:left; border:1px solid #d9e1dc; padding:.75rem; background:#f8faf9; border-radius:5px; font-size:.875rem; min-height:44px; cursor:pointer; }
+.discrete-scopes strong { margin-right:.75rem; color:#246445; }
+.discrete-scopes button[aria-pressed=true],.discrete-route-nav button[aria-pressed=true] { border-color:#246445; background:#eaf4ed; }
+.discrete-route-nav { display:flex; gap:.5rem; flex-wrap:wrap; margin-top:1rem; }
+.discrete-badge { color:#246445; border-bottom:1px solid #a9c6b4; }
+@media(max-width:600px) { .discrete-guide { padding:1rem; } .discrete-scopes { grid-template-columns:1fr; } }

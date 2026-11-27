@@ -1,0 +1,5249 @@
+# Discrete UMM / 离散 UMM
+
+Audit / 核对: 2026-11-27. This is a public-literature family map, not an absolute exhaustiveness claim. Core models, decoupled inputs, enablers and continuous boundaries are distinct.
+
+## core
+
+### UniAR: UniAR: Shared Context-Visual Tokenizer is Key to Unification
+
+2026-06-16 · ICML 2026
+
+https://arxiv.org/abs/2606.18249
+
+
+https://sharelab-sii.github.io/uniar-web/
+
+**summary**
+用同一个视觉 tokenizer 同时服务理解、生成和编辑，并让模型直接理解刚生成的视觉 token；多层视觉特征与 bitwise quantization 兼顾语义和细节。
+
+This resource studies how multimodal understanding and generation can share or coordinate visual representations under the UniAR design.
+
+**state**
+多层语义/纹理特征 → BSQ 离散 token
+
+Discrete visual tokens, continuous visual features, or a hybrid representation; see the original source for the exact configuration.
+
+**objective**
+共享视觉 token 的并行 bit prediction
+
+Joint or coordinated understanding and generation objectives.
+
+**decoding**
+自回归上下文 + bitwise 并行预测
+
+Task-dependent autoregressive, diffusion, flow, or hybrid decoding.
+
+**sharing**
+理解、生成、编辑共享 tokenizer 与视觉上下文
+
+Audit tokenizer, embedding, vocabulary, Transformer, and output-head sharing separately.
+
+**why**
+UniAR提出了比‘共用一个 Transformer’更严格的统一标准：模型能否在不解码成像素、不重新编码的条件下继续理解自己生成的 token。
+
+It helps define which parts of a UMM should truly be shared and which interfaces should remain task-specific.
+
+**inspiration**
+这正好暴露 URSA/IBQ 的潜在断点：生成 head 会预测 code ID，但这些 code embedding 是否足够支持 VQA 与 grounding，需要 shared-context 实验才能证明。
+
+Use it to audit whether IBQ tokens carry bidirectionally usable concepts inside Qwen3, rather than treating shared parameters as sufficient evidence of unification.
+
+**experiment**
+让 URSA 生成 image token 后直接接入 caption/VQA；与‘解码成图像→重新编码→理解’比较，同时分析两条路径的语义一致性、OCR 与错误传播。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+项目页、代码、权重已公开
+
+The original source and an official code or project repository are linked below.
+
+### Show-o: Show-o: One Single Transformer to Unify Multimodal Understanding and Generation
+
+2024-08-22 · ICLR / NeurIPS 2025 基础补读
+
+https://arxiv.org/abs/2408.12528
+
+
+https://github.com/showlab/Show-o
+
+**summary**
+Show-o在单一 Transformer 中为文本保留自回归建模，为图像使用离散 masked diffusion；同一上下文可完成 VQA、图像生成、编辑、补全与图文交错生成。它不是把所有模态强行变成同一种概率过程，而是共享语义主干、保留模态适配的生成目标。
+
+This resource studies how multimodal understanding and generation can share or coordinate visual representations under the Show-o design.
+
+**state**
+文本 token ID + MAGVIT-v2 离散视觉 token / [MASK]
+
+Discrete visual tokens, continuous visual features, or a hybrid representation; see the original source for the exact configuration.
+
+**objective**
+文本 next-token CE + 图像 masked clean-token CE
+
+Joint or coordinated understanding and generation objectives.
+
+**decoding**
+文本 causal AR；图像全局并行去掩码与反复修正
+
+Task-dependent autoregressive, diffusion, flow, or hybrid decoding.
+
+**sharing**
+共享同一 Transformer；视觉理解 encoder、生成 tokenizer 与模态 head 仍有分工
+
+Audit tokenizer, embedding, vocabulary, Transformer, and output-head sharing separately.
+
+**why**
+它是检验“统一主干是否必须统一生成过程”的关键基线。URSA尝试让视觉离散 token 使用 metric path，ELF把连续 flow扩展到语言；Show-o则接受文本 AR、图像 diffusion 的异构目标。若它在相同预算下更稳，说明 UMM 的关键可能是共享语义计算，而不是统一噪声过程。
+
+It helps define which parts of a UMM should truly be shared and which interfaces should remain task-specific.
+
+**inspiration**
+对 Qwen3 + IBQ，可以保留文本原生 AR head，仅把 image-token 区域切换为 mask-only或 URSA metric path；这样能避免文本能力因 diffusion 化而退化，并检查共享 Transformer 是否足以形成跨模态语义。OCR任务还可比较文字区域是否需要更强的局部因果顺序。
+
+Use it to audit whether IBQ tokens carry bidirectionally usable concepts inside Qwen3, rather than treating shared parameters as sufficient evidence of unification.
+
+**experiment**
+从同一 Qwen3+IBQ checkpoint 出发，比较全 AR、Show-o式 text-AR/image-mask、text-AR/image-URSA 与全 URSA；固定数据和训练 FLOPs，分别测语言能力遗忘、VQA/OCRBench、T2I、图文交错生成、4/8/16/32步质量及两类 token 的梯度冲突。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+官方代码、模型权重、推理脚本与在线 demo 已公开
+
+The original source and an official code or project repository are linked below.
+
+### SynerGen-VL: SynerGen-VL: Synergistic Understanding and Generation with Token Folding
+
+2024-12-12 · 关键基础补读
+
+https://arxiv.org/abs/2412.09604
+
+
+
+
+**summary**
+SynerGen-VL在 encoder-free 统一理解生成模型中引入 token folding：主 LLM 只处理压缩后的视觉序列，而一个浅层 causal Transformer 根据全局 hidden state 在 folded block 内自回归还原原始视觉 IDs。它把昂贵的全局依赖与便宜的局部依赖分层建模。
+
+This resource studies how multimodal understanding and generation can share or coordinate visual representations under the SynerGen-VL design.
+
+**state**
+局部离散 VQ IDs → folded LLM token
+
+Discrete visual tokens, continuous visual features, or a hybrid representation; see the original source for the exact configuration.
+
+**objective**
+统一 next-token CE；局部视觉 head 还原原始 IDs
+
+Joint or coordinated understanding and generation objectives.
+
+**decoding**
+LLM 在 folded 序列上 AR；小型 causal head 在块内顺序生成
+
+Task-dependent autoregressive, diffusion, flow, or hybrid decoding.
+
+**sharing**
+理解/生成共享 encoder-free LLM；视觉 expert 与局部 head 专门化
+
+Audit tokenizer, embedding, vocabulary, Transformer, and output-head sharing separately.
+
+**why**
+相较 Token-Shuffle 的组内并行 head，SynerGen-VL保留了块内 token 的条件依赖，因此更适合 OCR、局部结构和细粒度纹理；它也是最接近 Qwen3+IBQ 统一模型接口的 token-merge 论文。
+
+It helps define which parts of a UMM should truly be shared and which interfaces should remain task-specific.
+
+**inspiration**
+可以让 Qwen3/URSA只在 N/4 个 folded state 上建模，再用 2–4 层 local causal decoder 生成四个原始 ID。这样既减少全局 attention，又避免直接假设 2×2 block 内四个 token 独立。
+
+Use it to audit whether IBQ tokens carry bidirectionally usable concepts inside Qwen3, rather than treating shared parameters as sufficient evidence of unification.
+
+**experiment**
+在相同 N/4 全局长度下，严格比较 parallel unshuffle head 与 local causal head；把总前向 FLOPs对齐，并单独报告文字区域、物体边界与平坦背景的组内条件互信息和恢复误差。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文公开；作者声明将开源，完整代码与模型仍需跟踪
+
+The original source is linked below; check it for the latest code and model availability.
+
+### Emu3: Emu3: Next-Token Prediction is All You Need
+
+2024-09-27 · 重点补读
+
+https://arxiv.org/abs/2409.18869
+
+
+https://github.com/baaivision/Emu3
+
+**summary**
+Emu3把图像、视频和文本统一成离散序列，从头训练一个Transformer，仅使用next-token prediction完成感知、图像生成、视频生成和交错生成，不依赖diffusion或额外组合式模块。
+
+This resource studies video or multi-frame generation through the Emu3 design, with emphasis on temporal state and rollout behavior.
+
+**state**
+文本、图像与视频均序列化为离散token
+
+Discrete video tokens, continuous spatiotemporal latents, semantic embeddings, or a hybrid state.
+
+**objective**
+统一next-token cross-entropy
+
+Future-token, future-latent, noise, velocity, or trajectory prediction depending on the method.
+
+**decoding**
+单一Transformer按因果顺序生成多模态序列
+
+Causal rollout, masked refinement, diffusion, flow, or a hybrid temporal decoder.
+
+**sharing**
+共享Transformer与训练目标；视觉仍由专用tokenizer离散化
+
+Audit whether image/video tokenizers, semantic space, Transformer, and temporal heads are shared.
+
+**why**
+它是比Janus-Pro更接近‘全离散统一’的AR端点，也是URSA与ELF必须面对的强基线：如果同一IBQ和Qwen3在纯AR下已经表现充分，复杂迭代生成的收益必须用质量—延迟曲线证明。
+
+It separates static image quality from motion fidelity, causal control, and long-horizon consistency.
+
+**inspiration**
+可把共享分成三个层次分别验证：共享Transformer、共享训练目标、共享视觉语义空间。Emu3主要证明前两项可行，并不能自动证明生成ID适合OCR理解，因此仍要做生成token直接回灌VQA的闭环测试。
+
+Use it as a controlled video extension of Qwen3 + IBQ/URSA/ELF and measure threat-object identity, motion, and error accumulation over time.
+
+**experiment**
+从同一Qwen3+IBQ checkpoint构建全AR、text-AR/image-URSA与text-AR/image-ELF三组；统一视觉token数、训练FLOPs和SFT/RL数据，报告理解、OCR、T2I、真实延迟、KV Cache、峰值显存与生成token回灌理解的一致性。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+官方代码、模型、tokenizer与推理示例已公开
+
+The original source and an official code or project repository are linked below.
+
+### ScanAR: ScanAR: Parallel Row-Scan Decoding for Efficient Image Generation in Unified Autoregressive Models
+
+2026-11-25 · v1 · checked/curated 2026-11-26
+
+https://arxiv.org/abs/2611.33761
+
+
+
+
+**summary**
+首行按标准AR逐token生成，后续每行并行预测，target从上一行垂直对齐位置的hidden读取；row-block causal mask在提交状态时允许行内双向attention。保留主干、词表和输出head，不新增参数，但需要适配训练，不是精确复现raster分解的免费采样器。
+
+Generate the first row causally, then sample each later row in parallel from vertically aligned predecessor states. A row-block causal mask uses within-row attention when committing states. Backbone, vocabulary and head remain unchanged, but training adaptation is required; this approximates rather than exactly reproduces raster factorization.
+
+**state**
+离散visual token ID；无Gaussian forward noise、simplex流或mask corruption。非视觉token和首行保留causal规则；后续行提交hidden用row-block causal可见性，训练输入为GT tokens，不能把GT行内state误当生成时提前见答案。
+
+Discrete visual IDs without Gaussian corruption, simplex transport or masking. Nonvisual tokens/first row remain causal; subsequent committed states use row-block visibility. Training uses ground-truth tokens, but target prediction reads predecessor states rather than the target row.
+
+**objective**
+共享词表logits/next-token CE，但视觉target的predecessor重新定义；U0附加首1K步raster teacher分布蒸馏。不是ELF embedding velocity/average velocity，也不是URSA metric-path去噪。
+
+Shared vocabulary logits/next-token CE with reassigned visual predecessors. U0 also uses raster-teacher distribution distillation during the first1K updates. Neither ELF embedding/average velocity nor URSA metric-path denoising.
+
+**decoding**
+H×W网格需要H+W−1次采样，另加首行state-only commit（H>1），有效深度H+W。Emu3.5后训练20Ksteps，U0为10K；论文1024→64深度、64.60→4.69s是在matched CFG设置，不能直接搬到Qwen硬件。
+
+H*W grid: H+W-1 sampling groups plus one first-row state-only commit whenH>1, givingH+W effective depth. Emu3.5 post-training20Ksteps;U0 10K. Reported1024to64 depth and64.60to4.69s use matched CFG; these timings do not establish Qwen hardware performance.
+
+**sharing**
+继承UMM tokenizer、embedding/vocabulary、Transformer和next-token head；只改变mask/loss/readout与KV调度，支持AR权重初始化。行内条件独立近似可能损细节；训练dense4D mask可OOM，FlexAttention缓解，非零工程/显存成本。ELF/URSA比较需另控制每样本FLOPs。
+
+Retains UMM tokenizer,embedding/vocabulary,Transformer and next-token head, changing masks/loss/readout/KV scheduling; AR initialization supported. Conditional independence within rows can hurt detail. Dense4D masks can OOM;FlexAttention mitigates rather than eliminates engineering/memory cost. Match FLOPs before ELF/URSA comparisons.
+
+**why**
+最贴近Qwen3+IBQ与2×2 folding的公平对照：不用同时换codec或生成head，即可改变视觉依赖图。适合判断URSA/ELF的收益究竟来自建模目标，还是单纯减少串行深度；横向glyph相关性必须单列。
+
+A close controlled baseline for Qwen3+IBQ and2x2 folding: change the visual dependency graph without changing codec/head. Test whether URSA/ELF gains come from modeling targets or reduced serial depth, with horizontal glyph dependencies evaluated separately.
+
+**inspiration**
+研究假设：先在原IBQ网格上比较raster/ScanAR，再接2×2 merge，仍恢复四个原始ID，不创造merged ID。对长文字、细线和小目标做行内依赖压力测试；只压缩训练序列不能自动获得推理并行。
+
+Hypothesis: compare raster/ScanAR on original IBQ grids before adding2x2 merging. Recover all four original IDs, without merged IDs. Stress-test text, strokes and small objects; compressed training sequences do not automatically yield parallel inference.
+
+**experiment**
+固定Qwen3、IBQ、数据、参数、训练FLOPs、CFG与采样预算，比较raster AR、ScanAR、块内masked/URSA、ELF。每种都给相同post-training数据/步数的raster控制；报slot/block exact match、水平邻接共现、生成OCR、OCRBench/DocVQA/TextVQA、GenEval、code覆盖、真实延迟/吞吐/显存。2×2 folding单独做有无实验，计蒸馏teacher成本。
+
+Fix Qwen3, IBQ, data, parameters, training FLOPs, CFG and sampling budget. Compare raster AR,ScanAR,block masked/URSA and ELF, with equal-post-training raster controls. Report slot/block exact match, horizontal co-occurrence, generated-text OCR,OCRBench/DocVQA/TextVQA,GenEval,code coverage,latency,throughput and memory. Factor folding separately and count teacher compute.
+
+**open**
+11月26日核对论文，未核验官方代码/权重链接，不标开源。精读§3.3/3.4/limitations/AppendixC；U0的checkpoint/后训练和视频采样设置不完全匹配，不能把其视频差异全归因到解码。
+
+Checked2026-11-26: paper public; no verified official code/weights link. Deep-read Sections3.3/3.4,limitations and AppendixC. U0 checkpoints/post-training and video sampling are not fully matched, limiting attribution of video differences to decoding alone.
+
+### CM3: CM3: A Causal Masked Multimodal Model of the Internet
+
+2022-01-19 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2201.07520
+
+https://arxiv.org/abs/2201.07520
+
+
+**summary**
+VQ图像ID与text/HTML ID；mask span移动到末尾再做causal next-token CE，不是迭代离散扩散。
+
+VQ image IDs + text/HTML IDs; masked spans move to the sequence end, then causal next-token CE. Causal masking is not iterative discrete diffusion.
+
+**state**
+VQ图像ID与text/HTML ID；mask span移动到末尾再做causal next-token CE，不是迭代离散扩散。
+
+VQ image IDs + text/HTML IDs; masked spans move to the sequence end, then causal next-token CE. Causal masking is not iterative discrete diffusion.
+
+**objective**
+主模型输出离散token logits，以causal/seq2seq next-token CE或任务重建目标训练；若预训练使用span mask不意味着推理是masked diffusion。无ELF式连续velocity目标。
+
+Discrete token logits with causal/seq2seq next-token CE or task reconstruction. Span corruption in pretraining does not imply masked-diffusion inference. No ELF continuous-velocity target.
+
+**decoding**
+自回归输出文本/视觉ID，再接各自codec；串行复杂度依输出长度与KV cache增长。不是从AR权重无训练改为双向mask；具体训练updates/FLOPs与同硬件延迟本次未复核。
+
+AR text/visual IDs followed by modality codecs;serial cost scales with length/cache. This is not a training-free conversion from AR to bidirectional masking. Exact updates,FLOPs and common-hardware latency not reverified.
+
+**sharing**
+共享跨任务Transformer不自动等于共享全部encoder、tokenizer、embedding和输出head。VQ图像ID与text/HTML ID；mask span移动到末尾再做causal next-token CE，不是迭代离散扩散。 与URSA的离散状态有关，但forward path/分解不同；ELF仅作连续外部边界。
+
+Shared task Transformers do not imply identical encoders,tokenizers,embeddings or heads. VQ image IDs + text/HTML IDs; masked spans move to the sequence end, then causal next-token CE. Causal masking is not iterative discrete diffusion. Related to URSA through discrete states,but different paths/factorization. ELF is an external continuous boundary.
+
+**why**
+ICML离散UMM相关工作的基础参照：不能把统一任务、共享词表、共享视觉输入表示和同一生成目标混为一谈。用于核对AR／MaskGiT／URSA实验中哪些变量真正固定。
+
+A foundational ICML related-work reference: unified tasks,vocabularies,visual input representations and generation objectives are different claims. Use it to audit which factors AR/MaskGiT/URSA experiments actually hold fixed.
+
+**inspiration**
+研究假设：固定Qwen3与选定视觉codec，让理解与生成共享可测试的语义接口；分别测输入连续/离散、mask策略与head依赖，不由参数共享推断知识迁移。
+
+Hypothesis: hold Qwen3 and the chosen visual codec fixed and test a shared semantic interface. Factor continuous/discrete input,masking and grouped-head dependence; parameter sharing alone does not establish knowledge transfer.
+
+**experiment**
+固定Qwen3、视觉codec、数据、参数与训练FLOPs，只切换causal/masked/metric-path目标；再单独改tokenizer与共享边界。报告OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、ID覆盖、组内相关性、遗忘、吞吐/显存/稳定性；完整计入预训练、检索、teacher及候选开销。
+
+Fix Qwen3,codec,data,parameters/training FLOPs and compare causal,masked and metric-path objectives; change codec/sharing separately. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,group correlations,forgetting,throughput,memory and stability. Count pretraining,retrieval,teachers and candidates.
+
+**open**
+论文/作者页面可访问；本次未验证完整训练代码与可用生成checkpoint，不标全部开源。 作为历史补读，非今日新作；精读原文method与训练/评测协议，勿把不同数据预算榜单当严格因果比较。
+
+Paper/author page accessible;complete training code and usable generative checkpoints not verified,so not labeled fully open. Historical backfill,not a publication from today. Deep-read methods/training/evaluation;different-budget leaderboard comparisons are not causal controls.
+
+### Unified-IO: Unified-IO: A Unified Model for Vision, Language, and Multi-Modal Tasks
+
+2022-06-17 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2206.08916
+
+https://unified-io.allenai.org/
+
+
+**summary**
+把图像、文本及稠密/稀疏任务输出统一为离散词表序列，单Transformer在90余数据集联合训练；任务统一早于当前decoder-only UMM。
+
+Homogenizes supported image,text,dense and sparse outputs into discrete vocabulary sequences for a single Transformer. Joint training on90datasets covers generation and vision/language tasks; task unification predates current decoder-only UMMs.
+
+**state**
+把图像、文本及稠密/稀疏任务输出统一为离散词表序列，单Transformer在90余数据集联合训练；任务统一早于当前decoder-only UMM。
+
+Homogenizes supported image,text,dense and sparse outputs into discrete vocabulary sequences for a single Transformer. Joint training on90datasets covers generation and vision/language tasks; task unification predates current decoder-only UMMs.
+
+**objective**
+主模型输出离散token logits，以causal/seq2seq next-token CE或任务重建目标训练；若预训练使用span mask不意味着推理是masked diffusion。无ELF式连续velocity目标。
+
+Discrete token logits with causal/seq2seq next-token CE or task reconstruction. Span corruption in pretraining does not imply masked-diffusion inference. No ELF continuous-velocity target.
+
+**decoding**
+自回归输出文本/视觉ID，再接各自codec；串行复杂度依输出长度与KV cache增长。不是从AR权重无训练改为双向mask；具体训练updates/FLOPs与同硬件延迟本次未复核。
+
+AR text/visual IDs followed by modality codecs;serial cost scales with length/cache. This is not a training-free conversion from AR to bidirectional masking. Exact updates,FLOPs and common-hardware latency not reverified.
+
+**sharing**
+共享跨任务Transformer不自动等于共享全部encoder、tokenizer、embedding和输出head。把图像、文本及稠密/稀疏任务输出统一为离散词表序列，单Transformer在90余数据集联合训练；任务统一早于当前decoder-only UMM。 与URSA的离散状态有关，但forward path/分解不同；ELF仅作连续外部边界。
+
+Shared task Transformers do not imply identical encoders,tokenizers,embeddings or heads. Homogenizes supported image,text,dense and sparse outputs into discrete vocabulary sequences for a single Transformer. Joint training on90datasets covers generation and vision/language tasks; task unification predates current decoder-only UMMs. Related to URSA through discrete states,but different paths/factorization. ELF is an external continuous boundary.
+
+**why**
+ICML离散UMM相关工作的基础参照：不能把统一任务、共享词表、共享视觉输入表示和同一生成目标混为一谈。用于核对AR／MaskGiT／URSA实验中哪些变量真正固定。
+
+A foundational ICML related-work reference: unified tasks,vocabularies,visual input representations and generation objectives are different claims. Use it to audit which factors AR/MaskGiT/URSA experiments actually hold fixed.
+
+**inspiration**
+研究假设：固定Qwen3与选定视觉codec，让理解与生成共享可测试的语义接口；分别测输入连续/离散、mask策略与head依赖，不由参数共享推断知识迁移。
+
+Hypothesis: hold Qwen3 and the chosen visual codec fixed and test a shared semantic interface. Factor continuous/discrete input,masking and grouped-head dependence; parameter sharing alone does not establish knowledge transfer.
+
+**experiment**
+固定Qwen3、视觉codec、数据、参数与训练FLOPs，只切换causal/masked/metric-path目标；再单独改tokenizer与共享边界。报告OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、ID覆盖、组内相关性、遗忘、吞吐/显存/稳定性；完整计入预训练、检索、teacher及候选开销。
+
+Fix Qwen3,codec,data,parameters/training FLOPs and compare causal,masked and metric-path objectives; change codec/sharing separately. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,group correlations,forgetting,throughput,memory and stability. Count pretraining,retrieval,teachers and candidates.
+
+**open**
+论文/作者页面可访问；本次未验证完整训练代码与可用生成checkpoint，不标全部开源。 作为历史补读，非今日新作；精读原文method与训练/评测协议，勿把不同数据预算榜单当严格因果比较。
+
+Paper/author page accessible;complete training code and usable generative checkpoints not verified,so not labeled fully open. Historical backfill,not a publication from today. Deep-read methods/training/evaluation;different-budget leaderboard comparisons are not causal controls.
+
+### MAGVLT: MAGVLT: Masked Generative Vision-and-Language Transformer
+
+2023-03-21 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2303.12208
+
+https://openaccess.thecvf.com/content/CVPR2023/html/Kim_MAGVLT_Masked_Generative_Vision-and-Language_Transformer_CVPR_2023_paper.html
+
+
+**summary**
+VQGAN图像ID与BPE文本ID进入双向Transformer，联合/I2T/T2I masked预测并迭代并行修订；原文对比ARGVLT，是AR与masked对照的重要早期原作。
+
+VQGAN image IDs and BPE text IDs enter a bidirectional Transformer. Joint,I2T and T2I masked prediction plus iterative parallel refinement are compared with ARGVLT. It is a direct historical AR-versus-masked control.
+
+**state**
+VQGAN图像ID与BPE文本ID进入双向Transformer，联合/I2T/T2I masked预测并迭代并行修订；原文对比ARGVLT，是AR与masked对照的重要早期原作。
+
+VQGAN image IDs and BPE text IDs enter a bidirectional Transformer. Joint,I2T and T2I masked prediction plus iterative parallel refinement are compared with ARGVLT. It is a direct historical AR-versus-masked control.
+
+**objective**
+随机MASK/可见token子集训练，预测clean类别logits/CE；生成迭代恢复。具体模态head与decode调度应按原实现，不等同连续velocity或average velocity。
+
+MASK/random visible-token training predicts clean categorical logits/CE with iterative recovery. Audit modality heads and schedules in the implementation; this is not continuous velocity or average velocity.
+
+**decoding**
+并行预测未知token并逐轮提交/修订，非逐像素连续Flow；训练updates、精确迭代次数与统一硬件峰值显存本次未复核，应按具体任务和checkpoint单列。
+
+Parallel unknown-token prediction with iterative commitment/refinement,not pixel Flow. Exact updates,iterations and matched-hardware memory were not reverified; declare them per task/checkpoint.
+
+**sharing**
+共享跨任务Transformer不自动等于共享全部encoder、tokenizer、embedding和输出head。VQGAN图像ID与BPE文本ID进入双向Transformer，联合/I2T/T2I masked预测并迭代并行修订；原文对比ARGVLT，是AR与masked对照的重要早期原作。 与URSA的离散状态有关，但forward path/分解不同；ELF仅作连续外部边界。
+
+Shared task Transformers do not imply identical encoders,tokenizers,embeddings or heads. VQGAN image IDs and BPE text IDs enter a bidirectional Transformer. Joint,I2T and T2I masked prediction plus iterative parallel refinement are compared with ARGVLT. It is a direct historical AR-versus-masked control. Related to URSA through discrete states,but different paths/factorization. ELF is an external continuous boundary.
+
+**why**
+ICML离散UMM相关工作的基础参照：不能把统一任务、共享词表、共享视觉输入表示和同一生成目标混为一谈。用于核对AR／MaskGiT／URSA实验中哪些变量真正固定。
+
+A foundational ICML related-work reference: unified tasks,vocabularies,visual input representations and generation objectives are different claims. Use it to audit which factors AR/MaskGiT/URSA experiments actually hold fixed.
+
+**inspiration**
+研究假设：固定Qwen3与选定视觉codec，让理解与生成共享可测试的语义接口；分别测输入连续/离散、mask策略与head依赖，不由参数共享推断知识迁移。
+
+Hypothesis: hold Qwen3 and the chosen visual codec fixed and test a shared semantic interface. Factor continuous/discrete input,masking and grouped-head dependence; parameter sharing alone does not establish knowledge transfer.
+
+**experiment**
+固定Qwen3、视觉codec、数据、参数与训练FLOPs，只切换causal/masked/metric-path目标；再单独改tokenizer与共享边界。报告OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、ID覆盖、组内相关性、遗忘、吞吐/显存/稳定性；完整计入预训练、检索、teacher及候选开销。
+
+Fix Qwen3,codec,data,parameters/training FLOPs and compare causal,masked and metric-path objectives; change codec/sharing separately. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,group correlations,forgetting,throughput,memory and stability. Count pretraining,retrieval,teachers and candidates.
+
+**open**
+论文/作者页面可访问；本次未验证完整训练代码与可用生成checkpoint，不标全部开源。 作为历史补读，非今日新作；精读原文method与训练/评测协议，勿把不同数据预算榜单当严格因果比较。
+
+Paper/author page accessible;complete training code and usable generative checkpoints not verified,so not labeled fully open. Historical backfill,not a publication from today. Deep-read methods/training/evaluation;different-budget leaderboard comparisons are not causal controls.
+
+### CM3leon: Scaling Autoregressive Multi-Modal Models: Pretraining and Instruction Tuning
+
+2023-09-05 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2309.02591
+
+https://ai.meta.com/blog/generative-ai-text-images-cm3leon/
+
+
+**summary**
+检索增强causal混合模态预训练再多任务SFT；256²图像1024个VQ ID、8192视觉词表，与文本交错。infilling为causal span relocation，不是masked diffusion。
+
+Retrieval-augmented causal mixed-modal pretraining plus multitask SFT;1024VQ codes per256²image with8192image-code vocabulary,alongside text tokens. Infilling uses causal span relocation,not masked-diffusion sampling.
+
+**state**
+检索增强causal混合模态预训练再多任务SFT；256²图像1024个VQ ID、8192视觉词表，与文本交错。infilling为causal span relocation，不是masked diffusion。
+
+Retrieval-augmented causal mixed-modal pretraining plus multitask SFT;1024VQ codes per256²image with8192image-code vocabulary,alongside text tokens. Infilling uses causal span relocation,not masked-diffusion sampling.
+
+**objective**
+主模型输出离散token logits，以causal/seq2seq next-token CE或任务重建目标训练；若预训练使用span mask不意味着推理是masked diffusion。无ELF式连续velocity目标。
+
+Discrete token logits with causal/seq2seq next-token CE or task reconstruction. Span corruption in pretraining does not imply masked-diffusion inference. No ELF continuous-velocity target.
+
+**decoding**
+自回归输出文本/视觉ID，再接各自codec；串行复杂度依输出长度与KV cache增长。不是从AR权重无训练改为双向mask；具体训练updates/FLOPs与同硬件延迟本次未复核。
+
+AR text/visual IDs followed by modality codecs;serial cost scales with length/cache. This is not a training-free conversion from AR to bidirectional masking. Exact updates,FLOPs and common-hardware latency not reverified.
+
+**sharing**
+共享跨任务Transformer不自动等于共享全部encoder、tokenizer、embedding和输出head。检索增强causal混合模态预训练再多任务SFT；256²图像1024个VQ ID、8192视觉词表，与文本交错。infilling为causal span relocation，不是masked diffusion。 与URSA的离散状态有关，但forward path/分解不同；ELF仅作连续外部边界。
+
+Shared task Transformers do not imply identical encoders,tokenizers,embeddings or heads. Retrieval-augmented causal mixed-modal pretraining plus multitask SFT;1024VQ codes per256²image with8192image-code vocabulary,alongside text tokens. Infilling uses causal span relocation,not masked-diffusion sampling. Related to URSA through discrete states,but different paths/factorization. ELF is an external continuous boundary.
+
+**why**
+ICML离散UMM相关工作的基础参照：不能把统一任务、共享词表、共享视觉输入表示和同一生成目标混为一谈。用于核对AR／MaskGiT／URSA实验中哪些变量真正固定。
+
+A foundational ICML related-work reference: unified tasks,vocabularies,visual input representations and generation objectives are different claims. Use it to audit which factors AR/MaskGiT/URSA experiments actually hold fixed.
+
+**inspiration**
+研究假设：固定Qwen3与选定视觉codec，让理解与生成共享可测试的语义接口；分别测输入连续/离散、mask策略与head依赖，不由参数共享推断知识迁移。
+
+Hypothesis: hold Qwen3 and the chosen visual codec fixed and test a shared semantic interface. Factor continuous/discrete input,masking and grouped-head dependence; parameter sharing alone does not establish knowledge transfer.
+
+**experiment**
+固定Qwen3、视觉codec、数据、参数与训练FLOPs，只切换causal/masked/metric-path目标；再单独改tokenizer与共享边界。报告OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、ID覆盖、组内相关性、遗忘、吞吐/显存/稳定性；完整计入预训练、检索、teacher及候选开销。
+
+Fix Qwen3,codec,data,parameters/training FLOPs and compare causal,masked and metric-path objectives; change codec/sharing separately. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,group correlations,forgetting,throughput,memory and stability. Count pretraining,retrieval,teachers and candidates.
+
+**open**
+论文/作者页面可访问；本次未验证完整训练代码与可用生成checkpoint，不标全部开源。 作为历史补读，非今日新作；精读原文method与训练/评测协议，勿把不同数据预算榜单当严格因果比较。
+
+Paper/author page accessible;complete training code and usable generative checkpoints not verified,so not labeled fully open. Historical backfill,not a publication from today. Deep-read methods/training/evaluation;different-budget leaderboard comparisons are not causal controls.
+
+### 4M: 4M: Massively Multimodal Masked Modeling
+
+2023-12-11 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2312.06647
+
+https://4m.epfl.ch/
+https://github.com/apple-aiml-research/ml-4m
+
+**summary**
+模态专属离散tokenizer覆盖RGB/文本/几何/语义及neural feature；共享encoder-decoder对随机token子集做multimodal masked预测，支持任意模态条件，不局限图像caption。
+
+Modality-specific discrete tokenizers cover RGB,text,geometry,semantics and neural features. A shared encoder-decoder learns masked multimodal prediction on random token subsets; arbitrary modality conditioning extends beyond RGB captioning.
+
+**state**
+模态专属离散tokenizer覆盖RGB/文本/几何/语义及neural feature；共享encoder-decoder对随机token子集做multimodal masked预测，支持任意模态条件，不局限图像caption。
+
+Modality-specific discrete tokenizers cover RGB,text,geometry,semantics and neural features. A shared encoder-decoder learns masked multimodal prediction on random token subsets; arbitrary modality conditioning extends beyond RGB captioning.
+
+**objective**
+随机MASK/可见token子集训练，预测clean类别logits/CE；生成迭代恢复。具体模态head与decode调度应按原实现，不等同连续velocity或average velocity。
+
+MASK/random visible-token training predicts clean categorical logits/CE with iterative recovery. Audit modality heads and schedules in the implementation; this is not continuous velocity or average velocity.
+
+**decoding**
+并行预测未知token并逐轮提交/修订，非逐像素连续Flow；训练updates、精确迭代次数与统一硬件峰值显存本次未复核，应按具体任务和checkpoint单列。
+
+Parallel unknown-token prediction with iterative commitment/refinement,not pixel Flow. Exact updates,iterations and matched-hardware memory were not reverified; declare them per task/checkpoint.
+
+**sharing**
+共享跨任务Transformer不自动等于共享全部encoder、tokenizer、embedding和输出head。模态专属离散tokenizer覆盖RGB/文本/几何/语义及neural feature；共享encoder-decoder对随机token子集做multimodal masked预测，支持任意模态条件，不局限图像caption。 与URSA的离散状态有关，但forward path/分解不同；ELF仅作连续外部边界。
+
+Shared task Transformers do not imply identical encoders,tokenizers,embeddings or heads. Modality-specific discrete tokenizers cover RGB,text,geometry,semantics and neural features. A shared encoder-decoder learns masked multimodal prediction on random token subsets; arbitrary modality conditioning extends beyond RGB captioning. Related to URSA through discrete states,but different paths/factorization. ELF is an external continuous boundary.
+
+**why**
+ICML离散UMM相关工作的基础参照：不能把统一任务、共享词表、共享视觉输入表示和同一生成目标混为一谈。用于核对AR／MaskGiT／URSA实验中哪些变量真正固定。
+
+A foundational ICML related-work reference: unified tasks,vocabularies,visual input representations and generation objectives are different claims. Use it to audit which factors AR/MaskGiT/URSA experiments actually hold fixed.
+
+**inspiration**
+研究假设：固定Qwen3与选定视觉codec，让理解与生成共享可测试的语义接口；分别测输入连续/离散、mask策略与head依赖，不由参数共享推断知识迁移。
+
+Hypothesis: hold Qwen3 and the chosen visual codec fixed and test a shared semantic interface. Factor continuous/discrete input,masking and grouped-head dependence; parameter sharing alone does not establish knowledge transfer.
+
+**experiment**
+固定Qwen3、视觉codec、数据、参数与训练FLOPs，只切换causal/masked/metric-path目标；再单独改tokenizer与共享边界。报告OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、ID覆盖、组内相关性、遗忘、吞吐/显存/稳定性；完整计入预训练、检索、teacher及候选开销。
+
+Fix Qwen3,codec,data,parameters/training FLOPs and compare causal,masked and metric-path objectives; change codec/sharing separately. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,group correlations,forgetting,throughput,memory and stability. Count pretraining,retrieval,teachers and candidates.
+
+**open**
+官方repo可访问且链接代码/模型；具体数据license、全部checkpoint与重训复现程度需逐项复核。 作为历史补读，非今日新作；精读原文method与训练/评测协议，勿把不同数据预算榜单当严格因果比较。
+
+Official repository accessible with code/model links;full data licensing,checkpoint completeness and retraining reproducibility require individual checks. Historical backfill,not a publication from today. Deep-read methods/training/evaluation;different-budget leaderboard comparisons are not causal controls.
+
+### 4M-21: 4M-21: An Any-to-Any Vision Model for Tens of Tasks and Modalities
+
+2024-06-13 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2406.09406
+
+https://4m.epfl.ch/
+https://github.com/apple-aiml-research/ml-4m
+
+**summary**
+把4M扩至21模态，含DINOv2/ImageBind feature、几何、结构化标签与metadata，经离散tokenization联合masked建模，扩至3B；语义code效用与RGB重建需分开。
+
+Expands4M to21modalities including DINOv2/ImageBind features,geometry,structured labels and metadata through discrete tokenization and joint masked modeling. Scales to3Bparameters; semantic-code utility and RGB reconstruction must be audited separately.
+
+**state**
+把4M扩至21模态，含DINOv2/ImageBind feature、几何、结构化标签与metadata，经离散tokenization联合masked建模，扩至3B；语义code效用与RGB重建需分开。
+
+Expands4M to21modalities including DINOv2/ImageBind features,geometry,structured labels and metadata through discrete tokenization and joint masked modeling. Scales to3Bparameters; semantic-code utility and RGB reconstruction must be audited separately.
+
+**objective**
+随机MASK/可见token子集训练，预测clean类别logits/CE；生成迭代恢复。具体模态head与decode调度应按原实现，不等同连续velocity或average velocity。
+
+MASK/random visible-token training predicts clean categorical logits/CE with iterative recovery. Audit modality heads and schedules in the implementation; this is not continuous velocity or average velocity.
+
+**decoding**
+并行预测未知token并逐轮提交/修订，非逐像素连续Flow；训练updates、精确迭代次数与统一硬件峰值显存本次未复核，应按具体任务和checkpoint单列。
+
+Parallel unknown-token prediction with iterative commitment/refinement,not pixel Flow. Exact updates,iterations and matched-hardware memory were not reverified; declare them per task/checkpoint.
+
+**sharing**
+共享跨任务Transformer不自动等于共享全部encoder、tokenizer、embedding和输出head。把4M扩至21模态，含DINOv2/ImageBind feature、几何、结构化标签与metadata，经离散tokenization联合masked建模，扩至3B；语义code效用与RGB重建需分开。 与URSA的离散状态有关，但forward path/分解不同；ELF仅作连续外部边界。
+
+Shared task Transformers do not imply identical encoders,tokenizers,embeddings or heads. Expands4M to21modalities including DINOv2/ImageBind features,geometry,structured labels and metadata through discrete tokenization and joint masked modeling. Scales to3Bparameters; semantic-code utility and RGB reconstruction must be audited separately. Related to URSA through discrete states,but different paths/factorization. ELF is an external continuous boundary.
+
+**why**
+ICML离散UMM相关工作的基础参照：不能把统一任务、共享词表、共享视觉输入表示和同一生成目标混为一谈。用于核对AR／MaskGiT／URSA实验中哪些变量真正固定。
+
+A foundational ICML related-work reference: unified tasks,vocabularies,visual input representations and generation objectives are different claims. Use it to audit which factors AR/MaskGiT/URSA experiments actually hold fixed.
+
+**inspiration**
+研究假设：固定Qwen3与选定视觉codec，让理解与生成共享可测试的语义接口；分别测输入连续/离散、mask策略与head依赖，不由参数共享推断知识迁移。
+
+Hypothesis: hold Qwen3 and the chosen visual codec fixed and test a shared semantic interface. Factor continuous/discrete input,masking and grouped-head dependence; parameter sharing alone does not establish knowledge transfer.
+
+**experiment**
+固定Qwen3、视觉codec、数据、参数与训练FLOPs，只切换causal/masked/metric-path目标；再单独改tokenizer与共享边界。报告OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、ID覆盖、组内相关性、遗忘、吞吐/显存/稳定性；完整计入预训练、检索、teacher及候选开销。
+
+Fix Qwen3,codec,data,parameters/training FLOPs and compare causal,masked and metric-path objectives; change codec/sharing separately. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,group correlations,forgetting,throughput,memory and stability. Count pretraining,retrieval,teachers and candidates.
+
+**open**
+官方repo可访问且链接代码/模型；具体数据license、全部checkpoint与重训复现程度需逐项复核。 作为历史补读，非今日新作；精读原文method与训练/评测协议，勿把不同数据预算榜单当严格因果比较。
+
+Official repository accessible with code/model links;full data licensing,checkpoint completeness and retraining reproducibility require individual checks. Historical backfill,not a publication from today. Deep-read methods/training/evaluation;different-budget leaderboard comparisons are not causal controls.
+
+### Chameleon: Chameleon: Mixed-Modal Early-Fusion Foundation Models
+
+2024-05-16 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2405.09818
+
+https://github.com/facebookresearch/chameleon
+https://github.com/facebookresearch/chameleon
+
+**summary**
+从训练之初进行图文early fusion，统一理解、文本生成与图像生成；QK normalization、z-loss等稳定化设计针对混合模态训练的norm/logit问题。
+
+Early fusion from pretraining unifies image understanding,text and image generation. QK normalization and z-loss address norm/logit instability in mixed-modal training.
+
+**state**
+图像由VQ tokenizer量化为8192视觉词表，512²图像对应1024 ID；与文本ID组成混合序列。LLM内部使用embedding不代表连续视觉diffusion；采样状态仍为类别ID。
+
+VQ images use8192visual codes and1024IDs per512²image,interleaved with text IDs. Continuous internal embeddings do not make the categorical sampling process continuous diffusion.
+
+**objective**
+LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。官方最初发布侧重图文输入、文本输出，不能假定公开checkpoint原生具备完整论文图像生成接口；Anole是重要开放延伸。
+
+The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. The initial official release focused on mixed inputs/text outputs; do not assume released checkpoints expose all paper image-generation capabilities. Anole is an important open extension.
+
+**decoding**
+先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。
+
+AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.
+
+**sharing**
+同视觉tokenizer服务理解与生成，共用图文序列Transformer与扩展词表；image decoder为独立codec组件。论文模型能力与公开checkpoint开放范围必须区分。
+
+Understanding/generation use one visual tokenizer and mixed-sequence Transformer/expanded vocabulary; image decoding remains a separate codec component. Distinguish paper capabilities from released checkpoint scope.
+
+**why**
+离散UMM必须引用的early-fusion基线：同一个AR主干处理图文交错输入和输出。对视觉词表进入LLM后的logit偏移与训练稳定性，不能只讨论生成loss而忽略多模态norm。
+
+Essential early-fusion discrete-UMM baseline with interleaved image/text input and output. Its stability work makes multimodal normalization and logit drift relevant beyond generation loss alone.
+
+**inspiration**
+研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。
+
+Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.
+
+**experiment**
+固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。
+
+Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.
+
+**open**
+论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。官方最初发布侧重图文输入、文本输出，不能假定公开checkpoint原生具备完整论文图像生成接口；Anole是重要开放延伸。
+
+Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. The initial official release focused on mixed inputs/text outputs; do not assume released checkpoints expose all paper image-generation capabilities. Anole is an important open extension.
+
+### VILA-U: VILA-U: a Unified Foundation Model Integrating Visual Understanding and Generation
+
+2024-09-06 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2409.04429
+
+https://hanlab.mit.edu/projects/vila-u
+https://github.com/mit-han-lab/vila-u
+
+**summary**
+统一视觉塔以重建与图文contrastive监督学习离散表示；主LLM预测空间序列，depth Transformer补全各位置residual codes，实现图像/视频理解与生成。
+
+A unified vision tower combines reconstruction and image-text contrastive learning. The LLM models spatial positions while a depth Transformer predicts residual codes, supporting image/video understanding and generation.
+
+**state**
+SigLIP视觉塔加residual quantizer；codebook16384，单位置有多个residual-depth ID。不是一个ID对应一个合并空间block。
+
+SigLIP-based vision tower with residual quantization,16384codebook entries and multiple depth IDs per spatial location; not one ID per merged spatial block.
+
+**objective**
+LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。
+
+The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. 
+
+**decoding**
+先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。
+
+AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.
+
+**sharing**
+理解/生成共享视觉塔与主AR框架；额外depth Transformer和pixel decoder仍存在，不是完全同一head。主干从预训练语言模型扩展，codec对照要保持residual深度一致。
+
+Understanding/generation share the vision tower and main AR framework,while a depth Transformer and pixel decoder remain separate. Extends a pretrained language model; keep residual depth fixed in codec controls.
+
+**why**
+为语义离散token与重建联合训练提供直接先例，也给出spatial/depth两层AR。它与四槽局部预测相关，但residual quantization depth不是2×2空间slot，不应混为同一种并行方式。
+
+Direct precedent for jointly semantic and reconstructive discrete tokens with spatial/depth AR. Residual-code depth is not a2x2 spatial slot,so its local prediction cannot be equated with spatial-block decoding.
+
+**inspiration**
+研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。
+
+Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.
+
+**experiment**
+固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。
+
+Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.
+
+**open**
+论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。
+
+Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. 
+
+### Anole: ANOLE: An Open, Autoregressive, Native Large Multimodal Models for Interleaved Image-Text Generation
+
+2024-07-08 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2407.06135
+
+https://gair-nlp.github.io/anole/
+https://github.com/GAIR-NLP/anole
+
+**summary**
+从Chameleon延伸，以高效指令微调获得可开放的交错图文生成；核心是训练/开放方案而非新离散forward path。
+
+Extends Chameleon with efficient instruction tuning for open interleaved image/text generation. Primarily a tuning/release contribution rather than a new discrete forward process.
+
+**state**
+继承Chameleon的离散image/text序列与VQ image codec；AR采样视觉ID，VQ decoder恢复图像，不使用独立diffusion生成器。
+
+Inherits Chameleon discrete image/text sequences and VQ codec. AR samples visual IDs and the VQ decoder renders them,without an external diffusion generator.
+
+**objective**
+LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。
+
+The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. 
+
+**decoding**
+先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。
+
+AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.
+
+**sharing**
+继承单主干、图文序列与视觉tokenizer；扩展同家族checkpoint，不是独立从零baseline。比较时同时记录Chameleon父模型与Anole微调预算。
+
+Inherits one backbone,mixed sequence and visual tokenizer. It extends an existing family rather than being an independent from-scratch baseline; account for parent-model and adaptation budgets separately.
+
+**why**
+把Chameleon架构与公开可复现的图像生成能力分开，是复现实验应关注的开放延伸。对ICML比较，checkpoint允许的输出模态和微调数据不能被论文名掩盖。
+
+Distinguishes Chameleon architecture from publicly reproducible image generation. For ICML comparisons,document the released checkpoint’s modalities and tuning data rather than inferring capabilities from model names.
+
+**inspiration**
+研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。
+
+Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.
+
+**experiment**
+固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。
+
+Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.
+
+**open**
+论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。
+
+Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. 
+
+### LWM: World Model on Million-Length Video And Language With Blockwise RingAttention
+
+2024-02-13 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2402.08268
+
+https://largeworldmodel.github.io/lwm/
+https://github.com/LargeWorldModel/LWM
+
+**summary**
+基于Llama逐级扩展到百万token上下文，利用Blockwise RingAttention训练视频/语言理解与生成；主要贡献是上下文与系统扩展，非新的视觉token概率目标。
+
+Progressively extends Llama to million-token context using Blockwise RingAttention for video/language understanding and generation. Main contribution is context/system scaling,not a new visual-token probability target.
+
+**state**
+视频帧经离散视觉tokenizer，配合EOF/EOV等序列边界，与文本共同形成长AR序列；状态为视觉ID而非连续VAE/noise field。
+
+Video frames become discrete visual tokens with EOF/EOV boundaries,interleaved with text in a long AR sequence. State is visual IDs rather than a continuous VAE/noise field.
+
+**objective**
+LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。
+
+The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. 
+
+**decoding**
+先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。
+
+AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.
+
+**sharing**
+共享长序列LLM与离散视觉输入输出接口，codec独立；AR权重扩展可行但长上下文显存/通信是主要成本。不能与短上下文小预算UMM直接比总分。
+
+Shares a long-sequence LLM and discrete visual interface with a separate codec. AR initialization is supported,but context memory/communication dominate cost. Do not compare total scores against short-context UMMs without budget controls.
+
+**why**
+离散视频/文本长上下文基础，适合多帧威胁检测的历史证据与生成比较。论文题名world model不等于action-conditioned闭环动力学，不能把1M上下文当作1M步rollout。
+
+Foundation for discrete video/text long context and historical evidence in multi-frame threat tasks. Its world-model title does not establish action-conditioned closed-loop dynamics;1M context is not1M-step rollout.
+
+**inspiration**
+研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。
+
+Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.
+
+**experiment**
+固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。
+
+Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.
+
+**open**
+论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。
+
+Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. 
+
+### Lumina-mGPT: Lumina-mGPT: Illuminate Flexible Photorealistic Text-to-Image Generation with Multimodal Generative Pretraining
+
+2024-08-05 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2408.02657
+
+https://github.com/Alpha-VLLM/Lumina-mGPT
+https://github.com/Alpha-VLLM/Lumina-mGPT
+
+**summary**
+从multimodal Generative PreTraining初始化，经Flexible Progressive SFT提升图像生成，再以Omni-SFT探索VQA、segmentation、depth等统一任务；区分各阶段checkpoint能力。
+
+Initializes from multimodal generative pretraining,uses Flexible Progressive SFT for images,and explores VQA,segmentation and depth through Omni-SFT. Distinguish checkpoint capabilities across stages.
+
+**state**
+VQ-VAE离散图像ID与文本token组成decoder-only序列；UniRep显式表达图像形状/行结构，避免相同token数对应不同宽高的歧义。
+
+VQ-VAE image IDs and text form a decoder-only sequence. UniRep explicitly describes image shape/row structure to disambiguate different aspect ratios with equal token counts.
+
+**objective**
+LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。
+
+The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. 
+
+**decoding**
+先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。
+
+AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.
+
+**sharing**
+共享decoder-only序列建模和visual ID接口，VQ codec独立；Omni-SFT是扩展能力阶段，不应假定纯T2I checkpoint已经验证所有理解任务。
+
+Shares decoder-only sequence modeling and visual IDs with a separate VQ codec. Omni-SFT expands tasks; do not assume a T2I checkpoint validates all understanding capabilities.
+
+**why**
+任意宽高比、row边界与多任务SFT可能显著影响离散网格建模；是ScanAR、block decoding以及OCR布局控制应补的AR基线。生成质量不能只归于AR目标而忽略multimodal预训练和SFT数据。
+
+Aspect ratios,row boundaries and multitask SFT matter for discrete grids,making this relevant to ScanAR,block decoding and OCR layout. Separate AR targets from inherited pretraining/SFT data gains.
+
+**inspiration**
+研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。
+
+Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.
+
+**experiment**
+固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。
+
+Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.
+
+**open**
+论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。
+
+Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. 
+
+### Liquid: Liquid: Language Models are Scalable and Unified Multi-modal Generators
+
+2024-12-05 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2412.04332
+
+https://foundationvision.github.io/Liquid/
+https://github.com/FoundationVision/Liquid
+
+**summary**
+以离散视觉ID直接拓展现有LLM，在共享feature space统一视觉理解和生成，并研究模型规模对多任务干扰的影响；codec重建与LLM扩展是两个不同阶段。
+
+Extends existing LLMs directly with discrete visual IDs for understanding/generation in a shared feature space,and studies task interference across scale. Codec reconstruction and LLM extension are separate stages.
+
+**state**
+Chameleon VQGAN把512²图像编码为32×32 ID，视觉词表8192；图文共用扩展序列，visual embedding在语言模型侧学习。无单独CLIP理解入口。
+
+Chameleon VQGAN maps512²images to32x32IDs over8192visual entries. Image/text share the expanded sequence with learned visual embeddings,without a separate CLIP understanding input.
+
+**objective**
+LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。
+
+The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. 
+
+**decoding**
+先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。
+
+AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.
+
+**sharing**
+理解/生成共用视觉tokenizer和LLM序列接口，独立VQ decoder恢复像素；预训练LLM初始化明确，不是从零Chameleon训练的计算预算。
+
+Understanding/generation share a visual tokenizer and LLM sequence interface,with a separate VQ image decoder. Explicit pretrained-LLM initialization is not the same budget as training Chameleon from scratch.
+
+**why**
+把已有Qwen/Gemma等LLM扩展到统一离散视觉空间，是固定主干离散UMM论文必须比较的路径；不要求重训整套encoder，也不能把借用tokenizer的收益归为只换AR目标。
+
+Extending existing Qwen/Gemma LLMs into a shared discrete space is a necessary baseline for fixed-backbone UMM studies. Account for inherited tokenizer quality rather than attributing all gains to the AR objective.
+
+**inspiration**
+研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。
+
+Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.
+
+**experiment**
+固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。
+
+Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.
+
+**open**
+论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。
+
+Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. 
+
+### Emu3.5 / DiDA: Emu3.5: Native Multimodal Models are World Learners
+
+2025-10-30 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2510.26583
+
+https://emu.world
+https://github.com/baaivision/Emu3.5
+
+**summary**
+大规模图文交错next-token预训练与RL后训练；DiDA以自蒸馏数据和修改attention把逐ID解码转为bidirectional离散预测，支持交错生成及文本丰富的X2I。
+
+Large-scale interleaved next-token pretraining plus RL;DiDA uses self-distilled data/modified attention to convert tokenwise decoding to bidirectional discrete prediction for interleaved and text-rich X2I generation.
+
+**state**
+IBQ视觉tokenizer，16×下采样，256维code，词表131072；图文共用离散序列。DiDA将视觉序列整体加噪/并行refinement，文字保持AR。
+
+IBQ visual tokens with16x downsampling,256-dimensional codes and131072entries in a shared image/text sequence. DiDA adds noisy visual-sequence refinement while text stays AR.
+
+**objective**
+基础为图文next-token CE，DiDA增加离散去噪适配与self-distillation数据；具体transition kernel/噪声权重本次未逐项复核，不能将其写为URSA metric path。另有RL奖励，需独立对照。
+
+Base image/text next-token CE plus discrete-denoising adaptation using self-distilled data. Exact transition kernel/noise weighting not fully re-audited;do not identify it with URSA metric paths. RL rewards require separate controls.
+
+**decoding**
+文字AR、视觉DiDA并行逐步refinement；约20倍/图为论文设置，非固定NFE跨模型结论。预训练约13T token，不能与小预算后训练直接比较；具体推理步数/峰值显存本次未统一核验。
+
+Text AR with parallel iterative DiDA vision. About20x/image is setting-specific,not a fixed-NFE cross-model result. Roughly13Tpretraining tokens preclude direct small-budget adaptation comparisons;exact inference counts/peak memory not standardized in this audit.
+
+**sharing**
+AR和DiDA复用同家族离散视觉表示与主干，noisy visual token只在本图内双向读，其余clean/text序列保持causal。与URSA同离散端点，但原文未证明其corruption就是metric-aware路径。
+
+AR/DiDA reuse the family’s discrete visual representation/backbone. Noisy visual tokens attend bidirectionally within their image while clean/text tokens remain causal. Shares discrete endpoints with URSA,but not established as the same metric-aware corruption.
+
+**why**
+Emu3之外必须补齐的重要离散UMM：IBQ大词表、长时交错预训练以及AR→离散diffusion适配，是URSA与Mask-only对照的直接先例。不能把DiDA约20倍加速等同metric path收益。
+
+Important successor beyond Emu3:large-vocabulary IBQ,long interleaved pretraining and AR-to-discrete-diffusion adaptation directly precede URSA/mask-only comparisons. DiDA speedups do not establish metric-path gains.
+
+**inspiration**
+研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。
+
+Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.
+
+**experiment**
+固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。
+
+Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.
+
+**open**
+论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。
+
+Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. 
+
+### UniDisc: Unified Multimodal Discrete Diffusion
+
+2025-03-26 · v1 · backfill/checked 2026-11-27
+
+https://arxiv.org/abs/2503.20853
+
+https://unidisc.github.io/
+https://github.com/alexanderswerdlow/unidisc
+
+**summary**
+把图像与文本离散token联合建模，通过随机MASK和双向去噪支持生成、caption、检索及跨模态inpainting。其重点是共同离散分布与可变采样预算，不应把早期小尺度caption/检索结果等同完整OCR/VQA专家能力。
+
+Jointly models discrete text/image tokens with random masking and bidirectional denoising for generation,captioning,retrieval and cross-modal inpainting. Variable-budget joint modeling is the contribution; early caption/retrieval results do not establish specialist OCR/VQA capability.
+
+**state**
+text IDs与离散visual code IDs联合序列；前向随机将位置变为absorbing MASK，模型内部embedding连续不等于连续生成状态。视觉decoder负责ID到像素，非VAE latent Gaussian diffusion。
+
+Joint text IDs and discrete visual-code IDs. Random absorbing-MASK corruption; continuous internal embeddings do not make the modeled state continuous. An image decoder maps IDs to pixels,without Gaussian VAE-latent generation.
+
+**objective**
+在被mask位置学习clean token的categorical logits/交叉熵式离散去噪目标，非ELF velocity/noise/average velocity。与URSA同为离散端点，但MASK corruption不利用完整视觉metric path。
+
+Predicts clean categorical token logits at masked positions with a discrete denoising objective,not ELF velocity/noise/average velocity. Like URSA it has discrete endpoints,but masking does not exploit the full visual metric path.
+
+**decoding**
+并行迭代unmask，可变步数控制速度质量，保留输入位置可做联合inpainting。论文含115M/340M及1.4B尺度；小尺度使用300 L40S GPU小时的离散模型训练对照，不能作为Qwen3端到端预算。统一评测NFE与完整训练FLOPs本次未核验。
+
+Parallel iterative unmasking supports variable quality/compute and constrained inpainting. Paper includes115M/340M and1.4B models; a small-scale setup uses300L40S GPU-hours,not a Qwen end-to-end budget. Complete training FLOPs/common-evaluation NFE not verified in this audit.
+
+**sharing**
+统一Transformer处理图文离散token，但文本与图像各有tokenizer及词表区间；不意味着text/image codec或所有head绑权。论文强调同tokenizer AR对照；Qwen3初始化迁移需独立验证，不与从零训练结论混写。
+
+A joint Transformer processes text/image token regions,but their tokenizers and vocabulary ranges differ; shared modeling does not imply one codec or tied modality heads. Same-tokenizer AR comparisons are central. Qwen initialization is a proposed transfer,not a reported result.
+
+**why**
+是离散UMM相关工作中不能跳过的masked基线，适合将Qwen3+IBQ的全AR、MaskGIT与URSA metric path放在同一坐标系；对照应固定tokenizer及CFG，不能让guidance差异冒充范式提升。
+
+An essential masked baseline for a discrete-UMM paper. Place Qwen3+IBQ AR,MaskGIT-style recovery and URSA metric paths on the same axes. Fix tokenizer and CFG so guidance is not mistaken for a paradigm gain.
+
+**inspiration**
+研究假设：对相同IBQ ID和Qwen3主干，保留统一图文序列，只切换causal next-token与joint MASK恢复；用文字/图像相互inpainting检验双向信息调用，并检查OCR glyph和稀有code是否在高mask率下丢失。
+
+Hypothesis: retain the same IBQ IDs,Qwen3 backbone and joint sequence; switch causal next-token prediction to joint masked recovery. Test bidirectional use with text/image inpainting,including glyph and rare-code retention at high mask rates.
+
+**experiment**
+固定Qwen3、IBQ、图文数据、参数与训练FLOPs，比较AR、absorbing-MASK、URSA metric path。各自扫描相同总forward预算与CFG；报告OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、inpainting、code coverage、NFE/吞吐/显存；把理解输入codec与采样器收益拆开。
+
+Fix Qwen3,IBQ,data,parameters and training FLOPs; compare AR,absorbing MASK and URSA metric paths. Sweep equal total-forward budgets/CFG and report OCRBench,DocVQA,TextVQA,generated-text OCR,GenEval,inpainting,code coverage,NFE,throughput and memory. Separate input-codec gains from sampling.
+
+**open**
+官方代码仓库及训练/推理实现可访问，论文声明公开模型和数据；完整数据下载与所有权重本次未逐项运行核验。精读方法、AR对照/CFG及附录预算；属于2025基础补录，非今日新发表。
+
+Official code and training/inference implementation accessible; paper announces models/data. Complete downloads and every checkpoint were not executed here. Read method,AR/CFG comparisons and budget appendix. A2025 foundational backfill,not a new publication.
+
+### MMaDA: MMaDA: Multimodal Large Diffusion Language Models
+
+2025-05-21 · v2 2025-09-25 · backfill/checked 2026-11-27
+
+https://arxiv.org/abs/2505.15809
+
+
+https://github.com/Gen-Verse/MMaDA
+
+**summary**
+从LLaDA-8B-Instruct扩展统一masked diffusion，用MAGVIT-v2离散图像token联合文本推理、视觉理解与T2I；随后Mixed-CoT和UniGRPO进一步后训练。应把共享概率模型与CoT/RL奖励带来的提升分开。
+
+Extends LLaDA-8B-Instruct with MAGVIT-v2 image IDs for masked-diffusion text reasoning,visual understanding and T2I,followed by Mixed-CoT and UniGRPO. Separate the joint probabilistic model from data,CoT and reward gains.
+
+**state**
+文本用LLaDA tokenizer，图像用Show-o采用的MAGVIT-v2离散quantizer，映射到统一token序列；前向随机mask目标token并保留prompt。不是共享一个图文encoder，也不是连续VAE噪声状态。
+
+LLaDA text tokenizer plus Show-o MAGVIT-v2 discrete image quantizer in one sequence. Target tokens are randomly masked while prompts remain. Neither one image/text encoder nor Gaussian VAE states.
+
+**objective**
+统一clean-token masked prediction，加Mixed-CoT SFT与UniGRPO。输出仍为categorical logits；UniGRPO通过多mask估计概率，非ELF连续velocity目标，也不等于URSA uniform metric kernel。
+
+Unified masked clean-token prediction,then Mixed-CoT SFT and UniGRPO. Outputs remain categorical logits; multimask probability estimation for RL is not ELF velocity or a URSA uniform metric corruption kernel.
+
+**decoding**
+官方示例文本使用semi-AR block sampling，图像/多模态使用非AR迭代去噪；“全diffusion”不等于所有任务同一全局解码顺序。初始化LLaDA而非直接AR；完整训练FLOPs及各任务统一NFE本次未核验，需从配置逐项记录。
+
+Official demo uses semi-AR block text sampling and non-AR image/multimodal denoising. Fully diffusion-based does not mean identical global decoding for every task. Initializes LLaDA rather than directly converting AR. Complete FLOPs/common NFE require task-config auditing.
+
+**sharing**
+图文共dLLM主干和masked概率形式，但MAGVIT图像codec与文本tokenizer分开。为Qwen迁移时应保留原词表/IBQ head的对照，单独报告adapter、扩词表与双向attention改动，不把继承LLaDA能力算新范式收益。
+
+Text/images share the dLLM backbone and masked formulation,but use separate text tokenizer and image codec. For Qwen transfer,control adapters,vocabulary expansion,IBQ heads and bidirectional attention separately; inherited LLaDA ability is not a new modeling gain.
+
+**why**
+是Qwen3+IBQ离散UMM必须覆盖的LLM出发masked基线，可与AR→URSA改造直接比较。论文的跨任务能力同时依赖数据和RL，不能只凭最终分数声称masked目标优于AR。
+
+A mandatory LLM-initialized masked baseline for Qwen3+IBQ discrete UMM and AR-to-URSA adaptation. Final capabilities also depend on data/RL; final scores alone do not establish masked-objective superiority over AR.
+
+**inspiration**
+研究假设：先用Qwen3与IBQ做不加CoT/RL的基础masked适配，再独立加Mixed-CoT与统一reward。用OCR证据替换/删除测试解释是否忠实，生成文字OCR与code diversity不能被语言奖励掩盖。
+
+Hypothesis: first adapt Qwen3+IBQ without CoT/RL,then add Mixed-CoT and rewards separately. Test evidence substitution/deletion for OCR explanation faithfulness; audit generated-text OCR and code diversity beyond language rewards.
+
+**experiment**
+固定主干/IBQ/训练数据/FLOPs，先比较AR、MaskGIT式图像mask+text AR、全图文mask、URSA。最佳结构上再做CoT×RL的2×2控制；报OCRBench/DocVQA/TextVQA、GenEval、生成文字、palette、语言保持及全部rollout/reward成本。
+
+Fix backbone,IBQ,data and FLOPs; compare AR,text-AR/image-mask,fully masked text/image and URSA. On a fixed best architecture,cross CoT and RL in a2x2 design. Report OCRBench,DocVQA,TextVQA,GenEval,text rendering,palette,language retention and every rollout/reward cost.
+
+**open**
+官方training/models/evaluation代码与Base、MixCoT模型链接可访问；README的Max/UniGRPO最终模型仍写coming soon，不能笼统称所有阶段权重已公开。精读概率目标、sampling与UniGRPO，补录历史核心文献。
+
+Official training,models,evaluation code plus Base/MixCoT checkpoint links accessible. README still labels final Max/UniGRPO checkpoint coming soon; not every stage is released. Read objective,sampling and UniGRPO. Historical core backfill.
+
+### Lumina-DiMOO: Lumina-DiMOO: An Omni Diffusion Large Language Model for Multi-Modal Generation and Understanding
+
+2025-10-07 · v1 · backfill/checked 2026-11-27
+
+https://arxiv.org/abs/2510.06308
+
+https://synbol.github.io/Lumina-DiMOO/
+https://github.com/Alpha-VLLM/Lumina-DiMOO
+
+**summary**
+以离散dLLM统一图文理解、T2I、编辑、inpainting与主体生成，采用预测—采样—remask，并用Max-Logit Cache复用稳定计算。将tokenizer选择、多阶段数据、离散目标和cache分别讨论，才能读懂其效率来源。
+
+A discrete dLLM unifies understanding,T2I,editing,inpainting and subject-driven generation,with predict-sample-remask decoding and Max-Logit Cache. Separate codec choice,multistage data,discrete objectives and caching when interpreting efficiency.
+
+**state**
+图像离散视觉code与text IDs串接，由预训练dLLM适配；corruption为mask而不是Gaussian VAE噪声。图像重建codec独立于语言tokenizer；必须按最终配置核对codebook与resolution，不能只看总模型名。
+
+Discrete visual codes and text IDs processed by an adapted pretrained dLLM; masked rather than Gaussian VAE corruption. Visual reconstruction codec differs from the language tokenizer; audit final codebook/resolution configurations rather than inferring them from a model name.
+
+**objective**
+clean-token categorical/logit预测，mask恢复与remask；cache只改变计算复用，不把目标改成embedding velocity。与URSA差异在forward path及token可修正方式；ELF为连续空间外部对照。
+
+Clean categorical/logit prediction with recovery/remasking. Caching reuses computation without changing targets into embedding velocity. Compared with URSA,the forward path and revision process differ; ELF is a continuous-space external control.
+
+**decoding**
+图像全局并行迭代，文本按block生成；论文文本理解设置block256、128 sampling steps。ML-Cache额外约2倍加速属于配置相关结果，应计cache命中率与误差；具体各T2I配置NFE、总训练FLOPs需逐配置核对。
+
+Global parallel image refinement and blockwise text generation. A reported understanding setup uses256-token blocks/128sampling steps. Approximately2x ML-Cache speedup is configuration-dependent; count hit rates/errors. T2I NFE/full training FLOPs need per-configuration verification.
+
+**sharing**
+共享dLLM图文语义计算与离散概率过程，视觉codec和text tokenizer分开；不意味着统一像素重建head。初始化预训练dLLM，直接从Qwen3 AR转入需要独立适配实验；固定主干后才可比较mask与metric path。
+
+Shared dLLM semantic computation/discrete formulation,but separate visual codec and text tokenizer,not one pixel-reconstruction head. Starts from a pretrained dLLM; direct Qwen AR adaptation needs its own experiment. Fix the backbone before path comparisons.
+
+**why**
+是比早期MMaDA/UniDisc更完整的离散UMM任务覆盖端点，也是当前IBQ/MaskGIT路线的高相关基线。生成、编辑和理解同时改善不自动证明双向知识迁移，需要相同实体/概念的交叉任务控制。
+
+A broader task-coverage discrete UMM endpoint beyond early MMaDA/UniDisc and a close IBQ/MaskGIT baseline. Better understanding/editing/generation does not alone establish bidirectional knowledge transfer; test matched entities/concepts.
+
+**inspiration**
+研究假设：在Qwen3+IBQ上先保留标准masked更新，只加基于logit稳定性的cache，并检查OCR位置是否比背景更晚稳定；再独立比较URSA非mask更新。不要将MIGM shortcut在本模型上的加速误认为模型本体的新生成范式。
+
+Hypothesis: first retain standard masked updates on Qwen3+IBQ and isolate logit-stability caching,checking whether OCR settles later than background. Then compare URSA updates independently. MIGM shortcut acceleration on this model is not a new model-wide generation paradigm.
+
+**experiment**
+固定主干、IBQ、数据、参数/FLOPs，先比较MASK与URSA；各自分别打开/关闭cache并匹配有效forward次数。报OCR/DocVQA/TextVQA、生成文字、GenEval、编辑背景/身份保持、code coverage、NFE/延迟/显存，额外做cache stale-error与稀有ID分桶。
+
+Fix backbone,IBQ,data,parameters/FLOPs; compare MASK and URSA,then independently enable caching under equal effective forwards. Report OCR/DocVQA/TextVQA,generated text,GenEval,editing background/identity,coverage,NFE,latency and memory; audit stale-cache error and rare-ID bins.
+
+**open**
+官方仓库含实现、使用说明及HF模型链接，论文声明代码/checkpoints公开；所有训练数据与各阶段权重本次未逐项运行核验。精读foundation tokenizer、训练阶段和ML-Cache；归历史补录。
+
+Official implementation,usage instructions and HF links accessible; paper announces code/checkpoints. Complete data and every training-stage checkpoint were not run-verified. Read tokenizer,training stages and ML-Cache; historical backfill.
+
+### MMaDA-Parallel: MMaDA-Parallel: Multimodal Large Diffusion Language Models for Thinking-Aware Editing and Generation
+
+2025-11-12 · v3 2025-11-18 · backfill/checked 2026-11-27
+
+https://arxiv.org/abs/2511.09611
+
+https://tyfeld.github.io/mmadaparellel.github.io/
+https://github.com/tyfeld/MMaDA-Parallel
+
+**summary**
+图文响应在共同去噪轨迹中并行恢复，而非先固定文字CoT再生成图像；ParaRL沿轨迹约束语义一致。A/M两版本使用不同视觉tokenizer，不能把二者最终差异只归因到同一并行算法。
+
+Text/image responses co-evolve during denoising rather than fixing textual CoT before image generation. ParaRL promotes trajectory-level semantic consistency. A/M variants use different image codecs; their differences are not an isolated parallel-algorithm comparison.
+
+**state**
+text IDs与离散image IDs以sentinel/task tags交错，在双向上下文中联合MASK恢复；M版本MAGVIT-v2，A版本Amused-VQ。内部embedding连续不等于continuous diffusion。
+
+Sentinel/task-tagged text and image IDs jointly masked under bidirectional context. M uses MAGVIT-v2,A uses Amused-VQ. Continuous embeddings inside the network are not continuous diffusion states.
+
+**objective**
+联合mask clean-token预测与SFT，ParaRL在抽样去噪状态上给语义reward；不是ELF velocity监督，也非URSA metric corruption。奖励一致性不等于真实CoT忠实性，需反事实证据测试。
+
+Joint masked clean-token prediction/SFT plus ParaRL semantic rewards on sampled denoising states. Neither ELF velocity nor URSA metric corruption. Reward consistency is not proof of CoT faithfulness; require counterfactual evidence tests.
+
+**decoding**
+两模态轨迹并行交互，但文本仍可block/semi-AR；官方A示例image64、text128steps、文本block32，不应直接称单一64NFE。8B A/M checkpoints；完整训练FLOPs和各reward调用预算本次未核验。
+
+Cross-modal trajectories interact in parallel,but text may remain block/semi-AR. Official A example:image64steps,text128steps,block32; not a single64NFE system. Two8B checkpoints; full training FLOPs/reward budgets not verified.
+
+**sharing**
+同一离散multimodal去噪骨干及上下文，image codec/text tokenizer仍不同；A与M不是同codec公平对照。基于MMaDA适配，不能把继承能力当成Qwen3 AR→diffusion转换实证。
+
+Joint discrete denoising backbone/context,with distinct image codec and text tokenizer. A/M are not same-codec controls. Adapted from MMaDA; inherited capability is not evidence of direct Qwen3 AR-to-diffusion conversion.
+
+**why**
+如果离散UMM论文声称联合文本—图像生成更能纠错或统一推理，这是一项关键近邻。它提醒需要测图文相互影响，而不只是共享Transformer或最终图像分数。
+
+Key prior art for claims about joint text-image correction or unified reasoning. Test reciprocal influence rather than inferring unification from shared Transformer weights or final image scores.
+
+**inspiration**
+研究假设：Qwen3+IBQ中比较先text后image与joint-mask，保持同一CoT数据和head；干预文字计划中一个对象/关系，观察后续视觉token是否改变，以及图像证据能否反向修正错误文字。
+
+Hypothesis: on fixed Qwen3+IBQ,compare text-then-image and joint masking with the same CoT data/heads. Intervene on one planned object/relation and test visual change; test whether image evidence corrects erroneous text in the reverse direction.
+
+**experiment**
+固定Qwen3、IBQ、数据、参数与训练/总采样FLOPs，比较顺序CoT、joint MASK、joint URSA；再单独加ParaRL。报Output Alignment、独立GenEval/文字OCR、CoT证据忠实性、code palette与理解benchmark；计全部文字block和image去噪调用，不只计算图像步数。
+
+Fix Qwen3,IBQ,data,parameters and total train/sample FLOPs; compare sequential CoT,joint MASK and joint URSA,then add ParaRL separately. Measure Output Alignment,independent GenEval/text OCR,CoT evidence faithfulness,palette and understanding. Count every text block/image update,not image steps alone.
+
+**open**
+官方A/M实现、两种HF权重和A训练代码可访问；Apache-2.0仓库许可。README说明真人/真实照片OOD尚未充分探索，训练数据完整性需另核验。精读parallel schedule、ParaRL与ParaBench。
+
+Official A/M implementation,two HF checkpoints and A training code accessible; repository Apache-2.0. README notes limited exploration of human-face/real-photo OOD inputs. Full data completeness unverified. Read parallel schedules,ParaRL and ParaBench.
+
+### Omni-Diffusion: Omni-Diffusion: Unified Multimodal Understanding and Generation with Masked Discrete Diffusion
+
+2026-03-06 · v2 2026-07-03 · backfill/checked 2026-11-27
+
+https://arxiv.org/abs/2603.06577
+
+https://omni-diffusion.github.io/
+https://github.com/VITA-MLLM/Omni-Diffusion
+
+**summary**
+以mask-based离散diffusion统一文本、图像、语音的any-to-any理解与生成；tail-pad masking处理变长，position penalty抑制图像重复布局，special-token pre-infilling辅助语音对话。它覆盖Omni扩展，但不是“任何模态同一个物理tokenizer”。
+
+Mask-based discrete diffusion supports any-to-any text,image and speech understanding/generation. Tail-pad masking handles length,position penalties reduce repeated image layouts,and special-token pre-infilling assists speech. Omni unification does not mean one physical tokenizer.
+
+**state**
+text IDs、MAGVIT-v2图像离散code、speech tokenizer离散IDs组成joint token空间；图像downsample16、codebook8192。各模态codec不同，MASK corruption与连续VAE diffusion分开。
+
+Joint text IDs,MAGVIT-v2 image IDs and speech IDs. Image downsampling16/codebook8192; modality codecs differ. Mask corruption is distinct from continuous VAE diffusion.
+
+**objective**
+统一clean-token categorical去噪，以mask-based probability formulation建模联合分布；tail-pad是训练mask策略，position penalty是采样调度，不是embedding/noise/velocity或average velocity目标。
+
+Unified categorical clean-token denoising models the joint masked distribution. Tail-pad changes training masks;position penalties change sampling order. Neither is an embedding/noise/velocity/average-velocity objective.
+
+**decoding**
+双向并行迭代unmask，输出长度由pad/EOS策略处理；position penalty约束早期图像位置，speech预填special tokens。三阶段渐进训练，batch128/max3072tokens；统一NFE与完整FLOPs本次未核验，不能将多模态序列预算当图像预算。
+
+Bidirectional parallel unmasking with pad/EOS length handling,image position penalties and speech special-token prefill. Three-stage progressive training,batch128,max3072tokens. Common NFE/full FLOPs unverified; multimodal sequence budgets are not image-only budgets.
+
+**sharing**
+joint dLLM跨模态共享语义计算与离散去噪过程，但MAGVIT/语音/text tokenizer、decoder与词表区间不同。是否绑权每个head需看实现，本文不推断“全共享”。与URSA差forward path，与ELF差状态空间。
+
+A joint dLLM shares semantic computation/discrete denoising,but text,image/speech codecs,decoders and vocabulary regions differ. Head tying requires implementation audit,not an all-shared assumption. Different forward path from URSA,different state space from ELF.
+
+**why**
+ICML2026已发表的全离散Omni近邻，离散UMM工作不能只引用AR与图像mask而漏掉这一扩展。对Qwen3+IBQ，position penalty和长度策略也是应固定的解码控制变量。
+
+A published ICML2026 all-discrete Omni neighbor that should accompany AR and image-mask related work. For Qwen3+IBQ,position/length heuristics are separate decoding controls,not hidden paradigm advantages.
+
+**inspiration**
+研究假设：先限图文，固定IBQ后测position penalty是否减少top/bottom重复而伤害OCR排版；独立扫描tail-pad长度策略，避免把可变输出长度收益误算metric path。多帧威胁与语音告警可作为后续扩展，不宣称原文验证该任务。
+
+Hypothesis: first restrict to text/images and fixed IBQ; test whether position penalties reduce top/bottom repetition while harming OCR layout. Vary tail-pad lengths independently from metric paths. Speech threat alerts are a future extension,not a validated task in this paper.
+
+**experiment**
+固定Qwen3、IBQ、数据、参数/FLOPs，比较MASK与URSA各自有无位置惩罚/尾部pad策略；报重复图案、文字行顺序、OCRBench/DocVQA/TextVQA、生成文字、GenEval、长度EOS校准、NFE/显存。三模态实验另固定语音codec与数据，计全部codec成本。
+
+Fix Qwen3,IBQ,data,parameters/FLOPs; compare MASK/URSA with and without position penalties/tail-pad policies. Report repeated patterns,text-line order,OCRBench,DocVQA,TextVQA,text rendering,GenEval,EOS calibration,NFE and memory. For three modalities,fix speech codecs/data and include every codec cost.
+
+**open**
+官方项目、ICML2026 PMLR论文、代码仓库和HF模型链接可访问；全训练数据与所有modality配置未逐项运行复现。精读tail-pad、position penalty和any-to-any边界，列为核心历史补录。
+
+Official project,ICML2026 PMLR paper,repository and HF links accessible. Complete data and all modality configurations were not run-reproduced. Read tail-pad,position penalty and any-to-any boundaries; core historical backfill.
+
+### Gestalt: Gestalt: Large Multimodal Interplay Model
+
+2026-09-30 · v2 2026-10-08 · backfill/checked 2026-11-27
+
+https://arxiv.org/abs/2610.00576
+
+https://gewu-lab.github.io/Gestalt/
+https://github.com/GeWu-Lab/Gestalt
+
+**summary**
+以离散diffusion和interplay-partitioned架构组织模态内学习、跨模态对齐和协同，learnable interplay tokens承担跨模态交换。官方模型依赖IBQ-Tokenizer-16384，是与当前IBQ离散UMM最直接的新近邻之一。
+
+Discrete diffusion and an interplay-partitioned architecture organize unimodal learning,alignment and synergy,with learnable interplay tokens mediating exchange. The official model requires IBQ-Tokenizer-16384,making this a particularly close discrete-IBQ UMM neighbor.
+
+**state**
+text IDs和IBQ16384视觉ID的统一序列，masked discrete生成；理解也通过离散视觉表示。网络连续embedding与interplay hidden不是ELF的连续运输状态，不能仅凭hidden连续重新分类。
+
+Joint text IDs and16384-code IBQ visual IDs under masked discrete generation,including discrete visual understanding inputs. Continuous embeddings/interplay hidden states are not ELF transport variables.
+
+**objective**
+joint masked prediction与conditional masked prediction，再interplay-oriented SFT；categorical clean-token/logit监督。与URSA差在corruption/path，和ELF差在离散状态与目标；不把数据课程作用混算生成范式。
+
+Joint/conditional masked prediction followed by interplay-oriented SFT,with categorical clean-token/logit targets. Different corruption/path from URSA and different state/target from ELF. Separate curriculum gains from modeling gains.
+
+**decoding**
+双向离散恢复，Transformer按zone控制跨模态交换；官方配置8B+0.6B、32层、4096hidden，HF模型卡给最大4096token。统一NFE/完整训练FLOPs本次未核验；long-doc与视频不能直接由短序列分数外推。
+
+Bidirectional discrete recovery with zone-dependent exchange. Official model card:8B+0.6B,32layers,hidden4096,max4096tokens. Common NFE/full FLOPs unverified;short-context results do not establish long-doc/video capability.
+
+**sharing**
+共享离散token空间与主体架构，但前区有模态特定FFN/受限attention、后区协同，非所有权重全绑。IBQ codec与text tokenizer仍不同；Qwen3.8蒸馏来源或初始化细节须按具体checkpoint核查，不当作当前Qwen3适配已验证。
+
+Shared discrete space/main architecture,but modality-specific FFNs/restricted early attention and later synergy mean not all weights are tied. IBQ/text tokenizers differ. Check initialization/distillation sources per checkpoint;not a proven transfer to the user’s Qwen3 setup.
+
+**why**
+若工作涉及共享离散视觉表示、模态信息路由或理解生成相互促进，不能漏掉Gestalt。它也明确指出VQ压缩可能丢失理解证据，适合将OCR可读性和共享语义入口作为独立贡献轴。
+
+Mandatory prior art for shared discrete visual representations,routing or reciprocal understanding/generation. It explicitly audits visual evidence lost by VQ compression,motivating separate OCR-readability and semantic-interface contributions.
+
+**inspiration**
+研究假设：固定Qwen3+IBQ，对比普通full attention、固定分区+interplay tokens、learned Router；同时做只改语义入口、不改MASK/URSA的实验。将code palette与glyph保真纳入过滤，避免用合成teacher替代真实证据。
+
+Hypothesis: fix Qwen3+IBQ and compare full attention,fixed partitions/interplay tokens and learned routing. Independently vary semantic entrances without changing MASK/URSA. Protect glyphs/palette;synthetic teachers do not replace real evidence.
+
+**experiment**
+固定IBQ、Qwen3、数据、参数/FLOPs，先比较互通方式，再独立切AR/MASK/URSA。报跨任务concept transfer、OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、路由/activation成本；对多帧威胁保留遮挡前身份与关键OCR并做帧删除。
+
+Fix IBQ,Qwen3,data,parameters/FLOPs;vary exchange mechanisms before AR/MASK/URSA. Report concept transfer,OCRBench,DocVQA,TextVQA,generated-text OCR,GenEval,coverage,routing/activation costs. For threats,test pre-occlusion identity/OCR and causal frame deletion.
+
+**open**
+官方代码及HF权重可访问，模型卡Apache-2.0；HF当前checkpoint标continual pretraining，不等于完整SFT模型。卡列70M pretrain、8M continual、13.7M加约2.5M T2I SFT；所有数据下载/阶段权重未逐项复现。精读分区与数据质量控制。
+
+Official code/HF checkpoint accessible;card Apache-2.0. Current HF checkpoint is continual-pretraining,not necessarily complete SFT. Card lists70Mpretrain,8Mcontinual,13.7Mplus roughly2.5MT2I SFT;all data/stage weights not reproduced. Read partitioning and evidence-quality controls.
+
+### UniD3: Unified Discrete Diffusion for Simultaneous Vision-Language Generation
+
+2022-11-27 · v1 · backfill/checked 2026-11-27
+
+https://arxiv.org/abs/2211.14842
+
+https://mhh0318.github.io/unid3/
+https://github.com/mhh0318/UniD3
+
+**summary**
+早于现代UMM的大规模模型浪潮，使用统一离散transition matrix、fused embedding和mutual attention，支持T2I、I2T及图文同时生成。是joint multimodal discrete diffusion的历史基础，但不是现代通用指令VQA/OCR能力的证明。
+
+An early foundation preceding modern large UMMs: unified discrete transition matrices,fused embeddings and mutual attention support T2I,I2T and simultaneous text-image generation. Not evidence of modern instruction-following OCR/VQA.
+
+**state**
+图像离散码与文本token的联合categorical状态，统一transition matrix控制forward离散corruption；不是连续VAE或embedding Gaussian diffusion。两模态tokenizer不同，fused embedding不等于共享物理codec。
+
+Joint categorical image-code/text-token states under a unified corruption matrix,not continuous VAE/embedding diffusion. Modality tokenizers differ;fused embeddings do not imply one physical codec.
+
+**objective**
+统一离散逆向去噪目标预测类别/clean token并学习模态互依赖；不是ELF velocity/average velocity，也不是已证明等同URSA metric path的kernel。精确loss权重按原文配置核对。
+
+Unified discrete reverse denoising predicts categories/clean tokens and intermodal dependencies,not ELF velocity/average velocity. Kernel identity with URSA metric paths is not established;verify exact loss weights in original configs.
+
+**decoding**
+离散reverse chain并行恢复图文，可固定一模态条件或同时生成两模态。原文不以LLM/AR初始化为贡献；训练预算、统一NFE及大型主干移植本次未核验，勿把早期small-scale结果外推Qwen3。
+
+Parallel reverse-chain recovery with one modality fixed or both generated. AR/LLM initialization is not the claimed contribution. Full budget/common NFE and large-backbone transfer unverified;do not extrapolate early small-scale results to Qwen3.
+
+**sharing**
+通过mutual attention和fused embedding建立共同建模，但保留模态词表/codec；不是现代单一LLM全绑权主干的同义词。属于foundation generation方法，不声称已覆盖所有通用理解benchmark。
+
+Mutual attention/fused embeddings link modalities while preserving their vocabularies/codecs. Not synonymous with one fully tied modern LLM. A foundational multimodal generator,not a claim to every understanding benchmark.
+
+**why**
+为ICML相关工作补齐时间起点，避免把联合离散diffusion首次提出误写到2025/2026。对当前Qwen3+IBQ最有价值的是corruption矩阵与跨模态耦合思想，而非直接比较年代不同的最终分数。
+
+Completes the historical starting point for ICML related work;do not date joint multimodal discrete diffusion’s origin to2025/2026. Transition/coupling ideas matter more than comparing scores across eras.
+
+**inspiration**
+研究假设：在同一Qwen3+IBQ框架中比较模态独立mask与joint corruption耦合，再固定最优路径扫描共享attention。联合生成不是自动双向理解，要用图文证据干预和OCR任务实际验证。
+
+Hypothesis: within fixed Qwen3+IBQ,compare independent modality masks and coupled corruption before attention sharing. Joint generation does not automatically establish bidirectional understanding;test evidence interventions/OCR.
+
+**experiment**
+固定主干/IBQ/数据/预算，比较独立与统一transition schedule，保持clean-token head不变；另切AR、MASK、URSA作现代端点。报T2I/I2T、joint completion、OCRBench/DocVQA/TextVQA、生成文字、code coverage及NFE/吞吐显存；原文模型只作基础思想，非同资源baseline。
+
+Fix backbone,IBQ,data/budget and clean-token head;vary independent/unified transition schedules. Compare modern AR,MASK and URSA separately. Measure T2I/I2T,joint completion,OCRBench,DocVQA,TextVQA,text rendering,coverage,NFE,throughput and memory. Treat original models as conceptual rather than equal-resource baselines.
+
+**open**
+作者项目与官方GitHub链接可访问性需在使用时再核对；原文公开，完整数据/模型下载本次未运行验证。泛读历史动机与transition/mutual attention，精读仅在研究联合corruption时；标明基础补录。
+
+Original paper public;project/official GitHub downloads should be rechecked at use. Full data/model downloads not run-verified. Skim historical motivation/transitions;deep-read for joint-corruption research. Explicit foundational backfill.
+
+## decoupled
+
+### Argus-Unified: Argus-Unified: Towards A Compact and Economical Unified Model for Image Understanding and Generation
+
+2026-07-28 · 周末重点补读
+
+https://arxiv.org/abs/2607.25527
+
+
+
+
+**summary**
+Argus-Unified不从头学习多模态对齐，而是从已具备理解能力的VLM出发，冻结其视觉encoder，在同一连续feature上额外训练quantizer和image decoder。理解继续使用语义连续token，生成则预测离散code ID；Stage 2只训练LLM和两类projector。
+
+This resource studies how multimodal understanding and generation can share or coordinate visual representations under the Argus-Unified design.
+
+**state**
+同一冻结视觉encoder的连续理解token + 量化离散生成token
+
+Discrete visual tokens, continuous visual features, or a hybrid representation; see the original source for the exact configuration.
+
+**objective**
+理解文本NLL + 生成visual-token NLL；tokenizer使用重建/LPIPS/GAN/VQ loss
+
+Joint or coordinated understanding and generation objectives.
+
+**decoding**
+文本与离散视觉token统一AR；visual end后交给image decoder
+
+Task-dependent autoregressive, diffusion, flow, or hybrid decoding.
+
+**sharing**
+共享视觉encoder与LLM；理解/生成使用不同projector、token形态与输出head
+
+Audit tokenizer, embedding, vocabulary, Transformer, and output-head sharing separately.
+
+**why**
+这是Qwen3+IBQ路线一个很现实的反证基线：理解和生成可以共享视觉源与LLM，但不必强迫同一种token表示同时承担语义与像素职责。论文只用15.6M数据完成训练，适合资源受限的控制变量复现。
+
+It helps define which parts of a UMM should truly be shared and which interfaces should remain task-specific.
+
+**inspiration**
+当前方案可保留已有Qwen3理解对齐，在其语义视觉feature后增加轻量quantizer/decoder；同时把IBQ-only统一与Argus式hybrid token并列，判断OCR瓶颈是否来自强迫重建code embedding直接服务理解。
+
+Use it to audit whether IBQ tokens carry bidirectionally usable concepts inside Qwen3, rather than treating shared parameters as sufficient evidence of unification.
+
+**experiment**
+固定Qwen3、数据和训练FLOPs，比较IBQ同时用于理解/生成、连续语义token理解+IBQ生成、冻结语义encoder后学习新quantizer三组；报告OCRBench、DocVQA、TextVQA、GenEval、重建、额外参数、序列长度和理解遗忘。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文与完整实现细节公开；截至核对时未发现官方代码仓库
+
+The original source is linked below; check it for the latest code and model availability.
+
+### Janus-Pro: Janus-Pro: Unified Multimodal Understanding and Generation with Data and Model Scaling
+
+2025-01-29 · 重点补读
+
+https://arxiv.org/abs/2501.17811
+
+
+https://github.com/deepseek-ai/Janus
+
+**summary**
+Janus-Pro没有强迫一个视觉表示同时承担识别与重建：理解使用SigLIP语义特征，生成使用VQ离散ID，两路adapter接入同一AR Transformer，并通过adapter/image-head预训练、统一多模态预训练和SFT三个阶段扩大数据与模型规模。
+
+This resource studies how multimodal understanding and generation can share or coordinate visual representations under the Janus-Pro design.
+
+**state**
+理解侧SigLIP连续feature；生成侧VQ离散image token ID
+
+Discrete visual tokens, continuous visual features, or a hybrid representation; see the original source for the exact configuration.
+
+**objective**
+文本与图像统一next-token CE；独立image prediction head
+
+Joint or coordinated understanding and generation objectives.
+
+**decoding**
+文本与视觉序列均按AR顺序生成；VQ decoder离线还原图像
+
+Task-dependent autoregressive, diffusion, flow, or hybrid decoding.
+
+**sharing**
+理解/生成使用不同视觉encoder与adapter，共享LLM主干；文本head与图像head分离
+
+Audit tokenizer, embedding, vocabulary, Transformer, and output-head sharing separately.
+
+**why**
+它是当前全共享IBQ路线必须保留的反例。若Janus式解耦理解入口能在同一生成器下显著改善OCR/DocVQA，问题更可能是IBQ code embedding缺少可用语义，而不是AR、URSA或Stage3 head本身。
+
+It helps define which parts of a UMM should truly be shared and which interfaces should remain task-specific.
+
+**inspiration**
+可以保留IBQ及生成head不变，只为理解增加SigLIP/TokLIP通道；与全共享IBQ比较后，再决定是否值得为形式上的统一牺牲OCR与细粒度理解。它也提示统一Transformer不等于必须统一tokenizer和输出head。
+
+Use it to audit whether IBQ tokens carry bidirectionally usable concepts inside Qwen3, rather than treating shared parameters as sufficient evidence of unification.
+
+**experiment**
+固定Qwen3、IBQ生成路径、数据和参数预算，比较raw IBQ理解、TokLIP-style语义化IBQ、Janus-style SigLIP理解+IBQ生成，以及完全分离模型；共同报告OCRBench、DocVQA、TextVQA、VQA、T2I及理解→生成迁移。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+官方代码、1B/7B模型与推理示例已公开
+
+The original source and an official code or project repository are linked below.
+
+### VIVAS: VIVAS: Vitalizing Visual Perception in VLM Pre-training via Vision-language Unified Autoregressive Supervision
+
+2026-08-25
+
+https://arxiv.org/abs/2609.27948
+
+
+
+
+**summary**
+VIVAS把细粒度视觉感知不足归因于文本主导的预训练偏置，并提出兼具结构粒度与语义的视觉tokenizer，把视觉词表并入语言词表，在12.4T token上端到端进行视觉—语言统一AR监督。论文报告覆盖7类任务、39个多模态benchmark的强结果。
+
+VIVAS attributes weak fine-grained perception to text-dominant pretraining. Its dense structural-semantic tokenizer extends the language vocabulary with visual tokens and applies unified autoregressive supervision to visual detail and language over 12.4T tokens, with results reported across 7 task families and 39 multimodal benchmarks.
+
+**state**
+dense-structural-semantic视觉token扩展文本词表，形成统一视觉—语言离散词表
+
+Dense structural-semantic visual tokens expand the text vocabulary into a unified discrete vision-language vocabulary.
+
+**objective**
+对视觉细节与语言内容做统一next-token autoregressive supervision
+
+Unified next-token autoregressive supervision over visual detail and linguistic content.
+
+**decoding**
+同一AR Transformer顺序预测文本与视觉token；论文重点是预训练监督与理解能力
+
+A shared AR Transformer predicts text and visual tokens sequentially; the paper emphasizes pretraining supervision and understanding.
+
+**sharing**
+视觉词表并入文本词表并共享AR主干；仍需单独核对视觉decoder与输出head的具体共享边界
+
+The visual vocabulary joins the text vocabulary and shares the AR backbone; decoder and output-head boundaries still require source-level audit.
+
+**why**
+它把‘生成视觉token’用作理解侧的密集监督，而不是只把像素生成当附加能力；这正对应Qwen3+IBQ在OCR、DocVQA和TextVQA上可能出现的视觉细节被文本目标淹没问题。
+
+It uses visual-token generation as dense supervision for understanding rather than treating pixel generation as an auxiliary showcase. That directly targets the loss of glyph, layout, and fine detail in Qwen3 + IBQ OCR and document tasks.
+
+**inspiration**
+在不改Qwen3主干的前提下，为IBQ序列加入受控比例的视觉token AR重建或未来block预测，并分开统计高频/低频code、glyph与布局概念是否真的进入共享中层。
+
+Add a controlled ratio of IBQ reconstruction or future-block prediction to Qwen3 pretraining without changing the backbone. Track whether rare codes, glyphs, and layout concepts become linearly and causally usable in shared middle layers.
+
+**experiment**
+固定Qwen3、IBQ、语料、总token与FLOPs，比较text-only NTP、caption/interleaved、IBQ重建AR、URSA视觉CE与ELF x0/velocity辅助；扫描视觉loss比例，统一报告OCRBench、DocVQA、TextVQA、生成文字CER、GenEval、code coverage、语言退化与训练稳定性。
+
+Fix Qwen3, IBQ, corpus, total tokens, and FLOPs. Compare text-only NTP, caption/interleaved training, IBQ reconstruction AR, URSA visual CE, and ELF x0/velocity auxiliaries. Sweep visual-loss ratios and report OCRBench, DocVQA, TextVQA, generated-text CER, GenEval, code coverage, language regression, and stability.
+
+**open**
+论文已公开；截至收录日未发现官方代码、模型、项目页或可复现训练配方
+
+The paper is public; no official code, model, project page, or reproducible recipe was found at indexing time.
+
+### OFA: OFA: Unifying Architectures, Tasks, and Modalities Through a Simple Sequence-to-Sequence Learning Framework
+
+2022-02-07 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2202.03052
+
+https://github.com/OFA-Sys/OFA
+https://github.com/OFA-Sys/OFA
+
+**summary**
+输入图像使用视觉feature，生成图像为离散code；共享seq2seq Transformer及指令接口支持caption/VQA/grounding与生成，不能称输入全离散。
+
+Image input uses visual features while generated images use discrete visual codes; a shared seq2seq Transformer and task instructions support captioning,VQA,grounding and image generation. Output discreteness is not an all-discrete input pathway.
+
+**state**
+输入图像使用视觉feature，生成图像为离散code；共享seq2seq Transformer及指令接口支持caption/VQA/grounding与生成，不能称输入全离散。
+
+Image input uses visual features while generated images use discrete visual codes; a shared seq2seq Transformer and task instructions support captioning,VQA,grounding and image generation. Output discreteness is not an all-discrete input pathway.
+
+**objective**
+主模型输出离散token logits，以causal/seq2seq next-token CE或任务重建目标训练；若预训练使用span mask不意味着推理是masked diffusion。无ELF式连续velocity目标。
+
+Discrete token logits with causal/seq2seq next-token CE or task reconstruction. Span corruption in pretraining does not imply masked-diffusion inference. No ELF continuous-velocity target.
+
+**decoding**
+自回归输出文本/视觉ID，再接各自codec；串行复杂度依输出长度与KV cache增长。不是从AR权重无训练改为双向mask；具体训练updates/FLOPs与同硬件延迟本次未复核。
+
+AR text/visual IDs followed by modality codecs;serial cost scales with length/cache. This is not a training-free conversion from AR to bidirectional masking. Exact updates,FLOPs and common-hardware latency not reverified.
+
+**sharing**
+共享跨任务Transformer不自动等于共享全部encoder、tokenizer、embedding和输出head。输入图像使用视觉feature，生成图像为离散code；共享seq2seq Transformer及指令接口支持caption/VQA/grounding与生成，不能称输入全离散。 与URSA的离散状态有关，但forward path/分解不同；ELF仅作连续外部边界。
+
+Shared task Transformers do not imply identical encoders,tokenizers,embeddings or heads. Image input uses visual features while generated images use discrete visual codes; a shared seq2seq Transformer and task instructions support captioning,VQA,grounding and image generation. Output discreteness is not an all-discrete input pathway. Related to URSA through discrete states,but different paths/factorization. ELF is an external continuous boundary.
+
+**why**
+ICML离散UMM相关工作的基础参照：不能把统一任务、共享词表、共享视觉输入表示和同一生成目标混为一谈。用于核对AR／MaskGiT／URSA实验中哪些变量真正固定。
+
+A foundational ICML related-work reference: unified tasks,vocabularies,visual input representations and generation objectives are different claims. Use it to audit which factors AR/MaskGiT/URSA experiments actually hold fixed.
+
+**inspiration**
+研究假设：固定Qwen3与选定视觉codec，让理解与生成共享可测试的语义接口；分别测输入连续/离散、mask策略与head依赖，不由参数共享推断知识迁移。
+
+Hypothesis: hold Qwen3 and the chosen visual codec fixed and test a shared semantic interface. Factor continuous/discrete input,masking and grouped-head dependence; parameter sharing alone does not establish knowledge transfer.
+
+**experiment**
+固定Qwen3、视觉codec、数据、参数与训练FLOPs，只切换causal/masked/metric-path目标；再单独改tokenizer与共享边界。报告OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、ID覆盖、组内相关性、遗忘、吞吐/显存/稳定性；完整计入预训练、检索、teacher及候选开销。
+
+Fix Qwen3,codec,data,parameters/training FLOPs and compare causal,masked and metric-path objectives; change codec/sharing separately. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,group correlations,forgetting,throughput,memory and stability. Count pretraining,retrieval,teachers and candidates.
+
+**open**
+官方repo可访问且链接代码/模型；具体数据license、全部checkpoint与重训复现程度需逐项复核。 作为历史补读，非今日新作；精读原文method与训练/评测协议，勿把不同数据预算榜单当严格因果比较。
+
+Official repository accessible with code/model links;full data licensing,checkpoint completeness and retraining reproducibility require individual checks. Historical backfill,not a publication from today. Deep-read methods/training/evaluation;different-budget leaderboard comparisons are not causal controls.
+
+### Unified-IO 2: Unified-IO 2: Scaling Autoregressive Multimodal Models with Vision, Language, Audio, and Action
+
+2023-12-28 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2312.17172
+
+https://unified-io-2.allenai.org/
+https://github.com/allenai/unified-io-2
+
+**summary**
+共享encoder-decoder覆盖图文音频动作与空间token；图像输入ViT patch feature，输出VQGAN离散code。multimodal denoiser预训练不等于图像推理使用diffusion sampler。
+
+Shared encoder-decoder handles image,text,audio,actions and spatial tokens. Image inputs use ViT patch features; image outputs use VQGAN discrete codes. Multimodal denoiser pretraining does not imply diffusion sampling of every generated image.
+
+**state**
+共享encoder-decoder覆盖图文音频动作与空间token；图像输入ViT patch feature，输出VQGAN离散code。multimodal denoiser预训练不等于图像推理使用diffusion sampler。
+
+Shared encoder-decoder handles image,text,audio,actions and spatial tokens. Image inputs use ViT patch features; image outputs use VQGAN discrete codes. Multimodal denoiser pretraining does not imply diffusion sampling of every generated image.
+
+**objective**
+主模型输出离散token logits，以causal/seq2seq next-token CE或任务重建目标训练；若预训练使用span mask不意味着推理是masked diffusion。无ELF式连续velocity目标。
+
+Discrete token logits with causal/seq2seq next-token CE or task reconstruction. Span corruption in pretraining does not imply masked-diffusion inference. No ELF continuous-velocity target.
+
+**decoding**
+自回归输出文本/视觉ID，再接各自codec；串行复杂度依输出长度与KV cache增长。不是从AR权重无训练改为双向mask；具体训练updates/FLOPs与同硬件延迟本次未复核。
+
+AR text/visual IDs followed by modality codecs;serial cost scales with length/cache. This is not a training-free conversion from AR to bidirectional masking. Exact updates,FLOPs and common-hardware latency not reverified.
+
+**sharing**
+共享跨任务Transformer不自动等于共享全部encoder、tokenizer、embedding和输出head。共享encoder-decoder覆盖图文音频动作与空间token；图像输入ViT patch feature，输出VQGAN离散code。multimodal denoiser预训练不等于图像推理使用diffusion sampler。 与URSA的离散状态有关，但forward path/分解不同；ELF仅作连续外部边界。
+
+Shared task Transformers do not imply identical encoders,tokenizers,embeddings or heads. Shared encoder-decoder handles image,text,audio,actions and spatial tokens. Image inputs use ViT patch features; image outputs use VQGAN discrete codes. Multimodal denoiser pretraining does not imply diffusion sampling of every generated image. Related to URSA through discrete states,but different paths/factorization. ELF is an external continuous boundary.
+
+**why**
+ICML离散UMM相关工作的基础参照：不能把统一任务、共享词表、共享视觉输入表示和同一生成目标混为一谈。用于核对AR／MaskGiT／URSA实验中哪些变量真正固定。
+
+A foundational ICML related-work reference: unified tasks,vocabularies,visual input representations and generation objectives are different claims. Use it to audit which factors AR/MaskGiT/URSA experiments actually hold fixed.
+
+**inspiration**
+研究假设：固定Qwen3与选定视觉codec，让理解与生成共享可测试的语义接口；分别测输入连续/离散、mask策略与head依赖，不由参数共享推断知识迁移。
+
+Hypothesis: hold Qwen3 and the chosen visual codec fixed and test a shared semantic interface. Factor continuous/discrete input,masking and grouped-head dependence; parameter sharing alone does not establish knowledge transfer.
+
+**experiment**
+固定Qwen3、视觉codec、数据、参数与训练FLOPs，只切换causal/masked/metric-path目标；再单独改tokenizer与共享边界。报告OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、ID覆盖、组内相关性、遗忘、吞吐/显存/稳定性；完整计入预训练、检索、teacher及候选开销。
+
+Fix Qwen3,codec,data,parameters/training FLOPs and compare causal,masked and metric-path objectives; change codec/sharing separately. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,group correlations,forgetting,throughput,memory and stability. Count pretraining,retrieval,teachers and candidates.
+
+**open**
+官方repo可访问且链接代码/模型；具体数据license、全部checkpoint与重训复现程度需逐项复核。 作为历史补读，非今日新作；精读原文method与训练/评测协议，勿把不同数据预算榜单当严格因果比较。
+
+Official repository accessible with code/model links;full data licensing,checkpoint completeness and retraining reproducibility require individual checks. Historical backfill,not a publication from today. Deep-read methods/training/evaluation;different-budget leaderboard comparisons are not causal controls.
+
+### Janus: Janus: Decoupling Visual Encoding for Unified Multimodal Understanding and Generation
+
+2024-10-17 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2410.13848
+
+https://github.com/deepseek-ai/Janus
+https://github.com/deepseek-ai/Janus
+
+**summary**
+解耦理解与生成视觉编码，保留统一Transformer；理解输入侧用semantic features，生成侧AR预测重建visual codes，再独立decoder出图。
+
+Decouples understanding/generation visual encoders while retaining a unified Transformer. Semantic features serve understanding; AR reconstructive visual IDs serve generation.
+
+**state**
+理解为连续SigLIP-Large features，经adapter进入LLM；生成使用16384词表、16×下采样VQ ID，384²对应24²位置。不是双向都用同离散视觉token。
+
+Understanding uses continuous SigLIP-Large features via an adapter; generation uses16384VQ IDs with16x downsampling,24x24positions at384². Not identical discrete visual input/output representations.
+
+**objective**
+LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。
+
+The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. 
+
+**decoding**
+先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。
+
+AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.
+
+**sharing**
+共享LLM主干，visual encoders/adapters、text/visual输出接口分别配置；属于离散生成+连续理解的边界对照。已有Janus-Pro不能替代本篇解耦设计论证。
+
+Shares the LLM backbone with distinct visual encoders/adapters and text/visual output interfaces. Boundary comparator: discrete generation plus continuous understanding. Existing Janus-Pro does not replace the original decoupling argument.
+
+**why**
+直接回答离散UMM必须审查的共享边界：共享Transformer并不要求理解与生成共用visual encoder。理解收益可能来自SigLIP入口，不能归为visual ID建模进步。
+
+Essential sharing-boundary control: a shared Transformer need not share the visual encoder. Understanding gains may come from the SigLIP input path rather than better visual-ID modeling.
+
+**inspiration**
+研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。
+
+Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.
+
+**experiment**
+固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。
+
+Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.
+
+**open**
+论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。
+
+Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. 
+
+### FUDOKI: FUDOKI: Discrete Flow-based Unified Understanding and Generation via Kinetic-Optimal Velocities
+
+2025-05-26 · v3 2025-07-24 · backfill/checked 2026-11-27
+
+https://arxiv.org/abs/2505.20147
+
+https://fudoki-hku.github.io/
+https://github.com/fudoki-hku/FUDOKI
+
+**summary**
+以Janus-1.5B的AR统一模型初始化，切换到全attention与离散flow matching，利用metric-induced probability path和kinetic-optimal velocities实现双向上下文及可纠错迭代。它是比普通mask更直接的URSA相关工作。
+
+Initializes from AR Janus-1.5B and adapts to full attention/discrete flow matching. Metric-induced paths and kinetic-optimal velocities enable bidirectional context and iterative correction,beyond pure masking. A particularly close URSA-related work.
+
+**state**
+text/image生成在离散ID空间，metric-induced categorical probability path允许非MASK替换与纠错；velocity指类别跳转率，不是ELF embedding欧氏速度。理解输入仍用SigLIP连续feature，生成用LlamaGen 16384码本，非共享单codec。
+
+Discrete text/image generation IDs with metric-induced categorical paths permitting non-MASK replacement. Velocity means class-transition rates,not ELF Euclidean embedding velocity. Understanding still uses SigLIP features; generation uses a16384-code LlamaGen codec,so no single shared visual codec.
+
+**objective**
+离散flow matching通过kinetic-optimal velocity定义逆向采样，预测clean类别分布以构建离散更新。和URSA同属metric-aware离散路线，但具体path、rate与初始化不同；不能直接宣称是同一算法。
+
+Discrete flow matching constructs sampling with kinetic-optimal rates from predicted clean categories. Like URSA it is metric-aware,but path,rate and initialization details differ; they are not interchangeable algorithms.
+
+**decoding**
+Janus-1.5B初始化，改full attention与logit shifting，迭代并行采样可修改既有token。文本词表102400，图像16384；无直接Qwen3移植实证。精确训练总FLOPs与统一NFE需按论文/配置复核，本条不猜测。
+
+Janus-1.5B initialization,full attention/logit shifting and parallel revisable sampling. Text vocabulary102400,image vocabulary16384. No direct Qwen3 transfer experiment. Complete training FLOPs/common NFE need configuration-level verification rather than guessed values.
+
+**sharing**
+共用Janus式LLM主干，理解SigLIP与生成VQ encoder/decoder解耦，text/image词表及输出适配不等于绑同head。应归“离散输出UMM”，不归“理解生成全共享离散视觉入口”。与ELF对照先固定codec和预算。
+
+Shared Janus-style language backbone,but separate SigLIP understanding and VQ generation paths. Vocabulary/output adapters do not imply tied heads. Classify as discrete-output UMM,not fully shared discrete visual-input UMM. Fix codecs/budgets before ELF comparisons.
+
+**why**
+若ICML工作强调离散metric path、从Qwen/AR适配或迭代纠错，FUDOKI是不能遗漏的近邻。必须区分已有的path/velocity参数化与自己的共享表示、局部head或训练效率贡献。
+
+Essential prior art if the ICML contribution involves metric paths,AR/Qwen adaptation or revisable tokens. Separate prior path/rate parameterizations from new shared-state,local-head or efficiency contributions.
+
+**inspiration**
+研究假设：保留Qwen3+IBQ状态与词表，复现MASK、generic DFM、FUDOKI metric、URSA path，再讨论2×2 block及语义入口。不能把“使用metric”或“AR转离散flow”单独视为未被探索的创新。
+
+Hypothesis: keep Qwen3+IBQ IDs/vocabulary fixed and reproduce MASK,generic DFM,FUDOKI metric and URSA paths before adding2x2 blocks or semantic entrances. Metric use and AR-to-discrete-flow adaptation alone are not unexplored novelty.
+
+**experiment**
+固定codec、主干、数据、参数与训练/采样FLOPs，只切换corruption/path；先统一clean-ID预测head，再另比较head或rate参数化。测反复重写率、错误token恢复、coverage、OCR/DocVQA/TextVQA、GenEval及显存/吞吐；test-time scaling计全候选与评分成本。
+
+Fix codec,backbone,data,parameters and train/sample FLOPs; vary corruption/path with a common clean-ID head,then independently vary head/rate parameterization. Report rewrite/error-correction rates,coverage,OCR/DocVQA/TextVQA,GenEval,memory and throughput. Count all test-time candidates/scorers.
+
+**open**
+官方推理、理解/生成示例、评测代码与HF模型链接公开；完整训练数据及训练流水线是否全部复现本次未验证。精读path/rate推导、Janus转换与附录，先复现最邻近端点再写ICML novelty。
+
+Official inference,understanding/generation examples,evaluation code and HF model link public. Complete training pipeline/data reproducibility not verified. Read path/rate derivations,Janus conversion and appendix before positioning ICML novelty.
+
+### Muddit: Muddit: Liberating Generation Beyond Text-to-Image with a Unified Discrete Diffusion Model
+
+2025-05-29 · v5 2026-05-26 · backfill/checked 2026-11-27
+
+https://arxiv.org/abs/2505.23606
+
+https://huggingface.co/MeissonFlow/Muddit
+https://github.com/M-E-AGI-Lab/Muddit
+
+**summary**
+从强T2I Meissonic出发，给MM-DiT增加轻量文本decoder，联合文本与图像离散去噪，完成T2I、I2T和视觉问答。与LLM出发的MMaDA互补，说明“统一”可以从视觉先验扩展，而非必须从语言主干开始。
+
+Starts from pretrained Meissonic T2I MM-DiT,adds a lightweight text decoder and jointly denoises discrete text/image targets for T2I,I2T and VQA. Complements LLM-initialized MMaDA by growing unification from visual priors.
+
+**state**
+VQ图像ID与文本token均以离散target恢复；输入分别经image encoder/CLIP text embedding进入MM-DiT，另有文本readout。内部连续embedding不等于连续latent diffusion，文本和图像仍有不同codec。
+
+VQ image IDs and text tokens are discrete recovery targets. Image encoding and CLIP text embeddings feed MM-DiT with separate text readout. Continuous internal embeddings do not make this continuous-latent diffusion; modality codecs remain distinct.
+
+**objective**
+统一masked discrete denoising，以clean-token logits/交叉熵恢复被mask位置；预训练T2I视觉先验与文本head共同适配。无ELF velocity/average velocity，也非URSA uniform metric noise。
+
+Masked discrete denoising predicts clean-token logits/CE at masked positions while adapting visual priors and text heads. Neither ELF velocity/average velocity nor URSA uniform metric corruption.
+
+**decoding**
+cosine masking schedule迭代并行恢复，论文默认64 sampling steps，T2I/I2T的CFG分别9.0/1.5。训练先8M图文再1M instruction，文本最长77token、图像512²；完整训练总FLOPs本次未核验，不外推到长文档/OCR。
+
+Parallel iterative recovery with cosine masking. Default64sampling steps;T2I/I2T CFG9.0/1.5. Training uses8M paired samples then1M instruction samples,77-token text and512² images. Full training FLOPs unverified; these settings do not establish long-document/OCR performance.
+
+**sharing**
+MM-DiT共享跨模态去噪计算，图像codec、CLIP text输入和轻量文本输出仍分开；不是单一全绑权LLM。可作为共享程度轴的端点；无法直接把Meissonic初始化等同Qwen3/AR权重转换。
+
+Shared MM-DiT denoising with separate image codec,CLIP text inputs and lightweight text output. Not a fully tied single-LLM architecture. Meissonic initialization is not direct Qwen3/AR conversion; compare sharing boundaries explicitly.
+
+**why**
+是离散UMM必须包含的视觉生成器初始化端点。Qwen3+IBQ的理解优势与Muddit继承的T2I优势来自不同预训练资源；若不记录这些资源，模型横向分数无法证明某个离散目标更优。
+
+A necessary visual-generator-initialized discrete UMM baseline. Qwen3 understanding and Muddit T2I strengths inherit different resources; final scores without accounting for pretraining cannot establish objective superiority.
+
+**inspiration**
+研究假设：固定Qwen3/IBQ时，先比较是否加入图像生成teacher蒸馏，再切MASK/URSA，避免同时引入视觉先验和新path。文本decoder轻量化也提示局部head容量可能独立于全局共享主干。
+
+Hypothesis: with Qwen3/IBQ fixed,first isolate visual-teacher distillation,then compare MASK/URSA paths. A lightweight text decoder also motivates separating local-head capacity from global-backbone sharing.
+
+**experiment**
+固定同一IBQ、图文数据、参数/FLOPs，做语言checkpoint初始化/视觉teacher辅助×MASK/metric path的控制；所有预训练teacher FLOPs单列。测理解OCR、生成glyph、GenEval、语言能力、code共现、采样步数与显存；原Meissonic仅作资源不同的参考，不冒充严格控制。
+
+Fix IBQ,data,parameters/FLOPs; cross language-checkpoint initialization/visual-teacher assistance with MASK/metric paths. Account for teacher pretraining separately. Measure OCR,glyph rendering,GenEval,language retention,code co-occurrence,NFE and memory. Original Meissonic is a resource-mismatched reference,not a strict control.
+
+**open**
+官方模型/推理/训练相关代码及HF Muddit链接可访问；部分训练数据为internal，不能称全数据可复现。精读初始化、shared space与sampling，区分mask目标和预训练资源。
+
+Official implementation with inference/training components and HF model link accessible. Some data are internal; full-data reproducibility is not established. Read initialization,shared-space and sampling sections; separate masked objectives from inherited visual resources.
+
+### LaViDa-O: Lavida-O: Elastic Large Masked Diffusion Models for Unified Multimodal Understanding and Generation
+
+2025-09-23 · v3 2026-07-15 · backfill/checked 2026-11-27
+
+https://arxiv.org/abs/2509.19244
+
+https://homepage.jackli.org/projects/lavida_o/index.html
+https://github.com/adobe-research/LaVida-O
+
+**summary**
+把LaViDa理解模型扩展到1024px生成、编辑、grounding与交错图文，Elastic-MoT连接大理解分支与轻量生成分支；配合token compression、universal text conditioning和stratified sampling。离散生成并不代表理解视觉入口同样离散。
+
+Extends LaViDa understanding to1024px generation,editing,grounding and interleaved text/images. Elastic-MoT couples a large understanding branch with a smaller generation branch,plus compression,universal text conditioning and stratified sampling. Discrete generation does not imply discrete visual inputs.
+
+**state**
+理解输入沿LaViDa使用SigLIP连续semantic embeddings，输出文本为离散masked IDs；视觉生成输出离散image IDs。因此归离散输出UMM，不归全离散输入、单codec共享UMM；内部连续embedding不是ELF运输。
+
+Understanding retains continuous SigLIP semantic embeddings,with masked discrete text outputs; image generation predicts discrete image IDs. Classify as discrete-output UMM with mixed inputs,not fully discrete inputs or one shared codec. Internal embeddings are not ELF transport.
+
+**objective**
+MASK-based clean-token categorical预测，Elastic-MoT改变计算共享；planning/reflection和采样策略是额外机制。不是URSA metric corruption，也非continuous Flow velocity目标。
+
+Masked categorical clean-token prediction; Elastic-MoT changes computation sharing. Planning/reflection and sampling are additional mechanisms,not URSA metric corruption or continuous Flow velocity objectives.
+
+**decoding**
+从mask序列逐步恢复，stratified sampling等控制质量/预算，token compression降低生成计算。理解分支/生成分支规模和推理频率需共同计账；具体任务NFE、训练总FLOPs本次未核验，不外推论文速度到Qwen3。
+
+Iterative masked recovery with stratified sampling and compressed generation tokens. Count both branches and their invocation frequencies. Task-specific NFE/full training FLOPs unverified; reported speed does not establish Qwen3 performance.
+
+**sharing**
+大理解与轻生成Transformer分支通过Elastic-MoT耦合，非全部层/FFN同权；理解SigLIP与生成codec不同，输出头不应默认绑权。继承LaViDa预训练能力，直接Qwen3初始化与IBQ适配仍需验证。
+
+Large understanding/small generation Transformer branches are coupled rather than fully tied across layers/FFNs. SigLIP understanding and generative codecs differ; do not assume tied output heads. LaViDa inheritance is not a demonstrated direct Qwen3/IBQ conversion.
+
+**why**
+是MoT/Router与离散UMM交叉的直接相关工作，不能只读单骨干MMaDA。对Qwen3+IBQ，需要区分“生成ID离散”“输入视觉离散”“主干全共享”三个声明，避免把分支效率错归统一概率模型。
+
+Direct prior art at the intersection of MoT/routing and discrete UMM. Distinguish discrete generated IDs,discrete understanding inputs and fully shared backbones; branch efficiency is not automatically a unified-probability-model gain.
+
+**inspiration**
+研究假设：固定IBQ与Qwen3，比较单共享stream和固定Elastic-MoT分支，再比较learned Router；所有分支计总参数与激活。理解入口保持连续semantic或改IBQ是第二条轴，glyph/DocVQA不能由通用理解均值替代。
+
+Hypothesis: fix IBQ/Qwen3,compare a shared stream with fixed Elastic-MoT branches before learned routing. Count total parameters/activations. Continuous-semantic versus IBQ understanding inputs form a separate axis; glyph/DocVQA cannot be replaced by average understanding scores.
+
+**experiment**
+固定主干/codec/数据与有效训练FLOPs，分开比较共享单stream、固定分支MoT、动态Router；每结构各用MASK/URSA。报OCRBench/DocVQA/TextVQA、grounding、生成文字、GenEval、branch梯度冲突、总参数/active FLOPs/显存与NFE。planning/reflection另加相同候选和judge预算。
+
+Fix backbone,codec,data and effective train FLOPs; compare shared stream,fixed MoT and dynamic routing,each under MASK/URSA. Report OCRBench,DocVQA,TextVQA,grounding,text rendering,GenEval,branch-gradient conflict,total/active parameters,FLOPs,memory and NFE. Add planning/reflection only with matched candidate/judge budgets.
+
+**open**
+Adobe官方仓库含llava/scripts/eval、推理notebook、checkpoint下载与训练说明；模型和代码为Adobe Research License，不能泛称宽松商业开源。精读Elastic-MoT、token compression和采样，作为离散输出/混合输入边界案例。
+
+Adobe official repository includes implementation,evaluation,inference notebook,checkpoint downloads and training instructions. Code/model use Adobe Research License,not assumed permissive commercial open source. Read Elastic-MoT,compression and sampling as a discrete-output/mixed-input boundary case.
+
+### Sparse-LaViDa: Sparse-LaViDa: Sparse Multimodal Discrete Diffusion Language Models
+
+2025-12-16 · v2 2026-07-15 · backfill/checked 2026-11-27
+
+https://arxiv.org/abs/2512.14008
+
+https://homepage.jackli.org/projects/sparse-lavida/index.html
+https://github.com/adobe-research/Sparse-LaViDa
+
+**summary**
+在LaViDa-O的masked discrete UMM上动态截断当前不必显式处理的MASK位置，以register tokens压缩其信息，再用匹配截断行为的训练attention mask避免train/inference错位。它改变活跃token计算，而不是减少原图ID词表或发明新codec。
+
+Dynamically truncates redundant MASK positions in LaViDa-O,using register tokens to summarize them and a training mask matched to sparse inference. Changes active-token computation rather than visual vocabulary or codec.
+
+**state**
+生成仍是离散visual/text IDs及MASK；被截断位置由少量连续hidden register概括，最后仍恢复完整token图，不形成新的merged ID。理解入口继承LaViDa-O连续SigLIP，不能归全离散输入/输出同codec。
+
+Generation remains discrete text/image IDs and MASK. Continuous hidden registers summarize omitted positions; full ID maps are eventually restored without new merged IDs. Understanding inherits LaViDa-O continuous SigLIP inputs,not a fully shared discrete codec.
+
+**objective**
+保持masked clean-token离散去噪目标，增加与稀疏采样一致的attention参数化和register训练。不是ELF embedding velocity，也不是URSA metric kernel；目标改进和token计算调度应分开比较。
+
+Retains masked categorical clean-token denoising,with sparse-consistent attention/register training. Neither ELF velocity nor URSA metric kernels. Separate objective changes from active-token scheduling.
+
+**decoding**
+每步动态保留/截断任意位置，不限左到右block；特殊register代替未处理MASK，双向条件仍可用于编辑。需要稀疏适配SFT，不是完全training-free drop。官方示例register64/64、groups25/25；统一NFE/完整FLOPs本次未核验。
+
+Dynamic arbitrary-position truncation avoids mandatory left-to-right blocks,retaining bidirectional editing conditions. Requires sparse-adaptation SFT rather than training-free dropping. Official flags use64/64register tokens and25/25groups;common NFE/full FLOPs unverified.
+
+**sharing**
+沿用LaViDa-O elastic理解/生成分支、分离codec与head边界；新增register和attention mask改变参数/激活，不等于全层共享或同head。可作为AR/URSA/ELF之外计算调度参考，但只有同目标/预算才是严格控制。
+
+Inherits LaViDa-O elastic branches and separate codec/head boundaries. Registers/masks change parameters and activations,not complete layer/head sharing. A computation-scheduling reference; strict controls require matching targets and budgets.
+
+**why**
+直接对应2×2 folding、稀疏token和局部解码的效率论证。若ICML工作减少Qwen3视觉计算，必须区分永久压缩token与推理时临时省略MASK；两者可在相同IBQ和序列预算下作为不同控制端点。
+
+Direct efficiency prior art for2x2 folding,sparse tokens and local decoding. Distinguish permanent token compression from temporarily omitted MASK positions; compare them with the same IBQ grid and compute budgets.
+
+**inspiration**
+研究假设：保留IBQ原始网格，按去噪阶段只展开高风险/OCR/边界位置，register概括其他MASK；最终恢复所有原ID。与固定2×2 merge比较时，单独核算register、位置编码与恢复head，不能将缩短序列当免费。
+
+Hypothesis: preserve the original IBQ grid,expand OCR,boundary and high-risk positions by denoising stage,and summarize other MASK slots with registers. Restore every original ID. Count registers,position encodings and recovery heads when comparing fixed2x2 merging.
+
+**experiment**
+固定Qwen3、IBQ、训练数据/FLOPs、输出分辨率与NFE，比较dense MDM、固定folding、Sparse-LaViDa式动态截断；再在相同活跃token预算切MASK/URSA。报glyph/稀有code、OCRBench/DocVQA/TextVQA、GenEval、编辑/inpainting、总active-token×layer、峰值显存及真实延迟。
+
+Fix Qwen3,IBQ,data/train FLOPs,resolution and NFE; compare dense MDM,fixed folding and dynamic truncation. Then vary MASK/URSA under equal active-token budgets. Measure glyph/rare-code retention,OCRBench,DocVQA,TextVQA,GenEval,editing/inpainting,active-token-layer counts,peak memory and latency.
+
+**open**
+官方adobe-research/Sparse-LaViDa已含demo_sparse_lavida.py、稀疏SFT脚本和HF checkpoint链接，不再只依赖项目页旧placeholder。代码/模型为Adobe Research License；全数据及所有权重未逐项运行复现。精读稀疏参数化/attention一致性与延迟测量。
+
+Official adobe-research/Sparse-LaViDa now includes demo_sparse_lavida.py,sparse-SFT scripts and an HF checkpoint link,not just the project page’s old placeholder. Adobe Research License for code/model. Full data/every checkpoint not run-reproduced. Read sparse parameterization,attention consistency and latency protocols.
+
+### UniDFlow: Best of Both Worlds: Multimodal Reasoning and Generation via Unified Discrete Flow Matching
+
+2026-02-12 · v2 2026-06-02 · backfill/checked 2026-11-27
+
+https://arxiv.org/abs/2602.12221
+
+https://plan-lab.github.io/projects/unidflow/
+
+
+**summary**
+冻结backbone，分别训练理解与图像生成LoRA，再用Mixture-of-LoRA Router在离散diffusion中组合，mRef-DPO用相同条件、冻结reference policy和视觉reference对齐编辑。统一目标并不要求理解/生成占用完全相同可训练参数。
+
+Freezes the backbone,learns separate understanding/image LoRAs and composes them with a Mixture-of-LoRA router. mRef-DPO aligns edits using matched conditions,a frozen policy and visual references. Unified objectives need not share every trainable parameter.
+
+**state**
+预训练tokenizer把图像转为离散visual IDs，与文本token进入双向模型；DFM的状态与类别跳转不同于ELF连续embedding。具体视觉codebook/理解codec共享细节本次未完整核验，不默认完全同入口。
+
+Pretrained image tokenizer produces discrete visual IDs alongside text tokens in a bidirectional model. Categorical flow states/jumps differ from ELF embeddings. Exact image codebook/perception-codec sharing not fully verified;do not assume identical inputs.
+
+**objective**
+离散flow matching适配理解/生成，KL帮助保留语言能力；mRef-DPO为后续偏好对齐。论文标题的Flow不等于连续velocity MSE，亦不能无推导就视为URSA的同一metric path。
+
+Discrete flow adaptation with KL for linguistic retention,then mRef-DPO. Flow in the title does not mean continuous velocity MSE,nor establish identity with URSA metric paths.
+
+**decoding**
+并行离散更新，route组合低秩adapter；原文4B模型及三阶段训练。统一采样步数、前向加噪核和完整训练FLOPs本次未核验，需复现配置后才做严格速度对比；Qwen迁移为实验假设。
+
+Parallel discrete updates with routed low-rank adapters;paper reports a4B three-stage model. Common NFE,forward kernel and complete training FLOPs require implementation-level verification before strict speed comparisons. Qwen transfer remains proposed.
+
+**sharing**
+backbone冻结共享，理解/生成LoRA分开，router组合；这改变梯度与参数共享边界，非单一全绑权head结论。比较时统计所有LoRA与router参数，固定tokenizer后才可归因到生成目标。
+
+Frozen shared backbone,separate understanding/generation LoRAs and a composing router change trainable-sharing boundaries. Not a claim that every head is tied. Count all adapters/router and fix tokenizer before objective attribution.
+
+**why**
+与离散UMM、MoT/Router及减少梯度冲突高度接近，也是ICML2026相关工作。若论文强调路由与离散flow结合，需明确与task-specific LoRA、reference-based preference alignment的区别，而不只比较旧AR。
+
+Close ICML2026 prior art for discrete UMM,routing and gradient interference. Distinguish new contributions from task-specific LoRAs/routed discrete flows/reference preferences rather than comparing only older AR models.
+
+**inspiration**
+研究假设：Qwen3+IBQ先比较全共享adapter、固定理解/生成LoRA与动态MoRA，再独立切MASK/URSA。OCR与generation的冲突可按层/任务gradient cosine审计，不能只按总分判断“统一”。
+
+Hypothesis: fix Qwen3+IBQ;compare shared adapters,separate task LoRAs and dynamic MoRA before MASK/URSA. Audit layer/task gradient cosines and OCR-generation conflicts instead of relying on aggregate scores.
+
+**experiment**
+固定codec、主干、数据、active/total参数、训练FLOPs和NFE，比较共享、分adapter、动态router；在每结构同设MASK/metric path。报理解OCR、DocVQA/TextVQA、文字生成、GenEval、concept transfer、梯度冲突、显存/延迟；mRef-DPO另计reference/teacher/偏好数据预算。
+
+Fix codec,backbone,data,active/total parameters,train FLOPs and NFE;compare shared,separate-adapter and routed designs under matched MASK/metric paths. Report OCR,DocVQA,TextVQA,text generation,GenEval,concept transfer,gradient conflict,memory/latency. Account separately for mRef-DPO references,teachers and preference data.
+
+**open**
+官方项目页与arXiv可访问，页上Code/Checkpoint仍标coming soon，不能称可复现开源。精读adapter解耦、MoRA和mRef-DPO；所述SOTA为作者报告，不当作相同资源下的独立验证。
+
+Official project/arXiv public,but Code/Checkpoint remain coming soon on the page. Read adapter decoupling,MoRA and mRef-DPO;reported SOTA is not independent equal-resource validation.
+
+### NLD-Uni: Nemotron-Labs-Diffusion-Uni: Elastic Self-Refining Unified Diffusion LLM with Cross-Paradigm On-Policy Distillation
+
+2026-10-27 · v1 · backfill/checked 2026-11-27
+
+https://arxiv.org/abs/2610.36466
+
+https://huggingface.co/nvidia/NLD-Uni
+https://github.com/NVlabs/Nemotron-Labs-Diffusion-Uni
+
+**summary**
+以Elastic-MoT构造理解/生成任务视图，跨范式on-policy蒸馏VLM理解与continuous diffusion生成teacher；图像采用逐级corruption和intermediate mask states，使离散token能渐进commit/自修正，而非一次unmask后永不变。
+
+Elastic-MoT task views combine VLM understanding and continuous-generation teachers via cross-paradigm on-policy distillation. Progressive image corruption/intermediate mask states permit gradual token commitment and correction instead of irreversible one-shot unmasking.
+
+**state**
+理解输入为连续visual encoder，图像生成用离散image tokenizer；视觉corruption包含层级intermediate mask states与逐步commit，文本仍标准MDM。不是理解生成共单IBQ入口，也不是ELF连续VAE/embedding运输。
+
+Continuous visual understanding encoder plus discrete image-generation codec. Image corruption uses hierarchical intermediate mask states/progressive commitments;text retains standard MDM. Not one shared IBQ perception/generation input or ELF continuous transport.
+
+**objective**
+text masked离散目标、image self-refining discrete目标，额外跨范式on-policy蒸馏。continuous teacher的velocity不意味着student输出velocity；原文类别更新/kernel与URSA差别需按公式审计。
+
+Masked text/discrete self-refining image objectives plus cross-paradigm OPD. A continuous teacher’s velocity does not make the student a velocity predictor;compare categorical kernels with URSA explicitly.
+
+**decoding**
+任务视图按需加载：理解8B、T2I为4B理解+8B生成、交错全16B；并行离散逐级恢复。不能只报8B掩盖全模型16B，亦不能把activation参数当总参数。精确共同NFE/总训练FLOPs本次未核验。
+
+Task-specific loading:8B understanding,4B understanding+8B generation forT2I,full16B forinterleaving. Parallel progressive recovery. Report total as well as active parameters;common NFE/full training FLOPs unverified.
+
+**sharing**
+Elastic理解/生成Transformer路径有共享信息接口，连续理解encoder与离散生成codec分开；三视图使用不同参数子集。AR/VLM与continuous模型为teacher而非证明同权重初始化，需单列蒸馏资源及codec差异。
+
+Elastic Transformer paths exchange information but use separate continuous-understanding/discrete-generation codecs and parameter subsets. Teachers from AR/VLM/continuous families are not proof of weight initialization. Account for distillation resources separately.
+
+**why**
+与URSA/ELF对照和student-state蒸馏最接近的新近离散UMM之一。它直接挑战“masked模型缺乏纠错”的粗分类；若主张离散token修正能力，应比较forward state与commit机制而非只比较采样步数。
+
+Close recent discrete UMM prior art for URSA/ELF comparisons and student-state distillation. Avoid blanket claims that masked models cannot correct;compare actual forward states/commit rules rather than step counts alone.
+
+**inspiration**
+研究假设：固定Qwen3+IBQ，比较absorbing mask、URSA metric替换、层级中间mask；再独立加入相同teacher的student-state OPD。把teacher提供的知识与self-refinement本身拆开，检查glyph/rare-code是否被蒸馏成高频palette。
+
+Hypothesis: on fixed Qwen3+IBQ,compare absorbing masks,URSA replacement and hierarchical masks;add identical-teacher student-state OPD separately. Isolate teacher knowledge from self-refinement,and audit glyph/rare-code collapse.
+
+**experiment**
+固定主干/IBQ/数据/总参数与训练FLOPs，先对比三种离散corruption/commit规则；所有端点使用相同teacher预算后再加OPD。报重写/纠错率、coverage、OCRBench/DocVQA/TextVQA、生成OCR、GenEval、teacher/free-running差距、NFE/显存/延迟；计所有teacher decode与学生rollout。
+
+Fix backbone,IBQ,data,total parameters and train FLOPs;first vary discrete corruption/commit rules,then add matched-teacher OPD. Measure rewrite/correction,coverage,OCRBench,DocVQA,TextVQA,text rendering,GenEval,teacher/free-running gaps,NFE,memory and latency. Count every teacher decode and student rollout.
+
+**open**
+官方NVlabs仓库含推理、SGLang、minimal_training/SFT及online OPD说明，HF nvidia/NLD-Uni可独立加载；NVIDIA LICENSE，不能默认宽松商业许可。完整预训练数据与全实验权重未运行核验，精读self-refinement与OPD。
+
+Official NVlabs inference,SGLang,minimal SFT/online-OPD code and standalone HF nvidia/NLD-Uni accessible. NVIDIA LICENSE,not assumed permissive commercial use. Complete pretraining data/all experimental checkpoints not run-verified. Read self-refinement and OPD.
+
+## enabler
+
+### URSA: URSA: Uniform Discrete Diffusion with Metric Path
+
+2025-10-28 · ICLR 2026
+
+https://arxiv.org/abs/2510.24717
+
+
+https://github.com/baaivision/URSA
+
+**summary**
+在离散词表上定义与 token 距离相关的 metric path，以全局迭代修正替代从左到右累积误差，并通过 timestep shifting 适配高分辨率与长视频。
+
+This resource studies video or multi-frame generation through the URSA design, with emphasis on temporal state and rollout behavior.
+
+**state**
+离散 image token ID
+
+Discrete video tokens, continuous spatiotemporal latents, semantic embeddings, or a hybrid state.
+
+**objective**
+clean-token logits / Cross-Entropy
+
+Future-token, future-latent, noise, velocity, or trajectory prediction depending on the method.
+
+**decoding**
+全局迭代 refinement + Euler solver
+
+Causal rollout, masked refinement, diffusion, flow, or a hybrid temporal decoder.
+
+**sharing**
+可由 Qwen3 初始化；扩展视觉词表与 LM head
+
+Audit whether image/video tokenizers, semantic space, Transformer, and temporal heads are shared.
+
+**why**
+这是你当前 UMM 实验的核心基线：保留 LLM 式 logits/CE 接口，又获得 diffusion 的并行 refinement，最适合研究理解与生成是否能共享一个 Transformer。
+
+It separates static image quality from motion fidelity, causal control, and long-horizon consistency.
+
+**inspiration**
+URSA 的优势可能来自建模方式，也可能来自 IBQ tokenizer、视觉词表扩展或 schedule。网站后续所有比较都会把这些变量拆开，避免把 tokenizer 提升误判为 diffusion 提升。
+
+Use it as a controlled video extension of Qwen3 + IBQ/URSA/ELF and measure threat-object identity, motion, and error accumulation over time.
+
+**experiment**
+先以原始 URSA 为锚点，逐项替换 noise path、timestep sampling、unmask order 与 token head；额外记录不同 t 下 image/text hidden state 的内部时钟和稳定顺序。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+代码、IBQ/FSQ 模型与训练流程已公开
+
+The original source and an official code or project repository are linked below.
+
+### X-Omni: X-Omni: RL Makes Discrete Autoregressive Image Models Great Again
+
+2025-07-29
+
+https://arxiv.org/abs/2507.22058
+
+
+https://x-omni-team.github.io/
+
+**summary**
+使用单一自回归模型预测语言与视觉离散 token，再通过 GRPO 缓解累计误差和生成分布偏移，证明 AR 图像生成仍可达到强指令遵循和文字渲染能力。
+
+This resource is indexed as an image-generation method centered on X-Omni. It is useful for comparing state space, prediction targets, and decoding order.
+
+**state**
+SigLIP-VQ 离散视觉 token
+
+Discrete image-token IDs, continuous embeddings, simplex states, or VAE latents depending on the method.
+
+**objective**
+next-token CE + GRPO
+
+Clean-token CE, embedding regression, noise prediction, or velocity prediction depending on the method.
+
+**decoding**
+严格左到右，自回归采样
+
+Autoregressive, iterative refinement, diffusion, flow, or hybrid decoding.
+
+**sharing**
+统一 AR 主干；离线 diffusion decoder 负责像素生成
+
+Compare tokenizer, embedding, vocabulary, Transformer, and output-head sharing explicitly.
+
+**why**
+它能回答一个关键问题：如果 RL 已经能修复 AR 的累计误差，UMM 是否还需要引入独立的 diffusion 训练范式？这是 URSA/ELF 对照中不可缺失的 AR 端点。
+
+It provides a controlled endpoint for separating the generation mechanism from tokenizer quality and backbone capacity.
+
+**inspiration**
+你正在使用 X-Omni tokenizer 做 MLLM，OCR 性能要同时区分 tokenizer 信息上限与 Qwen 是否真正使用视觉 token。X-Omni 还提示可把 OCR reward 加入生成侧 RL，但不能替代理解侧的细粒度语义监督。
+
+Map the method onto Qwen3 + IBQ while keeping the tokenizer and data fixed, then measure whether gains come from the path, target, head, or sampling procedure.
+
+**experiment**
+固定同一视觉 tokenizer，比较 AR-SFT、AR-GRPO、URSA-SFT 与 URSA-GRPO；同一 prompt 下统计 OCR、构图多样性、累计 token 错误、吞吐和 KV-cache 成本。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文、项目页、代码与模型已公开
+
+The original source and an official code or project repository are linked below.
+
+### TokLIP: TokLIP: Marry Visual Tokens to CLIP
+
+2025-05-08 · v2 2025-08-15
+
+https://arxiv.org/abs/2505.05422
+
+
+https://github.com/TencentARC/TokLIP
+
+**summary**
+在低层 VQ tokenizer 之上加入 ViT token encoder，将 CLIP/SigLIP 级语义注入视觉 token，同时保留原有重建和生成能力；TokLIP-XL 直接采用 IBQ。
+
+This resource studies how multimodal understanding and generation can share or coordinate visual representations under the TokLIP design.
+
+**state**
+离散 VQ token + 连续高层语义
+
+Discrete visual tokens, continuous visual features, or a hybrid representation; see the original source for the exact configuration.
+
+**objective**
+生成与理解目标解耦
+
+Joint or coordinated understanding and generation objectives.
+
+**decoding**
+沿用底层 VQ/AR 生成路径
+
+Task-dependent autoregressive, diffusion, flow, or hybrid decoding.
+
+**sharing**
+同一视觉 token 接口，语义与重建职责分离
+
+Audit tokenizer, embedding, vocabulary, Transformer, and output-head sharing separately.
+
+**why**
+它与当前 IBQ→Qwen 的问题完全对口：失败不一定意味着 IBQ 没有信息，也可能是原始 code embedding 缺乏可供 LLM 使用的语义组织。
+
+It helps define which parts of a UMM should truly be shared and which interfaces should remain task-specific.
+
+**inspiration**
+比单层 MLP 更优雅的路线是让 code sequence 经过 semantic token encoder，再送入 Qwen；生成侧继续预测原始 token ID，理解侧使用语义化表示。
+
+Use it to audit whether IBQ tokens carry bidirectionally usable concepts inside Qwen3, rather than treating shared parameters as sufficient evidence of unification.
+
+**experiment**
+固定 IBQ decoder，对比 raw code embedding、2-layer MLP、TokLIP-style encoder 与 DINO/SigLIP distillation；联合报告重建、OCR、DocVQA、TextVQA、VQA 和 T2I。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+训练代码、评测脚本、IBQ 权重已公开
+
+The original source and an official code or project repository are linked below.
+
+### MAGVIT-v2: Language Model Beats Diffusion — Tokenizer is Key to Visual Generation
+
+2023-10-09 · 经典基础
+
+https://arxiv.org/abs/2310.05737
+
+
+
+
+**summary**
+MAGVIT-v2用 Lookup-Free Quantization 构建统一、紧凑且高容量的图像/视频 vocabulary，显示强 tokenizer 足以显著抬高语言模型式视觉生成的上限，并把图像和视频放进同一离散接口。
+
+This resource studies how multimodal understanding and generation can share or coordinate visual representations under the MAGVIT-v2 design.
+
+**state**
+共享的离散图像与视频 token ID
+
+Discrete visual tokens, continuous visual features, or a hybrid representation; see the original source for the exact configuration.
+
+**objective**
+高压缩视觉重建 + 下游 next-token modeling
+
+Joint or coordinated understanding and generation objectives.
+
+**decoding**
+由下游 causal LM 顺序生成，再经统一 decoder 重建
+
+Task-dependent autoregressive, diffusion, flow, or hybrid decoding.
+
+**sharing**
+图像与视频共享视觉 vocabulary/tokenizer；是否共享语言词表由下游决定
+
+Audit tokenizer, embedding, vocabulary, Transformer, and output-head sharing separately.
+
+**why**
+这篇经典工作提醒你：比较 URSA、ELF、AR 或 masked diffusion 前，必须先锁定 tokenizer。否则生成质量、OCR 与长视频一致性的差异很可能来自量化器容量、压缩率和重建上限，而不是建模方式。
+
+It helps define which parts of a UMM should truly be shared and which interfaces should remain task-specific.
+
+**inspiration**
+IBQ 审计不应只看 rFID。要同时测文字、细粒度目标、跨帧 code consistency、codebook usage 与语义 linear probe；还应增加“同一生成模型、更换 tokenizer”和“同一 tokenizer、更换建模方式”两条正交实验线。
+
+Use it to audit whether IBQ tokens carry bidirectionally usable concepts inside Qwen3, rather than treating shared parameters as sufficient evidence of unification.
+
+**experiment**
+建立 tokenizer × model 二维表：IBQ、LFQ/MAGVIT-v2-style、语义对齐 IBQ 分别搭配 AR、URSA 和 ELF。先报告 encode-decode 上限，再报告端到端性能，并用相同 token 数、分辨率与训练预算归因增益。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文公开；官方实现可通过 VideoPoet/MAGVIT 系列资源参考
+
+The original source is linked below; check it for the latest code and model availability.
+
+### Context-weighted DFM: Context-weighted Discrete Flow Matching
+
+2026-07-23
+
+https://arxiv.org/abs/2607.21427
+
+
+
+
+**summary**
+指出标准离散 Flow 把低熵易预测 token 与高熵歧义 token 混在同一因子化目标中；通过把局部上下文密度写入 CTMC sampler 与 scaled CE，在几乎不增加开销的情况下显著改善生成困惑度，并保留 any-order generation。
+
+This resource is indexed as an image-generation method centered on Context-weighted DFM. It is useful for comparing state space, prediction targets, and decoding order.
+
+**state**
+离散 token ID / 连续时间 Markov chain 状态
+
+Discrete image-token IDs, continuous embeddings, simplex states, or VAE latents depending on the method.
+
+**objective**
+context-scaled clean-token Cross-Entropy
+
+Clean-token CE, embedding regression, noise prediction, or velocity prediction depending on the method.
+
+**decoding**
+任意顺序、按局部上下文密度加权的离散采样
+
+Autoregressive, iterative refinement, diffusion, flow, or hybrid decoding.
+
+**sharing**
+兼容共享 vocabulary / LM head，也可从 AR/LLM 权重初始化
+
+Compare tokenizer, embedding, vocabulary, Transformer, and output-head sharing explicitly.
+
+**why**
+它是 URSA 今天最直接的新对照。URSA用 codebook/token 距离定义转移几何，这篇则用上下文信息量决定哪些 token 更值得学习和先恢复；二者分别解决“token 与谁相近”和“当前位置有多难”两个正交问题。
+
+It provides a controlled endpoint for separating the generation mechanism from tokenizer quality and backbone capacity.
+
+**inspiration**
+图像网格的局部上下文极强，但 OCR 字符、目标边界、重复纹理和背景 token 的熵完全不同。可以把 URSA metric path 与 spatial/semantic context weighting 组合，避免训练被大量容易背景 token 主导，也让文字和小目标获得更高有效梯度。
+
+Map the method onto Qwen3 + IBQ while keeping the tokenizer and data fixed, then measure whether gains come from the path, target, head, or sampling procedure.
+
+**experiment**
+固定 Qwen3、IBQ、URSA path、数据和总 FLOPs，仅比较 uniform loss/sampler、confidence weighting、空间邻域 context weighting、DINO/SigLIP 语义邻域 weighting；报告 OCRBench/TextVQA、边缘与文字 token 错误、4/8/16 步质量、吞吐和梯度方差。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文已公开；截至核对时未见官方代码仓库
+
+The original source is linked below; check it for the latest code and model availability.
+
+### MaskGIT: MaskGIT: Masked Generative Image Transformer
+
+2022-02-08 · CVPR 2022 经典基础
+
+https://arxiv.org/abs/2202.04200
+
+
+https://github.com/google-research/maskgit
+
+**summary**
+MaskGIT用双向 Transformer 预测随机遮挡的视觉 token，推理时从全 Mask 开始并行生成，再按置信度迭代修正。它把视觉生成从 raster-scan AR 变成 any-order refinement，是后来 masked image generation 与许多离散 diffusion 路线的直接基础。
+
+This resource is indexed as an image-generation method centered on MaskGIT. It is useful for comparing state space, prediction targets, and decoding order.
+
+**state**
+VQGAN 离散视觉 token ID + 单一 [MASK]
+
+Discrete image-token IDs, continuous embeddings, simplex states, or VAE latents depending on the method.
+
+**objective**
+随机 masked clean-token Cross-Entropy
+
+Clean-token CE, embedding regression, noise prediction, or velocity prediction depending on the method.
+
+**decoding**
+全位置并行初始化，按置信度反复提交/重掩码，约 8–16 轮
+
+Autoregressive, iterative refinement, diffusion, flow, or hybrid decoding.
+
+**sharing**
+视觉 tokenizer 与 Transformer 分离；原作不与语言共享 vocabulary/head
+
+Compare tokenizer, embedding, vocabulary, Transformer, and output-head sharing explicitly.
+
+**why**
+要判断 URSA 的 metric path 是否真正有效，不能只和 AR 比；必须有一个不使用 token 距离、只使用单一 Mask 的最小基线。MaskGIT正好保留离散 token、clean-token CE 和全局双向 attention，只移除 URSA 的细粒度概率路径。
+
+It provides a controlled endpoint for separating the generation mechanism from tokenizer quality and backbone capacity.
+
+**inspiration**
+对 IBQ 网格可直接复用同一 vocabulary、embedding 和 LM head，训练 MaskGIT-style mask-only 版本。若它已经接近 URSA，收益可能主要来自双向 refinement；若 URSA在 OCR、边缘或近邻 code 上显著更强，才说明 metric geometry 提供了额外信息。
+
+Map the method onto Qwen3 + IBQ while keeping the tokenizer and data fixed, then measure whether gains come from the path, target, head, or sampling procedure.
+
+**experiment**
+固定 Qwen3、IBQ、数据与总训练 token，比较 raster AR、MaskGIT single-mask、Multi-Mask、URSA metric path；统一 4/8/16/32 次前向预算，记录 token flip、字符错误、局部边缘错误、GenEval/DPG、吞吐与不同 scheduler 的稳定性。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+官方 JAX 推理代码与 ImageNet tokenizer/模型 checkpoint 已公开，仓库现为只读归档
+
+The original source and an official code or project repository are linked below.
+
+### LlamaGen: Autoregressive Model Beats Diffusion: Llama for Scalable Image Generation
+
+2024-06-10 · 重要基础补读
+
+https://arxiv.org/abs/2406.06525
+
+
+https://github.com/FoundationVision/LlamaGen
+
+**summary**
+LlamaGen使用几乎不加入视觉归纳偏置的标准 Llama 架构，把图像经 VQ-VAE 变成离散 token 后，按从左到右、从上到下的顺序执行 next-token prediction；它证明只要 tokenizer、数据和模型规模足够，最朴素的视觉 AR 也能达到强图像生成性能。
+
+This resource is indexed as an image-generation method centered on LlamaGen. It is useful for comparing state space, prediction targets, and decoding order.
+
+**state**
+VQ-VAE 离散视觉 token ID
+
+Discrete image-token IDs, continuous embeddings, simplex states, or VAE latents depending on the method.
+
+**objective**
+raster-scan next-token Cross-Entropy
+
+Clean-token CE, embedding regression, noise prediction, or velocity prediction depending on the method.
+
+**decoding**
+按二维栅格顺序逐 token 生成；已提交 token 不再修改
+
+Autoregressive, iterative refinement, diffusion, flow, or hybrid decoding.
+
+**sharing**
+采用标准 Llama-style Transformer；视觉 tokenizer 与词表独立，原论文从头训练
+
+Compare tokenizer, embedding, vocabulary, Transformer, and output-head sharing explicitly.
+
+**why**
+它是 URSA 最干净的 AR 对照。X-Omni和 ARM 还混入语义 tokenizer、统一理解生成或 RL，VAR又改变了预测尺度；LlamaGen主要保留“离散 token + causal Transformer + next-token CE”，更容易判断 URSA 的提升究竟来自 metric path 和全局 refinement，还是仅来自 tokenizer、模型规模与训练数据。
+
+It provides a controlled endpoint for separating the generation mechanism from tokenizer quality and backbone capacity.
+
+**inspiration**
+对 Qwen3 + IBQ，可以完全复用视觉 embedding、vocabulary 和 LM head，只将 URSA 的双向 metric-path训练改成 causal raster-scan CE。若 AR 在 OCR 上更强，可能说明文字的局部顺序依赖有利；若 URSA在布局与多目标一致性上更强，则说明全局反复修正具有真实收益。
+
+Map the method onto Qwen3 + IBQ while keeping the tokenizer and data fixed, then measure whether gains come from the path, target, head, or sampling procedure.
+
+**experiment**
+固定 Qwen3、IBQ、视觉词表、训练样本、可训练参数和总 FLOPs，比较 LlamaGen-style AR 与 URSA。除 OCRBench、TextVQA、GenEval、DPG 外，同时报告 N-token AR 的 KV-cache 延迟、URSA K-step 全序列计算、峰值显存、累计错误率和 token flip/revision 能力；效率必须用真实 wall-clock 与吞吐比较，不能只比较“生成步数”。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文、MIT 代码、tokenizer、模型权重与 vLLM 推理均已公开
+
+The original source and an official code or project repository are linked below.
+
+### URSA Code Audit: URSA 代码审计：DiffusionTransformer 与离散 URSA 主干不是同一条路径
+
+2026-07-28 · 官方 main 分支核对
+
+https://github.com/baaivision/URSA/blob/main/diffnext/models/diffusion_transformer.py
+
+
+https://github.com/baaivision/URSA/blob/main/diffnext/models/transformers/transformer_ursa.py
+
+**summary**
+diffnext/models/diffusion_transformer.py 确实实现了标准 DiT 组件：Conv2d patch embedding、timestep embedding、AdaLN 调制与连续输出 head。patch_size=2 时，Linear(embed_dim, 4×image_dim) 一次恢复一个 2×2 latent patch 的四个连续向量，顺序为左上、右上、左下、右下；它不是一次预测四个离散 token ID。当前离散 URSA 主路径位于 transformer_ursa.py，使用 Qwen3Model 与 64K visual lm_head，为原始 IBQ 网格的每个位置预测一个词表分布。
+
+This resource is indexed as an image-generation method centered on URSA Code Audit. It is useful for comparing state space, prediction targets, and decoding order.
+
+**state**
+DiT 文件处理连续 latent patch；URSA 主干处理离散 image token ID
+
+Discrete image-token IDs, continuous embeddings, simplex states, or VAE latents depending on the method.
+
+**objective**
+DiT 输出连续 patch 值；URSA 输出每位置 64K 视觉词表 logits / CE
+
+Clean-token CE, embedding regression, noise prediction, or velocity prediction depending on the method.
+
+**decoding**
+DiT 由外部 scheduler 迭代去噪；URSA 走 metric-path 全局离散 refinement
+
+Autoregressive, iterative refinement, diffusion, flow, or hybrid decoding.
+
+**sharing**
+两套独立实现；离散主干是 Qwen3Model + visual lm_head
+
+Compare tokenizer, embedding, vocabulary, Transformer, and output-head sharing explicitly.
+
+**why**
+这能纠正一个会直接影响实验设计的误读：代码中的 patch embedding 是连续 DiT 的计算降采样，不等于 URSA 对离散 image token 做 token merge。把两者混在一起，会错误估计序列长度、head 参数量、监督目标和采样顺序。
+
+It provides a controlled endpoint for separating the generation mechanism from tokenizer quality and backbone capacity.
+
+**inspiration**
+原始 URSA 只有 VAE/IBQ tokenizer 的空间下采样，进入 Qwen3 后没有额外 2×2 token folding。若要压缩序列，需要显式新增 fold encoder 与 unshuffle/local decoder，并保证 scheduler 最终仍能更新原始 H×W 个 ID。
+
+Map the method onto Qwen3 + IBQ while keeping the tokenizer and data fixed, then measure whether gains come from the path, target, head, or sampling procedure.
+
+**experiment**
+先锁定原始 URSA 为 no-merge 基线，再比较：2×2 fixed fold + parallel shared head、2×2 fold + local causal head、DPAR dynamic patch。不要直接使用 Linear(D,4K)：D=2048、K=64000 时约 5.24 亿权重；更合理的是 Linear(D,4dᵥ)→reshape→共享 K-way visual head。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+官方仓库与训练代码公开；结论基于 2026-07-28 main 分支
+
+The original source and an official code or project repository are linked below.
+
+### Token-Shuffle: Token-Shuffle: Towards High-Resolution Image Generation with Autoregressive Models
+
+2025-04-24 · v2 2025-04-27
+
+https://arxiv.org/abs/2504.17789
+
+
+https://ma-xu.github.io/token-shuffle/
+
+**summary**
+Token-Shuffle先降低单个视觉 code embedding 维度，再把空间相邻的 s×s 个 token 沿 channel 拼成一个 Transformer token；输出端用 Token-Unshuffle 恢复 s² 个槽位，并通过共享 visual vocabulary classifier 预测原始 VQ ID。它是真正的离散 image-token merge，不是只在 tokenizer 内做下采样。
+
+This resource is indexed as an image-generation method centered on Token-Shuffle. It is useful for comparing state space, prediction targets, and decoding order.
+
+**state**
+局部 s×s 离散 VQ token embedding 沿通道合并
+
+Discrete image-token IDs, continuous embeddings, simplex states, or VAE latents depending on the method.
+
+**objective**
+Token-unshuffle 后对每个原始 ID 做共享词表 CE
+
+Clean-token CE, embedding regression, noise prediction, or velocity prediction depending on the method.
+
+**decoding**
+压缩序列按组 AR；组内 s² 个 ID 并行预测
+
+Autoregressive, iterative refinement, diffusion, flow, or hybrid decoding.
+
+**sharing**
+Transformer 看 N/s² 个 folded token；输出端恢复原空间槽位
+
+Compare tokenizer, embedding, vocabulary, Transformer, and output-head sharing explicitly.
+
+**why**
+它提供了把 Qwen3 序列长度从 N 降到 N/s² 的最小改动方案，而且不需要改变 IBQ codebook。对高分辨率 T2I 很有吸引力，也最适合作为 URSA 固定合并的第一条效率基线。
+
+It provides a controlled endpoint for separating the generation mechanism from tokenizer quality and backbone capacity.
+
+**inspiration**
+其代价是 folded block 内采用并行条件独立预测，可能损害文字笔画、密集小目标和边界细节。对你的 OCRBench/DocVQA 任务，这不是附带指标，而是判断 merge 是否可接受的核心指标。
+
+Map the method onto Qwen3 + IBQ while keeping the tokenizer and data fixed, then measure whether gains come from the path, target, head, or sampling procedure.
+
+**experiment**
+固定 Qwen3、IBQ、训练 FLOPs与原始 H×W 监督，比较 no-merge、2×2 shuffle 与4×4 shuffle；同时报告 block 内 token accuracy、OCR、小目标召回、视觉 token 吞吐和峰值显存。加入 OCR-aware 局部不合并策略检验高信息区域是否应保留原粒度。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文与项目页公开；截至核对时未见完整官方训练代码
+
+The original source and an official code or project repository are linked below.
+
+### DPAR: DPAR: Dynamic Patchification for Efficient Autoregressive Visual Generation
+
+2025-12-26 · CVPR 2026
+
+https://arxiv.org/abs/2512.21867
+
+
+
+
+**summary**
+DPAR用轻量 AR 模型的 next-token entropy 衡量信息量：低熵连续 token 被动态合并，高熵区域保留细粒度，且不跨图像行合并。全局 Transformer 只处理可变数量的 patch，局部 causal decoder 最终仍逐个预测原始 VQ ID。
+
+This resource is indexed as an image-generation method centered on DPAR. It is useful for comparing state space, prediction targets, and decoding order.
+
+**state**
+离散 VQ IDs → 可变长连续 patch representation
+
+Discrete image-token IDs, continuous embeddings, simplex states, or VAE latents depending on the method.
+
+**objective**
+局部 decoder 对原始 token ID 做 K-way CE
+
+Clean-token CE, embedding regression, noise prediction, or velocity prediction depending on the method.
+
+**decoding**
+global patch AR + local causal token decoder
+
+Autoregressive, iterative refinement, diffusion, flow, or hybrid decoding.
+
+**sharing**
+轻量 patch encoder/decoder 包裹 Llama 式全局 Transformer
+
+Compare tokenizer, embedding, vocabulary, Transformer, and output-head sharing explicitly.
+
+**why**
+它比固定 2×2 merge 更符合 OCR 与威胁检测：天空、墙面可激进压缩，文字、小目标和复杂边界保留原 token。论文报告 token 数减少 1.81×/2.06×、训练 FLOPs最多降低40%，同时不必丢弃二维结构。
+
+It provides a controlled endpoint for separating the generation mechanism from tokenizer quality and backbone capacity.
+
+**inspiration**
+URSA可以把 entropy 换成 timestep-aware difficulty：根据当前 posterior entropy、OCR proposal、目标检测不确定性决定哪些位置合并。难点是 patch 边界会随去噪步变化，因此更适合作为 AR 基线或采用固定分区、动态计算分配的折中版。
+
+Map the method onto Qwen3 + IBQ while keeping the tokenizer and data fixed, then measure whether gains come from the path, target, head, or sampling procedure.
+
+**experiment**
+比较 fixed 2×2、DPAR entropy、IBQ distance 与 DINO/SigLIP semantic boundary 四种分块；固定平均 compression ratio 后测 OCR、细粒度理解、T2I、patch-boundary artifact、真实延迟和训练稳定性。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文与算法细节公开；截至核对时未见官方代码仓库
+
+The original source is linked below; check it for the latest code and model availability.
+
+### ImageFolder: ImageFolder: Autoregressive Image Generation with Folded Tokens
+
+2024-10-02 · 关键基础补读
+
+https://arxiv.org/abs/2410.01756
+
+
+https://github.com/lxa9867/ImageFolder
+
+**summary**
+ImageFolder的 folding 不是把四个相邻空间 token 合成一个，而是以双分支 product quantization 把同一位置拆成 semantic code 与 detail code。AR 序列只按空间位置推进，head 输出两组独立 K-way 分布，再由 tokenizer 联合解码。
+
+This resource studies how multimodal understanding and generation can share or coordinate visual representations under the ImageFolder design.
+
+**state**
+同一空间位置的 semantic ID + detail ID
+
+Discrete visual tokens, continuous visual features, or a hybrid representation; see the original source for the exact configuration.
+
+**objective**
+2K logits reshape 为两组 K-way CE
+
+Joint or coordinated understanding and generation objectives.
+
+**decoding**
+位置之间 AR；同位置两路 ID 并行采样
+
+Task-dependent autoregressive, diffusion, flow, or hybrid decoding.
+
+**sharing**
+语义/像素双 codebook 共享上层 AR hidden state
+
+Audit tokenizer, embedding, vocabulary, Transformer, and output-head sharing separately.
+
+**why**
+它提示序列压缩不只有空间 merge：还可以把语义与重建细节折叠到同一位置，避免缩小空间网格伤害 OCR 与小目标。代价是同位置两路 code 的独立性假设可能限制联合建模。
+
+It helps define which parts of a UMM should truly be shared and which interfaces should remain task-specific.
+
+**inspiration**
+对 IBQ 可探索 semantic codebook + residual/detail codebook：Qwen3 hidden 同时预测两路 ID，理解侧优先读取 semantic branch，生成 decoder 使用两路重建。这样更容易区分 tokenizer 语义提升和上层生成方式提升。
+
+Use it to audit whether IBQ tokens carry bidirectionally usable concepts inside Qwen3, rather than treating shared parameters as sufficient evidence of unification.
+
+**experiment**
+固定总 bitrate 与 decoder，比较单 64K IBQ、两个较小 product codebook、空间2×2 fold；报告 codebook utilization、OCR、语义 linear probe、重建和 T2I，并测试联合 2D head 是否优于两个独立 softmax。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文与官方代码公开
+
+The original source and an official code or project repository are linked below.
+
+### UNIFUSION: UNIFUSION: Adapting Autoregressive Language Models into Discrete Diffusion under a Unified Reverse-Rate Objective
+
+2026-07-27 · 新提交
+
+https://arxiv.org/abs/2607.24507
+
+
+
+
+**summary**
+UNIFUSION把 SEDD、MDLM/GIDD、M2S 与 Neural CTMC 的条件损失统一为 reverse-rate 上的 generalized KL，并推导 clean-token 预测到多种离散扩散参数化的转换。它首次直接把预训练 AR 模型适配到 uniform-noise diffusion，而不局限于单一 [MASK]；每个 token 在采样中都保持可编辑。
+
+This resource is indexed as an image-generation method centered on UNIFUSION. It is useful for comparing state space, prediction targets, and decoding order.
+
+**state**
+离散 token ID；uniform kernel 下任意 token 都可跳转、持续可编辑
+
+Discrete image-token IDs, continuous embeddings, simplex states, or VAE latents depending on the method.
+
+**objective**
+统一 reverse-rate generalized KL；由 clean-token x₀ 预测转换为 score / posterior / jump rate
+
+Clean-token CE, embedding regression, noise prediction, or velocity prediction depending on the method.
+
+**decoding**
+全序列迭代采样；16–256 步，可在 mask 与 uniform corruption kernel 间切换
+
+Autoregressive, iterative refinement, diffusion, flow, or hybrid decoding.
+
+**sharing**
+从 GPT-2 AR checkpoint 继续预训练，复用 token embedding、Transformer 与 x₀ 输出接口
+
+Compare tokenizer, embedding, vocabulary, Transformer, and output-head sharing explicitly.
+
+**why**
+这是目前最适合补入“Qwen3 AR → URSA”控制链的一篇。它把 AR 权重初始化、corruption kernel 和输出参数化拆开：同一个 x₀ head 可以分别承载 mask path、uniform path 与 URSA metric path，从而避免把新 head、重新对齐或损失接口变化误判成 metric geometry 的收益。
+
+It provides a controlled endpoint for separating the generation mechanism from tokenizer quality and backbone capacity.
+
+**inspiration**
+对 Qwen3+IBQ，可保留 64K visual vocabulary 与 clean-token CE 接口，只把前向核替换为 single-mask、uniform replacement 和 IBQ-distance metric path。UNIFUSION还提示：如果 uniform kernel 已能通过“所有 token 可修订”接近 URSA，那么 URSA 的额外价值应由近邻转移效率、OCR局部错误和少步质量证明。
+
+Map the method onto Qwen3 + IBQ while keeping the tokenizer and data fixed, then measure whether gains come from the path, target, head, or sampling procedure.
+
+**experiment**
+从同一 AR checkpoint 出发，固定 Qwen3、IBQ、数据、训练 token与FLOPs，比较 raster AR、MaskGIT、UNIFUSION uniform kernel和URSA metric path；共享 x₀ visual head并统一4/8/16/32/64次前向预算，报告OCRBench、DocVQA、TextVQA、T2I、token修订率、转移距离、吞吐、显存及训练稳定性。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文与推导已公开；截至核对时未见官方代码仓库
+
+The original source is linked below; check it for the latest code and model availability.
+
+### PARD: Rethinking the Generation Order of Block Diffusion Language Models
+
+2026-07-27 · 新提交
+
+https://arxiv.org/abs/2607.24306
+
+
+
+
+**summary**
+论文发现近期 block diffusion LM 的条件结构天然比经典全序列 masked model更偏向左到右。基于这一点，PARD在不训练的情况下保留左到右解掩码结构，同时并行提交 token；其质量优于常见并行 sampler，速度又明显快于纯 AR。
+
+This resource is indexed as an image-generation method centered on PARD. It is useful for comparing state space, prediction targets, and decoding order.
+
+**state**
+block diffusion 的离散 token ID / [MASK] 状态
+
+Discrete image-token IDs, continuous embeddings, simplex states, or VAE latents depending on the method.
+
+**objective**
+不改训练目标；沿用原 block masked clean-token 分布
+
+Clean-token CE, embedding regression, noise prediction, or velocity prediction depending on the method.
+
+**decoding**
+保持左到右的 unmask 结构，但每轮并行提交多个 token
+
+Autoregressive, iterative refinement, diffusion, flow, or hybrid decoding.
+
+**sharing**
+采样器级改造；不改 tokenizer、embedding、Transformer 或输出 head
+
+Compare tokenizer, embedding, vocabulary, Transformer, and output-head sharing explicitly.
+
+**why**
+它说明“模型是 diffusion”并不等于最优解码顺序必须完全自由。对于 OCR、文档文字和视觉栅格，局部因果顺序可能很重要；因此比较 URSA、MaskGIT 与 block diffusion 时，训练目标和采样顺序必须作为两个独立变量。
+
+It provides a controlled endpoint for separating the generation mechanism from tokenizer quality and backbone capacity.
+
+**inspiration**
+可以把 PARD移植到 image-token block：按图像 raster、文字阅读顺序或 coarse-to-fine block 推进，块内按置信度并行提交。这样既保留文字和边界的局部先后关系，也比逐token AR减少前向次数，并能与URSA全局confidence scheduler形成纯推理对照。
+
+Map the method onto Qwen3 + IBQ while keeping the tokenizer and data fixed, then measure whether gains come from the path, target, head, or sampling procedure.
+
+**experiment**
+固定同一 block-diffusion checkpoint，仅切换全局置信度、随机、PARD左到右、二维蛇形和OCR-reading-order五种采样器；在相同前向次数与提交token数下测字符顺序错误、DocVQA/TextVQA、T2I布局、真实延迟和token revision，避免重新训练带来的混杂。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文已公开；截至核对时未见官方代码仓库
+
+The original source is linked below; check it for the latest code and model availability.
+
+### Block Transformer: Block Transformer: Global-to-Local Language Modeling for Fast Inference
+
+2024-06-04 · NeurIPS 2024 基础补读
+
+https://arxiv.org/abs/2406.02657
+
+
+https://github.com/itsnamgyu/block-transformer
+
+**summary**
+Block Transformer把长序列分成固定 block：昂贵的全局 Transformer 每个 block 只运行一次，输出 context embedding；轻量 token decoder将该 context投影为 prefix，再在局部短序列中自回归预测原始 token。论文主设置的 block length恰好为4，与当前2×2视觉 folding完全对口。
+
+This resource is indexed as an image-generation method centered on Block Transformer. It is useful for comparing state space, prediction targets, and decoding order.
+
+**state**
+固定长度 block 的连续 context embedding + 原始离散 token ID
+
+Discrete image-token IDs, continuous embeddings, simplex states, or VAE latents depending on the method.
+
+**objective**
+局部共享 vocabulary classifier / next-token CE
+
+Clean-token CE, embedding regression, noise prediction, or velocity prediction depending on the method.
+
+**decoding**
+全局按 block 自回归；块内由轻量 causal Transformer 逐 token 解码
+
+Autoregressive, iterative refinement, diffusion, flow, or hybrid decoding.
+
+**sharing**
+block decoder 压缩全局历史；token decoder 有独立 embedding、位置编码与共享分类器
+
+Compare tokenizer, embedding, vocabulary, Transformer, and output-head sharing explicitly.
+
+**why**
+它给出了比“用一个global hidden初始化GRU”更系统的head设计：global context不仅作为初始状态，而是投影为一个或多个prefix token，让后续局部位置持续通过self-attention读取全局语义。论文还发现首位置loss主要由global decoder决定，后续位置loss更依赖local decoder，正好对应你需要分开记录TL与TR/BL/BR。
+
+It provides a controlled endpoint for separating the generation mechanism from tokenizer quality and backbone capacity.
+
+**inspiration**
+Stage3可将每个Qwen3 merged hidden投影成1–2个local prefix，后接2层1024维causal Transformer；训练输入为[context, GT-TL, GT-TR, GT-BL]，输出依次监督[TL,TR,BL,BR]。四个槽位共享16384-way classifier，并加入2D slot embedding。
+
+Map the method onto Qwen3 + IBQ while keeping the tokenizer and data fixed, then measure whether gains come from the path, target, head, or sampling procedure.
+
+**experiment**
+固定Stage2 checkpoint、X-Omni tokenizer和训练数据，对比1024-GRU、1-prefix local Transformer、2-prefix local Transformer和并行unshuffle head；报告四个slot CE、首token loss、block exact-match、完整free-running T2I、真实延迟及理解能力遗忘。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文、官方训练代码和模型配置已公开
+
+The original source and an official code or project repository are linked below.
+
+### MEGABYTE: MEGABYTE: Predicting Million-byte Sequences with Multiscale Transformers
+
+2023-05-12 · 基础架构补读
+
+https://arxiv.org/abs/2305.07185
+
+
+
+
+**summary**
+MEGABYTE是global-to-local序列建模的经典基础：把长序列切成patch，全局模型只建模patch之间的依赖，局部模型在patch内还原原始符号。它证明压缩全局序列并不要求把多个原始ID变成一个巨大联合类别。
+
+This resource is indexed as an image-generation method centered on MEGABYTE. It is useful for comparing state space, prediction targets, and decoding order.
+
+**state**
+固定 patch representation + patch内原始离散符号
+
+Discrete image-token IDs, continuous embeddings, simplex states, or VAE latents depending on the method.
+
+**objective**
+原始符号 next-token CE
+
+Clean-token CE, embedding regression, noise prediction, or velocity prediction depending on the method.
+
+**decoding**
+global patch sequence AR；local model在patch内AR
+
+Autoregressive, iterative refinement, diffusion, flow, or hybrid decoding.
+
+**sharing**
+全局与局部Transformer分层；局部模型承担高频细节
+
+Compare tokenizer, embedding, vocabulary, Transformer, and output-head sharing explicitly.
+
+**why**
+你的2×2 merge本质上正是视觉版MEGABYTE：Qwen3负责block级语义与全局布局，轻量head负责四个X-Omni ID的局部纹理和边界。它为“局部head应有足够容量，而不是单个Linear直接输出4K类别”提供基础依据。
+
+It provides a controlled endpoint for separating the generation mechanism from tokenizer quality and backbone capacity.
+
+**inspiration**
+可以把Qwen3看作global model、mm_head看作local model，并分别分配计算预算。merge ratio增大时，local decoder容量也应增加；否则全局序列虽然更短，但OCR与细粒度损失会被错误归因于token merge本身。
+
+Map the method onto Qwen3 + IBQ while keeping the tokenizer and data fixed, then measure whether gains come from the path, target, head, or sampling procedure.
+
+**experiment**
+比较1×1、2×2、2×4三种folding，并为每种ratio扫描GRU/Transformer层数；保持总FLOPs近似一致，报告首slot与后续slot NLL、OCR、小目标、DPG/GenEval、KV-cache、局部head耗时与全局Qwen耗时。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文与完整架构细节公开；未见作者维护的独立官方实现
+
+The original source is linked below; check it for the latest code and model availability.
+
+### UMM One Space?: Do Unified Multimodal Models Think in One Space? A Lens Through Cross-Branch Steering
+
+2026-07-29 · 新提交
+
+https://arxiv.org/abs/2607.26411
+
+
+
+
+**summary**
+论文提出cross-branch semantic steering：从理解分支提取语义方向并注入生成分支，能够控制图像语义并提高faithfulness；反向把生成方向迁入理解分支则效果有限。作者认为理解表征更偏对象与概念，而生成表征仍以外观和低层细节为主。
+
+This resource studies model mechanisms or explanation reliability through the UMM One Space? approach.
+
+**state**
+理解分支文本 hidden 与生成分支视觉 latent 的语义方向
+
+Activations, attention heads, SAE features, attribution graphs, or behavioral traces.
+
+**objective**
+无需修改生成目标；通过跨分支激活干预检验语义可迁移性
+
+Probe, attribute, ablate, or intervene on internal representations and measure behavioral effects.
+
+**decoding**
+理解向量注入生成轨迹，或生成向量反向注入理解分支
+
+The base decoding process is usually preserved while internal mechanisms are audited.
+
+**sharing**
+共享架构不等于共享语义；理解→生成迁移明显强于生成→理解
+
+Focus on cross-modal evidence routing rather than tokenizer or vocabulary sharing alone.
+
+**why**
+这直接检验URSA、X-Omni或未来ELF改造是否只是结构上共享Qwen3，还是理解与生成真的共享可因果迁移的语义。仅看同一Transformer、同一tokenizer或CKA相似度，无法证明两个任务使用了同一组有功能作用的方向。
+
+It offers evidence for distinguishing correlational probes from causal mechanisms and faithful explanations.
+
+**inspiration**
+可分别从DocVQA/TextVQA理解轨迹、T2I离散ID轨迹和ELF连续velocity轨迹提取“文字、数量、颜色、目标类别”等方向；测试理解方向能否改变生成，生成方向能否改变VQA答案，并比较原始IBQ、TokLIP语义化IBQ与ELF。
+
+Apply matched interventions to Qwen3 + IBQ using frame deletion, region masking, OCR replacement, feature swaps, or head ablation.
+
+**experiment**
+固定Qwen3、IBQ、数据与checkpoint，在相同层和token位置做双向steering；报告生成概念命中、VQA变化率、OCR字符保持、干预强度曲线和随机方向对照。若理解→生成有效而生成→理解失效，应优先做生成latent语义对齐，而不是继续扩大共享head。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文与实验协议公开；截至核对时未见官方代码仓库
+
+The original source is linked below; check it for the latest code and model availability.
+
+### UMM Transferability: Transferability Between Understanding and Generation in Unified Multimodal Models
+
+2026-07-05 · v2 2026-07-07 · ECCV 2026
+
+https://arxiv.org/abs/2607.04423
+
+
+https://cvlab-kaist.github.io/UMM_Transferability/
+
+**summary**
+该工作用受控实验测试：只训练理解侧的一种能力，生成侧是否会同步改善。结果显示跨任务迁移依赖真正的架构共享；直接微调生成虽能提升目标能力，却可能因分布偏移损害整体画质，而理解侧训练可用更小代价迁移到生成。
+
+This resource provides an evaluation or diagnostic framework centered on UMM Transferability.
+
+**state**
+共享或分离的理解feature、生成latent与视觉encoder
+
+Model outputs, benchmark annotations, interventions, and diagnostic measurements.
+
+**objective**
+分别微调计数、空间关系和文字理解/生成能力
+
+Measure capability, calibration, robustness, faithfulness, or causal controllability.
+
+**decoding**
+沿用各UMM原始生成方式；研究训练任务而非新sampler
+
+Model-independent evaluation under controlled inference settings.
+
+**sharing**
+完全共享Transformer和统一视觉encoder时迁移最强；松耦合架构迁移弱
+
+Architecture-independent; keep evaluation inputs, budgets, and scoring procedures matched.
+
+**why**
+它给Qwen3+IBQ的“统一”提供了可证伪指标：共享主干并不够，必须检查OCR、计数和空间能力能否从理解侧转移到生成侧，以及反向是否成立。
+
+It helps prevent improvements in one metric from hiding failures in OCR, grounding, dynamics, or closed-loop behavior.
+
+**inspiration**
+可以先只用OCRBench/DocVQA训练理解，冻结image generator，再测试生成文字；随后只做T2I文字渲染训练并测试OCR理解。若单向迁移明显，说明共享表征存在但不对称，可据此安排Stage1–3课程。
+
+Use the protocol across Qwen3 + IBQ, URSA, and ELF with fixed data, compute, and decoding budgets.
+
+**experiment**
+固定checkpoint做理解-only、生成-only、联合与参数量匹配adapter四组；在原图识字、生成文字、计数和空间关系上构造2×2迁移矩阵，并记录CKA、cross-branch steering、画质漂移和语言能力遗忘。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文与项目页公开；截至核对时未见完整官方训练代码
+
+The original source and an official code or project repository are linked below.
+
+### LKF: Latent-Kernel Discrete Flow Maps for Few-Step Generation
+
+2026-07-29 · 周末重点补读
+
+https://arxiv.org/abs/2607.27529
+
+
+https://github.com/mansoor181/lkf
+
+**summary**
+普通离散diffusion在每一步独立预测各位置，少步生成时很难保证强相关token共同变化。LKF把转移核写成由一个共享latent选择的多个factorized component混合，使并行位置在条件独立的同时通过latent获得序列级相关性。
+
+This resource is indexed as an image-generation method centered on LKF. It is useful for comparing state space, prediction targets, and decoding order.
+
+**state**
+离散token simplex；多个factorized kernel由共享离散latent耦合
+
+Discrete image-token IDs, continuous embeddings, simplex states, or VAE latents depending on the method.
+
+**objective**
+from-scratch flow-map likelihood；无需慢teacher蒸馏
+
+Clean-token CE, embedding regression, noise prediction, or velocity prediction depending on the method.
+
+**decoding**
+每条序列采样一个共享latent，以少步并行更新所有位置
+
+Autoregressive, iterative refinement, diffusion, flow, or hybrid decoding.
+
+**sharing**
+M=1退化为普通factorized MDLM；增加mixture分量表达跨位置相关性
+
+Compare tokenizer, embedding, vocabulary, Transformer, and output-head sharing explicitly.
+
+**why**
+这与2×2 token merge后的四ID预测高度相关：Linear(d,4K)把TL/TR/BL/BR视为独立分类，而local AR head虽能表达相关性，却需要四次串行局部解码。LKF提供了并行但相关的第三种head。
+
+It provides a controlled endpoint for separating the generation mechanism from tokenizer quality and backbone capacity.
+
+**inspiration**
+可让Qwen block hidden预测M个mixture权重及每个component下四个slot的K-way logits；先采样component，再并行采样TL/TR/BL/BR。这里是从LKF序列相关核迁移到视觉block的推论，需要单独实验验证。
+
+Map the method onto Qwen3 + IBQ while keeping the tokenizer and data fixed, then measure whether gains come from the path, target, head, or sampling procedure.
+
+**experiment**
+固定Stage3输入与参数预算，比较独立4K Linear、LKF-style M=2/4/8 mixture、GRU与两层local Transformer；报告slot CE、block exact match、邻接共现误差、teacher-forcing/free-running gap、步数、吞吐和显存。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文与官方训练代码已公开
+
+The original source and an official code or project repository are linked below.
+
+### Infinity∞: Infinity∞: Scaling Bitwise AutoRegressive Modeling for High-Resolution Image Synthesis
+
+2024-12-05 · CVPR 2025 Oral · 重点补读
+
+https://arxiv.org/abs/2412.04431
+
+
+https://github.com/FoundationVision/Infinity
+
+**summary**
+Infinity把视觉code从一个巨大的整数ID改写成固定长度二进制串。Infinite-Vocabulary Classifier只需线性增长的bit logits，理论上可表达2^64种code；训练时随机翻转部分bit并重新量化残差，让模型学会修复近邻错误。生成仍是AR，但因果单位是从粗到细的scale，而不是逐像素raster token。
+
+This resource is indexed as an image-generation method centered on Infinity∞. It is useful for comparing state space, prediction targets, and decoding order.
+
+**state**
+多尺度残差图上的64-bit二值视觉code，而非单一K-way token ID
+
+Discrete image-token IDs, continuous embeddings, simplex states, or VAE latents depending on the method.
+
+**objective**
+逐bit二分类 + bitwise self-correction + tokenizer重建目标
+
+Clean-token CE, embedding regression, noise prediction, or velocity prediction depending on the method.
+
+**decoding**
+尺度间AR；同一尺度内所有位置与bit并行预测
+
+Autoregressive, iterative refinement, diffusion, flow, or hybrid decoding.
+
+**sharing**
+文本条件与视觉生成主干共享上下文；bit classifier替代超大视觉词表head
+
+Compare tokenizer, embedding, vocabulary, Transformer, and output-head sharing explicitly.
+
+**why**
+它直接击中Qwen3+IBQ Stage3的两个瓶颈：K-way head与logits显存随codebook增大，以及相近视觉向量被量化成完全不同整数标签后，普通ID CE不再表达几何接近。它也为URSA提供了Hamming空间路径这一新对照。
+
+It provides a controlled endpoint for separating the generation mechanism from tokenizer quality and backbone capacity.
+
+**inspiration**
+2×2 merge后可让每个Qwen hidden预测4×d个bit，而不是4×K个类别；块内四个位置仍可并行或接local decoder。需要注意，这不是只替换head：Infinity依赖bitwise tokenizer，必须把tokenizer几何变化与生成建模收益分开。
+
+Map the method onto Qwen3 + IBQ while keeping the tokenizer and data fixed, then measure whether gains come from the path, target, head, or sampling procedure.
+
+**experiment**
+固定Qwen3、训练数据、视觉网格与decoder容量，比较IBQ K-way CE、IBQ+2层local AR head、BSQ/Infinity-style d-bit BCE，以及bit head+随机bit-flip self-correction；报告bit error、原始ID/2×2 block exact match、OCRBench、DocVQA、TextVQA、重建/T2I、head参数、logits显存和吞吐。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文、项目页、训练代码、模型与推理脚本已公开
+
+The original source and an official code or project repository are linked below.
+
+### Visual Token Break-even: When Do Fewer Visual Tokens Accelerate Multimodal Inference? A Break-Even Study Across Decision Locations and Hardware
+
+2026-08-04 · 今日新提交
+
+https://arxiv.org/abs/2608.03649
+
+
+
+
+**summary**
+该研究给出一个关键负结果：更少视觉token不保证端到端更快。两种AR探针即使复用状态仍比完整模型慢；pre-vision策略虽然token减少更少，却能跳过预处理与视觉编码，在A100上反而可能优于post-vision的大幅剪枝。
+
+This resource provides an evaluation or diagnostic framework centered on Visual Token Break-even.
+
+**state**
+Qwen2.5-VL视觉token与路由决策；不改变生成状态
+
+Model outputs, benchmark annotations, interventions, and diagnostic measurements.
+
+**objective**
+测量decision overhead、shared work与真正可跳过的算子，而非只报告token/FLOPs
+
+Measure capability, calibration, robustness, faithfulness, or causal controllability.
+
+**decoding**
+比较pre-vision分辨率路由、post-vision静态剪枝与AR探针；原LLM照常AR回答
+
+Model-independent evaluation under controlled inference settings.
+
+**sharing**
+复用同一Qwen2.5-VL checkpoint；只改变决策位置与可避免计算
+
+Architecture-independent; keep evaluation inputs, budgets, and scoring procedures matched.
+
+**why**
+当前2×2 folding若发生在IBQ编码和projector之后，已经支付了tokenizer、视觉编码与merge决策成本，只节省Qwen后半段计算。若只报告序列长度或理论FLOPs，很容易高估Stage3方案的真实收益。
+
+It helps prevent improvements in one metric from hiding failures in OCR, grounding, dynamics, or closed-loop behavior.
+
+**inspiration**
+给Qwen3+IBQ建立stage timer：图像预处理、IBQ编码、fold/project、Qwen prefill、local head、自由生成与decoder分别同步计时，并在3090/A100类不同硬件上计算break-even。OCR区域还需单独检查分辨率下调的不可逆损失。
+
+Use the protocol across Qwen3 + IBQ, URSA, and ELF with fixed data, compute, and decoding budgets.
+
+**experiment**
+固定准确率下比较pre-tokenizer分辨率路由、tokenizer后2×2 fold、Qwen中层prune和完整输入；报告wall-clock、p50/p95、吞吐、显存、各stage占比、决策开销，以及TextVQA/ChartQA/OCRBench分组质量，不把token数当作延迟代理。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文公开；作者称profiling与routing代码将在终稿发布，当前未见完整仓库
+
+The original source is linked below; check it for the latest code and model availability.
+
+### TiTok: An Image is Worth 32 Tokens for Reconstruction and Generation
+
+2024-06-11 · 基础补读
+
+https://arxiv.org/abs/2406.07550
+
+
+https://github.com/bytedance/1d-tokenizer
+
+**summary**
+用Transformer与learned latent queries把二维图像压成极短的一维离散序列，最低仅32 tokens。它证明压缩视觉序列不必等同于固定2×2局部folding，但代价是失去TL/TR/BL/BR的直接空间slot语义。
+
+This resource studies how multimodal understanding and generation can share or coordinate visual representations under the TiTok design.
+
+**state**
+32/64/128个learned 1D discrete image tokens；不保持固定2D raster位置对应
+
+Discrete visual tokens, continuous visual features, or a hybrid representation; see the original source for the exact configuration.
+
+**objective**
+tokenizer重建/感知/对抗与VQ目标；下游masked clean-token CE
+
+Joint or coordinated understanding and generation objectives.
+
+**decoding**
+1D latent slots迭代并行unmask，再由Transformer decoder恢复图像
+
+Task-dependent autoregressive, diffusion, flow, or hybrid decoding.
+
+**sharing**
+tokenizer独立于LLM；可接AR或masked generator，但不与Qwen文本词表/输出head天然共享
+
+Audit tokenizer, embedding, vocabulary, Transformer, and output-head sharing separately.
+
+**why**
+当前2×2 folding只压缩Qwen位置并保留四个原始IBQ监督；TiTok从tokenizer层改变信息瓶颈。把两者分列能避免把“更短序列”误认为相同实验，并检验OCR/小目标需要局部网格还是全局latent query。
+
+It helps define which parts of a UMM should truly be shared and which interfaces should remain task-specific.
+
+**inspiration**
+在相同32/64/128 token预算下，对比局部IBQ folding与全局query tokenizer；为TiTok额外测字符位置、阅读顺序、细线和小目标恢复。若全局token理解强而OCR重建弱，可给少量OCR-aware局部anchor保留显式坐标。
+
+Use it to audit whether IBQ tokens carry bidirectionally usable concepts inside Qwen3, rather than treating shared parameters as sufficient evidence of unification.
+
+**experiment**
+固定Qwen3、图像数据、token预算、decoder容量和训练FLOPs，比较原IBQ网格、2×2 folding、TiTok-32/64/128与TiTok+OCR anchors。分别报告tokenizer-only NED/PSNR/LPIPS、OCRBench/DocVQA/TextVQA、生成文字OCR、T2I、延迟和显存。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文、项目页、官方代码、配置与模型均已公开
+
+The original source and an official code or project repository are linked below.
+
+### MDLM: Simple and Effective Masked Diffusion Language Models
+
+2024-06-11 · NeurIPS 2024基础补读
+
+https://arxiv.org/abs/2406.07524
+
+
+https://github.com/kuleshov-group/mdlm
+
+**summary**
+MDLM把离散diffusion化简为吸收MASK过程，并用SUBS参数化得到稳定的加权masked CE目标。它不需要在simplex中存连续概率，也不依赖token距离，是URSA metric path之前最标准、最容易复现的离散并行生成基线。
+
+This resource is indexed as an image-generation method centered on MDLM. It is useful for comparing state space, prediction targets, and decoding order.
+
+**state**
+离散token ID / one-hot；额外吸收态[MASK]
+
+Discrete image-token IDs, continuous embeddings, simplex states, or VAE latents depending on the method.
+
+**objective**
+SUBS参数化下的clean-token logits与加权masked CE；Rao-Blackwellized连续时间ELBO
+
+Clean-token CE, embedding regression, noise prediction, or velocity prediction depending on the method.
+
+**decoding**
+从全MASK开始，反复并行恢复并提交token；支持ancestral、缓存优化或semi-AR采样
+
+Autoregressive, iterative refinement, diffusion, flow, or hybrid decoding.
+
+**sharing**
+可完整复用IBQ vocabulary、embedding与K-way head；Qwen AR权重可初始化主干，但需改双向/block attention与mask训练
+
+Compare tokenizer, embedding, vocabulary, Transformer, and output-head sharing explicitly.
+
+**why**
+若URSA优于AR，必须知道收益来自全局迭代、metric-aware转移还是特定schedule。MDLM保留同一IBQ ID、embedding和visual head，只把前向过程换成随机mask，能单独测“并行去掩码”本身的贡献。
+
+It provides a controlled endpoint for separating the generation mechanism from tokenizer quality and backbone capacity.
+
+**inspiration**
+2×2 Stage3可把四个原始ID视为同一masked block：固定平均NFE，比较独立slot置信度提交、块内共同提交和OCR-aware提交。由于没有embedding几何，它还能检验IBQ code距离是否真的被URSA有效利用。
+
+Map the method onto Qwen3 + IBQ while keeping the tokenizer and data fixed, then measure whether gains come from the path, target, head, or sampling procedure.
+
+**experiment**
+固定Qwen3+IBQ、visual vocabulary、head、数据和NFE，比较AR、MDLM single-mask、URSA metric path与LLaDA式block masking；报告每slot准确率、block exact match、提交顺序、OCR/小目标保留、自由生成退化、全序列重复forward成本、吞吐和峰值显存。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文、项目页、训练代码与checkpoint已公开
+
+The original source and an official code or project repository are linked below.
+
+### VQ-VAE: Neural Discrete Representation Learning (VQ-VAE)
+
+2017-11-02 · v2 2018-05-30 · 基础补读
+
+https://arxiv.org/abs/1711.00937
+
+
+
+
+**summary**
+VQ-VAE把离散ID和解码向量的职责分开：上层prior预测索引，重建decoder读取codec codebook中的量化向量。这个接口是判断训练vision embeddings是否会破坏FLUX/X-Omni decoder的最基础依据。
+
+This resource studies how multimodal understanding and generation can share or coordinate visual representations under the VQ-VAE design.
+
+**state**
+encoder feature zₑ → 最近邻 codebook vector eₖ；离散ID k只是地址
+
+Discrete visual tokens, continuous visual features, or a hybrid representation; see the original source for the exact configuration.
+
+**objective**
+重建 + codebook + commitment；上层prior另学next-ID likelihood
+
+Joint or coordinated understanding and generation objectives.
+
+**decoding**
+生成ID网格 → codec内部E_codec[k]查表 → 固定decoder重建
+
+Task-dependent autoregressive, diffusion, flow, or hybrid decoding.
+
+**sharing**
+ID可与Qwen视觉词表对齐；Qwen输入embedding与codec embedding不必共享参数
+
+Audit tokenizer, embedding, vocabulary, Transformer, and output-head sharing separately.
+
+**why**
+你当前最需要确认的不是‘embedding能不能训练’，而是实际decode路径。若生成后调用tokenizer.decode(ids)，decoder会重新查冻结的E_codec；训练独立E_llm通常不会改变它。只有把E_llm向量直接喂给固定decoder，或错误地与E_codec绑权，才会产生表示漂移。
+
+It helps define which parts of a UMM should truly be shared and which interfaces should remain task-specific.
+
+**inspiration**
+把视觉ID视为共享地址，而不是强迫同一向量同时承担Qwen语义输入和像素重建。Qwen侧E_llm可以训练；codec侧E_codec与decoder保持冻结，并用显式适配器管理二者关系。
+
+Use it to audit whether IBQ tokens carry bidirectionally usable concepts inside Qwen3, rather than treating shared parameters as sufficient evidence of unification.
+
+**experiment**
+对同一ID网格做三路解码：A tokenizer.decode(ids)，B E_codec[ids]→decoder，C E_llm[ids]→decoder。A/B应数值一致；若C退化，只说明两套embedding空间不同，并不代表正常ID解码链路被破坏。同步记录重建FID/LPIPS、OCR CER与A/B最大误差。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文公开；原论文未维护单一官方训练仓库
+
+The original source is linked below; check it for the latest code and model availability.
+
+### IBQ: Scalable Image Tokenization with Index Backpropagation Quantization
+
+2024-12-03 · v2 2025-03-10 · ICCV 2025
+
+https://arxiv.org/abs/2412.02692
+
+
+https://github.com/tencentarc/seed-voken
+
+**summary**
+IBQ让所有codebook entries在每步都获得梯度，可扩展到2¹⁸词表并维持高利用率。它解释了为何IBQ训练阶段必须联合更新codec codebook，也同时说明下游UMM阶段不能无意中继续移动decoder所依赖的同一张表。
+
+This resource studies how multimodal understanding and generation can share or coordinate visual representations under the IBQ design.
+
+**state**
+可学习codec codebook + 离散ID；STE在one-hot categorical distribution上反传
+
+Discrete visual tokens, continuous visual features, or a hybrid representation; see the original source for the exact configuration.
+
+**objective**
+全codebook index backprop + 重建/感知/对抗tokenizer loss
+
+Joint or coordinated understanding and generation objectives.
+
+**decoding**
+ID → 训练完成的IBQ codec向量 → tokenizer decoder
+
+Task-dependent autoregressive, diffusion, flow, or hybrid decoding.
+
+**sharing**
+tokenizer训练时联合优化encoder/codebook；下游Qwen训练时应显式分离E_llm与冻结E_codec
+
+Audit tokenizer, embedding, vocabulary, Transformer, and output-head sharing separately.
+
+**why**
+这与你的Qwen3 + IBQ/X-Omni接口最直接相关。‘IBQ codebook可训练’成立于tokenizer联合训练；当FLUX/tokenizer decoder冻结后，继续更新其输入codebook会改变decoder看到的latent分布。
+
+It helps define which parts of a UMM should truly be shared and which interfaces should remain task-specific.
+
+**inspiration**
+保留两张以同一ID索引的表：冻结E_codec负责重建，E_llm由E_codec初始化或投影后服务理解/生成主干。只有计划联合微调decoder时，才把codec codebook加入训练参数。
+
+Use it to audit whether IBQ tokens carry bidirectionally usable concepts inside Qwen3, rather than treating shared parameters as sufficient evidence of unification.
+
+**experiment**
+比较①冻结E_codec、训练E_llm，②绑权E_llm=E_codec且冻结，③绑权并训练但冻结decoder，④codebook+decoder联合微调。报告||E_llm−P(E_codec)||、code usage/perplexity、tokenizer-only重建、OCRBench/DocVQA/TextVQA与T2I。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文与官方训练代码已公开
+
+The original source and an official code or project repository are linked below.
+
+### TokenFlow: TokenFlow: Unified Image Tokenizer for Multimodal Understanding and Generation
+
+2024-12-04 · v2 2025-08-07 · CVPR 2025
+
+https://arxiv.org/abs/2412.03069
+
+
+https://github.com/ByteVisionLab/TokenFlow
+
+**summary**
+TokenFlow用共享索引连接语义codebook和像素codebook，让同一个视觉token在理解时提供高层语义，在生成重建时提供低层细节，而不要求一个向量同时优化两个冲突目标。
+
+This resource studies how multimodal understanding and generation can share or coordinate visual representations under the TokenFlow design.
+
+**state**
+同一离散ID分别映射到semantic vector与pixel/reconstruction vector
+
+Discrete visual tokens, continuous visual features, or a hybrid representation; see the original source for the exact configuration.
+
+**objective**
+语义蒸馏/对齐 + 像素重建；两套表示以共享索引耦合
+
+Joint or coordinated understanding and generation objectives.
+
+**decoding**
+Qwen读取E_sem[id]；图像decoder读取E_pix[id]
+
+Task-dependent autoregressive, diffusion, flow, or hybrid decoding.
+
+**sharing**
+共享ID、token顺序和语义对应；不强制共享embedding参数或输出head
+
+Audit tokenizer, embedding, vocabulary, Transformer, and output-head sharing separately.
+
+**why**
+它给出了你当前接口问题最干净的架构答案：ID统一不等于embedding绑权。E_llm和E_codec可以按同一ID对齐，但decoder只读取像素表，Qwen只读取语义表。
+
+It helps define which parts of a UMM should truly be shared and which interfaces should remain task-specific.
+
+**inspiration**
+无需立即重训X-Omni tokenizer；先保留冻结pixel codebook/decoder，在Qwen侧训练semantic embedding或semantic adapter，并加入同ID对齐、邻域保持和OCR区域加权监督。
+
+Use it to audit whether IBQ tokens carry bidirectionally usable concepts inside Qwen3, rather than treating shared parameters as sufficient evidence of unification.
+
+**experiment**
+固定ID、decoder、Qwen3与数据，比较单表绑权、单表冻结+MLP、双表共享ID、双表+语义蒸馏。共同测A/B解码一致性、重建、OCR/DocVQA/TextVQA、T2I、梯度cosine与额外显存。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文与官方代码已公开
+
+The original source and an official code or project repository are linked below.
+
+### WinTok: WinTok: A Win-Win Hybrid Tokenizer via Decomposing Visual Understanding and Generation with Transferable Tokens
+
+2026-05-18 · ECCV 2026
+
+https://arxiv.org/abs/2605.18115
+
+
+https://github.com/markywg/WinTok
+
+**summary**
+WinTok不建立两套完整tokenizer，而是在可解码pixel tokens旁增加少量可迁移semantic tokens，以非对称蒸馏增强理解，同时保留像素生成质量。
+
+This resource studies how multimodal understanding and generation can share or coordinate visual representations under the WinTok design.
+
+**state**
+可解码pixel tokens与从视觉基础模型蒸馏的semantic tokens并存
+
+Discrete visual tokens, continuous visual features, or a hybrid representation; see the original source for the exact configuration.
+
+**objective**
+像素重建 + 非对称语义蒸馏；避免两个目标争用同一latent容量
+
+Joint or coordinated understanding and generation objectives.
+
+**decoding**
+decoder只读取pixel tokens；MLLM读取semantic tokens并可结合pixel context
+
+Task-dependent autoregressive, diffusion, flow, or hybrid decoding.
+
+**sharing**
+共享图像与上层主干接口，但pixel/semantic token角色与参数分离
+
+Audit tokenizer, embedding, vocabulary, Transformer, and output-head sharing separately.
+
+**why**
+这是比直接训练decoder codebook更低风险的X-Omni改造：保持IBQ pixel ID和FLUX decoder契约不动，把Qwen需要的语义容量放到额外tokens或adapter。
+
+It helps define which parts of a UMM should truly be shared and which interfaces should remain task-specific.
+
+**inspiration**
+OCR/DocVQA可让semantic tokens负责文字、布局和对象证据，原始IBQ tokens继续承担精确重建；Stage 3仍预测原始ID，不必让四个2×2 slot共用一套被语义训练拉动的codec向量。
+
+Use it to audit whether IBQ tokens carry bidirectionally usable concepts inside Qwen3, rather than treating shared parameters as sufficient evidence of unification.
+
+**experiment**
+固定codec/decoder和总视觉token预算，比较raw IBQ、E_llm可训练、额外4/16/64 semantic tokens、TokenFlow式双表。按tokenizer-only重建、OCR、VQA、T2I、slot exact match、吞吐和显存画Pareto曲线。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文、官方代码与模型入口已公开
+
+The original source and an official code or project repository are linked below.
+
+### Entry Point UMM: Where a New Concept Must Enter: Entry Point Gates Cross-Task Usability in Unified Multimodal Models
+
+2026-08-18
+
+https://arxiv.org/abs/2608.17564
+
+
+https://github.com/Zane-ZYQiu/entry-point-umm
+
+**summary**
+作者把新视觉概念只通过理解或生成一侧注入，再测另一侧是否获得该概念，从而消除联合数据重叠的混杂。36 组配置显示跨任务可用性由概念进入共享栈的位置决定；理解训练得到的概念更容易被生成侧主动调用，而仅共享权重并不能保证迁移。
+
+This resource studies how multimodal understanding and generation can share or coordinate visual representations under the Entry Point UMM design.
+
+**state**
+理解侧 semantic vision feature、生成侧视觉 latent 与共享 Transformer 中层 activation
+
+Discrete visual tokens, continuous visual features, or a hybrid representation; see the original source for the exact configuration.
+
+**objective**
+单向 concept binding；冻结权重的 activation alignment 或 mid-stack weight alignment
+
+Joint or coordinated understanding and generation objectives.
+
+**decoding**
+沿用原 UMM 理解/生成出口；只改变概念进入共享计算的层与语义格式
+
+Task-dependent autoregressive, diffusion, flow, or hybrid decoding.
+
+**sharing**
+共享权重并不足够；跨任务导出依赖入口处是否共享 semantic format 与中层对齐窗口
+
+Audit tokenizer, embedding, vocabulary, Transformer, and output-head sharing separately.
+
+**why**
+它把你当前最容易含混的判断变成了可证伪实验：Qwen3、IBQ 和生成 head 共享参数，并不等于 OCR/对象概念能从理解侧流入 URSA/ELF。论文还说明错误可能不在生成范式，而在视觉表示进入 Qwen 时尚未具有可共享的语义格式。
+
+It helps define which parts of a UMM should truly be shared and which interfaces should remain task-specific.
+
+**inspiration**
+对文字、目标类别、颜色和威胁事件各训练一个单向概念绑定，逐层测理解→生成与生成→理解的 alignment probe；若窗口只在 semantic IBQ/TokLIP 分支出现，就应优先改入口 adapter 或中层对齐，而不是继续扩大共享 FFN。
+
+Use it to audit whether IBQ tokens carry bidirectionally usable concepts inside Qwen3, rather than treating shared parameters as sufficient evidence of unification.
+
+**experiment**
+固定 Qwen3、IBQ、训练样本和更新参数量，只比较 raw IBQ 入口、semantic adapter、TokLIP 式 encoder 与 layer 7/10/14 mid-stack alignment。分别做 OCR-understanding-only 与 text-rendering-only 注入，报告双向 concept export、OCRBench/DocVQA/TextVQA、生成文字 OCR、通用 T2I 退化和每层 probe 相关。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文、完整实验代码与评测结果已公开
+
+The original source and an official code or project repository are linked below.
+
+### Block Diffusion: Block Diffusion: Interpolating Between Autoregressive and Diffusion Language Models
+
+v3 · 2025-05-17 · ICLR 2025 Oral
+
+https://arxiv.org/abs/2503.09573
+
+https://m-arriola.com/bd3lms/
+https://github.com/kuleshov-group/bd3lms
+
+**summary**
+原始 Block Diffusion 给出了昨日 Block3D 的语言建模基础：把联合分布分解到 block 级，历史 block 保持严格因果，当前 block 用离散 diffusion 联合恢复。它支持任意长度、KV Cache 与并行 token 采样，并用数据驱动 schedule 改善训练方差。
+
+This resource is indexed as an image-generation method centered on Block Diffusion. It is useful for comparing state space, prediction targets, and decoding order.
+
+**state**
+离散 token ID；当前 block 由 [MASK]/已恢复 ID 构成
+
+Discrete image-token IDs, continuous embeddings, simplex states, or VAE latents depending on the method.
+
+**objective**
+离散 denoising clean-token CE；数据驱动 noise schedule 降低梯度方差
+
+Clean-token CE, embedding regression, noise prediction, or velocity prediction depending on the method.
+
+**decoding**
+block 间左到右并复用 KV Cache；block 内并行迭代去掩码
+
+Autoregressive, iterative refinement, diffusion, flow, or hybrid decoding.
+
+**sharing**
+可从标准 AR/LLM 权重初始化；共享 Transformer、embedding、vocabulary 与 LM head
+
+Compare tokenizer, embedding, vocabulary, Transformer, and output-head sharing explicitly.
+
+**why**
+它是当前 2×2 Stage 3 最干净的理论端点：并行 4×K 忽略四槽位相关性，local AR 必须串行四次，而 block diffusion 让 TL/TR/BL/BR 并行但相关地修正。它与 URSA 都预测 clean ID；区别是 URSA 每步更新整张图，Block Diffusion 只更新当前 block。
+
+It provides a controlled endpoint for separating the generation mechanism from tokenizer quality and backbone capacity.
+
+**inspiration**
+让 Qwen3 的上一个 merged hidden 预测下一 2×2 block，四个 slot 先置为 mask，再用共享 K-way head 与双向 local attention 恢复四个原始 IBQ ID。这样不创建 merged ID、不改 decoder contract，也能直接继承 AR/LLM 权重与全局 KV Cache。
+
+Map the method onto Qwen3 + IBQ while keeping the tokenizer and data fixed, then measure whether gains come from the path, target, head, or sampling procedure.
+
+**experiment**
+固定 Qwen3、IBQ、2×2 folding、数据、参数量与训练 FLOPs，比较并行4×K、两层local AR、四槽位URSA和Block Diffusion；扫描block size 4/16与2/4/8次块内调用，报告slot accuracy、block exact match、邻接共现、free-running gap、code coverage、OCRBench、GenEval、延迟与显存。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文、项目页、训练/推理代码与 Hugging Face 权重已公开
+
+The original source and an official code or project repository are linked below.
+
+### D3PM: Structured Denoising Diffusion Models in Discrete State-Spaces
+
+v1 2021-07-07 · NeurIPS 2021
+
+https://arxiv.org/abs/2107.03006
+
+
+
+
+**summary**
+D3PM 是离散 diffusion 的核心起点：它把前向过程写成结构化 categorical transition matrix，并系统比较 uniform、absorbing mask、离散 Gaussian 与 embedding-nearest-neighbor corruption；训练使用 VLB 与辅助 CE。
+
+This resource is indexed as an image-generation method centered on D3PM. It is useful for comparing state space, prediction targets, and decoding order.
+
+**state**
+离散 token ID / one-hot categorical state；每步由转移矩阵 Qₜ 定义 corruption
+
+Discrete image-token IDs, continuous embeddings, simplex states, or VAE latents depending on the method.
+
+**objective**
+reverse categorical distribution 或 clean-token x₀；variational lower bound + auxiliary cross-entropy
+
+Clean-token CE, embedding regression, noise prediction, or velocity prediction depending on the method.
+
+**decoding**
+从 uniform、absorbing MASK 或其他先验出发，按反向 Markov 链全序列迭代采样
+
+Autoregressive, iterative refinement, diffusion, flow, or hybrid decoding.
+
+**sharing**
+可复用离散词表、embedding 与 Transformer；原工作不依赖 AR 初始化，attention 与采样器需改为双向迭代
+
+Compare tokenizer, embedding, vocabulary, Transformer, and output-head sharing explicitly.
+
+**why**
+URSA 的优势不能只归因于‘离散 diffusion’。D3PM 说明真正可控的变量是 Qₜ 的几何：uniform 会忽略 IBQ code 间距离，MASK 不引入假邻居，embedding-kNN 又依赖 code 空间是否语义/像素有效。它是检验 URSA metric path 增益来源的最干净基础。
+
+It provides a controlled endpoint for separating the generation mechanism from tokenizer quality and backbone capacity.
+
+**inspiration**
+在同一 Qwen3+IBQ 上只替换 forward kernel：uniform、absorbing MASK、codec-embedding kNN、Qwen-embedding kNN 与 URSA metric path；所有方法都恢复原始 IBQ ID，并保持同一个 K-way head、solver 调用数与 decoder contract。
+
+Map the method onto Qwen3 + IBQ while keeping the tokenizer and data fixed, then measure whether gains come from the path, target, head, or sampling procedure.
+
+**experiment**
+固定 IBQ、Qwen3、训练样本、参数量、NFE 与 clean-token head，对五种 Qₜ 报告 corruption 后最近邻语义/像素一致性、slot accuracy、block exact match、code coverage、OCRBench、TextVQA、GenEval、吞吐、显存和梯度方差；先判断 path，再判断 head。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文与 NeurIPS 版本已公开；截至收录日未发现作者维护的官方代码仓库
+
+The original source is linked below; check it for the latest code and model availability.
+
+### SEDD: Discrete Diffusion Modeling by Estimating the Ratios of the Data Distribution
+
+v3 2024-06-06 · ICML 2024 Oral
+
+https://arxiv.org/abs/2310.16834
+
+
+https://github.com/louaaron/Score-Entropy-Discrete-Diffusion
+
+**summary**
+SEDD 不直接预测 clean token，而是学习离散分布之间的概率比，用 score-entropy 把连续 score model 的思想推广到 categorical CTMC。论文在语言建模上显著缩小与 AR 的差距，并展示相近质量下更少的函数调用。
+
+This resource is indexed as an image-generation method centered on SEDD. It is useful for comparing state space, prediction targets, and decoding order.
+
+**state**
+离散 token ID 的连续时间 Markov chain；支持 uniform 或 absorbing corruption
+
+Discrete image-token IDs, continuous embeddings, simplex states, or VAE latents depending on the method.
+
+**objective**
+估计数据分布的 concrete score ratios，以 score-entropy loss 训练正值 ratio field
+
+Clean-token CE, embedding regression, noise prediction, or velocity prediction depending on the method.
+
+**decoding**
+根据 learned ratios 构造 reverse CTMC jump rates，全序列并行迭代采样
+
+Autoregressive, iterative refinement, diffusion, flow, or hybrid decoding.
+
+**sharing**
+可共享 tokenizer、embedding 与 Transformer；ratio parameterization 不等同标准 LM logits/CE，输出约束与 sampler 需专门实现
+
+Compare tokenizer, embedding, vocabulary, Transformer, and output-head sharing explicitly.
+
+**why**
+它提供了一个常被遗漏的控制轴：URSA、D3PM/MDLM 多使用 clean-token CE，而 SEDD 学的是 ratio field。若相同 IBQ path 下 SEDD 改善稀有 code 与自由生成覆盖率，palette collapse 可能来自目标参数化，而不只是 schedule 或 local decoder。
+
+It provides a controlled endpoint for separating the generation mechanism from tokenizer quality and backbone capacity.
+
+**inspiration**
+为 64K IBQ 先做小词表/高频簇实验，避免 ratio head 的 K 维开销直接淹没结论；比较共享 softmax logits 转 ratio、独立正值 ratio head与 URSA clean-token head，并审计低频 OCR/glyph code 的梯度和校准。
+
+Map the method onto Qwen3 + IBQ while keeping the tokenizer and data fixed, then measure whether gains come from the path, target, head, or sampling procedure.
+
+**experiment**
+固定 Qwen3、IBQ、uniform/absorbing path、数据、NFE 与参数预算，只比较 clean-token CE、reverse posterior KL 和 score-entropy ratio。报告 token-frequency 分桶准确率、ratio calibration、code coverage、top-code concentration、OCRBench、生成文字 OCR、GenEval、训练稳定性、logits 显存与真实延迟。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文、ICML Oral、MIT 许可官方代码与预训练 checkpoints 已公开
+
+The original source and an official code or project repository are linked below.
+
+### Discrete Flow Matching: Discrete Flow Matching
+
+v2 2024-11-05 · NeurIPS 2024
+
+https://arxiv.org/abs/2407.15595
+
+
+
+
+**summary**
+Discrete Flow Matching 将离散 diffusion 统一为 source-to-data 的 categorical probability path，并给出从 x-prediction 或 ε-prediction posterior 构造 jump rate 的通用公式；不同 scheduler 可在不改变状态与主干时显著影响质量。
+
+This resource is indexed as an image-generation method centered on Discrete Flow Matching. It is useful for comparing state space, prediction targets, and decoding order.
+
+**state**
+离散 token ID / categorical simplex；source 与 data 之间定义一般概率路径
+
+Discrete image-token IDs, continuous embeddings, simplex states, or VAE latents depending on the method.
+
+**objective**
+learned posterior 可采用 clean-token x-prediction 或 noise ε-prediction，再转换为离散 transition velocity/jump rate
+
+Clean-token CE, embedding regression, noise prediction, or velocity prediction depending on the method.
+
+**decoding**
+非 AR 全序列 CTMC 迭代；scheduler 控制 source→target 的概率运输速度与提交顺序
+
+Autoregressive, iterative refinement, diffusion, flow, or hybrid decoding.
+
+**sharing**
+x-pred 可复用 LLM vocabulary、embedding 与 K-way head并从 AR 权重初始化；需切换双向 attention 与离散 flow sampler
+
+Compare tokenizer, embedding, vocabulary, Transformer, and output-head sharing explicitly.
+
+**why**
+它解释了 URSA 与 ELF 中‘Flow’一词的本质差别：DFM 的速度是类别间概率跳转率，ELF 的 velocity 位于连续 embedding 欧氏空间；URSA 则可视为对 IBQ 几何定制的离散 path。三者不能仅按 NFE 或模型名字比较。
+
+It provides a controlled endpoint for separating the generation mechanism from tokenizer quality and backbone capacity.
+
+**inspiration**
+把 URSA 重写成 DFM 坐标：明确 source、probability path、posterior parameterization、scheduler 与 solver。随后在同一 IBQ ID、同一 Qwen3、同一 x-pred head 上比较 generic DFM 与 URSA metric path，避免把 tokenizer 或目标函数同时换掉。
+
+Map the method onto Qwen3 + IBQ while keeping the tokenizer and data fixed, then measure whether gains come from the path, target, head, or sampling procedure.
+
+**experiment**
+固定 Qwen3、IBQ、双向 attention、x-pred head、训练数据与 NFE，比较 linear/cosine DFM、absorbing DFM、URSA metric path；再在最佳 path 上切换 x-pred 与 ε-pred。报告 ELBO/CE、code coverage、OCR/细粒度理解、GenEval、采样步数、吞吐、峰值显存和 AR 初始化后的收敛速度。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文与 NeurIPS 版本已公开；截至收录日未发现论文作者提供的专用官方实现
+
+The original source is linked below; check it for the latest code and model availability.
+
+### MAGE: MAGE: MAsked Generative Encoder to Unify Representation Learning and Image Synthesis
+
+2022-11-16 · CVPR 2023
+
+https://arxiv.org/abs/2211.09117
+
+
+https://github.com/LTH14/mage
+
+**summary**
+MAGE 用一个可变 mask ratio 的 ViT 同时学习图像表征与生成：mask 少时可从可见 token 提取语义，mask 多时必须从极少条件恢复整图；附加 contrastive loss 后进一步改善线性探测，同时保留生成能力。
+
+This resource studies how multimodal understanding and generation can share or coordinate visual representations under the MAGE design.
+
+**state**
+VQGAN 离散 image token ID + [MASK]；同一序列在不同 mask ratio 下承担理解与生成
+
+Discrete visual tokens, continuous visual features, or a hybrid representation; see the original source for the exact configuration.
+
+**objective**
+masked clean-token CE + 可选对比表征损失；无需连续 noise/velocity
+
+Joint or coordinated understanding and generation objectives.
+
+**decoding**
+高 mask ratio/全 mask 时迭代生成；低 mask ratio 时作为编码器抽取全局表征
+
+Task-dependent autoregressive, diffusion, flow, or hybrid decoding.
+
+**sharing**
+共享图像 tokenizer、ViT、embedding 与 image head；不共享文本词表，也不是完整 LLM/UMM
+
+Audit tokenizer, embedding, vocabulary, Transformer, and output-head sharing separately.
+
+**why**
+它是‘统一理解—生成’最小可控原型：共享主干是否有效，关键不只在共享权重，还在 corruption 强度如何分配任务。对 Qwen3+IBQ，理解 batch 与生成 batch 可以共享 token/head，却采用不同 mask 分布，而不必马上引入 ELF 连续流。
+
+It helps define which parts of a UMM should truly be shared and which interfaces should remain task-specific.
+
+**inspiration**
+让 OCR/DocVQA 使用低到中 mask ratio，并保护文字/小目标 1×1 token；T2I 使用高 ratio 或全 mask。比较单一 ratio、task-conditioned ratio 与 MAGE 式宽分布，检查生成训练是否提升视觉语义，还是破坏 glyph 和位置证据。
+
+Use it to audit whether IBQ tokens carry bidirectionally usable concepts inside Qwen3, rather than treating shared parameters as sufficient evidence of unification.
+
+**experiment**
+固定 Qwen3、IBQ、共享 K-way head、数据与总 FLOPs，比较纯理解 CE、纯高-mask 生成、MAGE 可变 ratio、MAGE+contrastive/OCR alignment。报告 OCRBench/DocVQA/TextVQA、linear probe、GenEval、生成文字 OCR、code coverage、双向 concept export、NFE、吞吐与显存。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文、CVPR 版本、Apache-2.0 官方训练/评测代码与 checkpoints 已公开
+
+The original source and an official code or project repository are linked below.
+
+### MTAR: Efficient Training with Foresight: Multi-Token Auxiliary Supervision for Autoregressive Image Generation
+
+2026-08-26 · ACM MM 2026
+
+https://arxiv.org/abs/2608.25386
+
+
+
+
+**summary**
+MTAR把AR图像训练的稀疏监督拆成三个可控部件：多未来token监督扩大每个hidden的学习信号，token级对比正则增强视觉ID可分性，semantic dropping跳过低信息位置。相对LlamaGen最高改善0.95 FID、训练加速39%，仅用三分之一迭代也可匹配或超过基线。
+
+MTAR densifies supervision for autoregressive image generation with multi-token future prediction, token-level contrastive regularization, and semantic dropping. It reports up to a 0.95 FID improvement over LlamaGen, 39% faster training, and competitive quality with roughly one third of the training iterations.
+
+**state**
+VQ离散视觉token ID；主干仍按raster顺序读取clean prefix，训练期额外预测多个future IDs
+
+Discrete VQ/IBQ token IDs; clean prefixes with auxiliary prediction of multiple future IDs during training.
+
+**objective**
+next-token CE + multi-token future CE + token-level contrastive regularization；semantic dropping减少低信息token计算
+
+Next-token CE + multi-token future CE + token-level contrastive regularization.
+
+**decoding**
+推理保持原始LlamaGen式严格左到右AR与KV Cache；MTP/TCR/SD均只在训练期使用
+
+Unchanged left-to-right AR decoding with KV cache; all auxiliary branches are training-only.
+
+**sharing**
+可直接接Qwen3+IBQ的共享视觉词表、embedding与K-way head；不要求改URSA/ELF tokenizer或FLUX decoder
+
+Compatible with a shared Qwen3 backbone, IBQ vocabulary, embeddings, and K-way image head.
+
+**why**
+它比继续更换Stage 3 Linear、GRU或local Transformer更接近当前‘loss慢降、code palette窄’的训练根因：一个merged hidden可能不是没有容量，而是只收到一个next-ID梯度，且低频code表征没有被拉开。
+
+This is a direct test of whether the current narrow IBQ code palette comes from insufficient training signal rather than an underpowered Stage-3 head. The inference path remains standard autoregressive decoding, so the comparison introduces little architectural confounding.
+
+**inspiration**
+在2×2 Stage 3中，让block hidden同时预测当前四槽和后续1–2个block，但主AR head与推理解码完全不变；再用同batch真实IBQ ID做frequency-balanced contrastive regularization。这样可先测试监督密度和表征可分性，而不引入URSA/ELF的path与NFE混杂。
+
+Let each 2×2 merged hidden state predict the four current slots plus one or two future blocks during training, while preserving the original main AR head at inference. Add frequency-balanced token contrastive regularization to improve rare-code separability.
+
+**experiment**
+固定Qwen3、IBQ、2×2 folding、主AR head、数据、训练FLOPs与推理解码，做NTP、NTP+4-slot MTP、+TCR、+semantic dropping四组；报告slot/block准确率、低频ID分桶准确率、code coverage、每图unique IDs、teacher/free-running gap、GenEval、生成文字OCR、训练samples-to-quality与推理吞吐。
+
+Fix Qwen3, IBQ, 2×2 folding, the main AR head, data, training FLOPs, and inference decoding. Compare NTP, NTP + four-slot MTP, + token contrastive regularization, and + semantic dropping. Report slot/block accuracy, rare-ID accuracy, code coverage, per-image unique IDs, teacher/free-running gap, GenEval, generated-text OCR, samples-to-quality, and throughput.
+
+**open**
+论文与ACM MM 2026接收信息已公开；截至收录日未发现作者官方代码、权重或项目页
+
+Paper and ACM MM 2026 acceptance are public; no official code or weights were found at indexing time.
+
+### Alignment Illusion: The Alignment Illusion in Multimodal Large Language Models
+
+2026-09-24 · NeurIPS 2026
+
+https://arxiv.org/abs/2609.30210
+
+
+
+
+**summary**
+该工作在13个、0.5B–72B的MLLM上把projector输出视觉token替换为Gaussian noise：任务准确率显著下降，但CKA、SVCCA、MIR和首主角余弦常无法区分。作者把假象归因于共享LLM的各向异性MLP下投影，并提出top-two主角余弦差PA gap作为更敏感诊断。
+
+Across 13 MLLMs from 0.5B to 72B, replacing projector-output visual tokens with Gaussian noise sharply reduces accuracy while CKA, SVCCA, MIR, and the leading principal-angle cosine often fail to separate the corrupted stream. The paper traces this illusion to anisotropic MLP down-projections in the shared LLM and proposes the top-two principal-angle gap as a more sensitive diagnostic.
+
+**state**
+MLLM逐层视觉/文本hidden、projector输出，以及经Gaussian noise或无关图像替换的受控视觉流
+
+Layer-wise visual/text states and projector outputs under Gaussian-noise or structured irrelevant-image interventions.
+
+**objective**
+不训练生成器；比较CKA、SVCCA、MIR、首主角余弦与top-two principal-angle gap对内容破坏的敏感性
+
+No generation training; compare common scalar alignment scores with the gap between the top two principal-angle cosines.
+
+**decoding**
+保持原MLLM推理，只替换视觉token并同步观察任务准确率和层间几何指标
+
+Preserve base MLLM inference while replacing visual tokens and measuring both task accuracy and internal geometry.
+
+**sharing**
+诊断共享LLM路径是否制造伪对齐；把权重诱导的一维共同方向与多方向视觉内容结构分开
+
+Diagnoses whether the shared LLM pathway creates weight-induced pseudo-alignment, separating one-dimensional common directions from multidirectional visual content.
+
+**why**
+这直接约束Qwen3+IBQ的‘语义对齐’结论：逐层相似度升高可能只是共享权重把两种token压到同一主方向，并不证明OCR、对象或威胁概念真正互通。
+
+It constrains semantic-alignment claims in Qwen3 + IBQ: rising layer-wise similarity may reflect shared weights collapsing both modalities toward one direction, not usable OCR, object, or threat concepts.
+
+**inspiration**
+在raw IBQ、semantic adapter与2×2 merged hidden上同时做noise replacement、同布局无关图、OCR替换和对象交换；只有指标随任务能力和干预强度一致变化，才能称为内容级对齐。
+
+Apply noise replacement, layout-matched irrelevant images, OCR swaps, and object swaps to raw IBQ tokens, semantic adapters, and 2×2 merged states. Call alignment content-level only when the metric follows capability and intervention strength.
+
+**experiment**
+固定Qwen3、IBQ、数据与层位，比较CKA/SVCCA/MIR、首主角余弦、PA gap与linear probe；扫描visual corruption强度并报告OCRBench、DocVQA、TextVQA、多帧威胁AUPRC、逐层指标、因果恢复率和随机方向对照。
+
+Fix Qwen3, IBQ, data, and layer positions. Compare CKA, SVCCA, MIR, leading-angle cosine, PA gap, and linear probes while sweeping visual corruption. Report OCRBench, DocVQA, TextVQA, multi-frame threat AUPRC, layer-wise metrics, causal recovery, and random-direction controls.
+
+**open**
+论文已公开并被NeurIPS 2026接收；截至收录日未发现官方代码或项目页
+
+The NeurIPS 2026 paper is public; no official code or project page was found at indexing time.
+
+### Knowledge Transfer Probing: Can Visual Generation Expand What Unified Multimodal Models Know?
+
+2026-10-15 · v1 · curated 2026-10-19
+
+https://arxiv.org/abs/2610.21459
+
+https://kevinlllee.github.io/Knowledge-Transfer-Probing/
+https://github.com/kevinlllee/Knowledge-Transfer-Probing
+
+**summary**
+KTP把虚构实体的属性只放在生成训练图像中，从caption移除答案，再用无输入图像的纯文本QA测知识转移。跨三类UMM，视觉可生成性与语言可调用性之间仍有差距；部分实体的交错图文对齐能改善其他未接受QA监督实体的知识访问。
+
+KTP hides fictional attributes from captions, teaches them only through generation targets, and probes text-only recall. Visual reproduction and linguistic access remain separated; interleaved alignment on some entities helps access knowledge about others.
+
+**state**
+诊断协议本身不指定生成状态；被测模型包含离散视觉ID、VAE latent和直接像素路线，不能将三模型差异归因于单一范式。
+
+A diagnostic protocol, not a new generative state; tested systems span discrete IDs, VAE latents, and direct pixels.
+
+**objective**
+保留各模型原T2I目标，增加实体子集的text QA或交错图文监督；不提出新的forward corruption或clean/noise/velocity目标。
+
+Retain each T2I objective; add textual or interleaved supervision for selected entities. No new corruption process or clean/noise/velocity parameterization.
+
+**decoding**
+测试主体为一次纯文本QA，不插入生成图像；visual accessibility另走各自原生成器。训练步数、NFE、AR初始化和显存须按底座分别核算，不是等预算生成器排名。
+
+Main evaluation uses text-only QA without an intermediate generated image. Visual access uses each original sampler. Account for training steps, NFE, initialization, and memory separately; this is not a compute-matched generator ranking.
+
+**sharing**
+比较的是共享知识的可调用性而非强制tokenizer/embedding/vocabulary/head绑权。AR、URSA与ELF可使用相同KTP协议公平评测，但需固定视觉数据与对齐预算。
+
+Tests callable knowledge rather than enforced tokenizer, embedding, vocabulary, Transformer, or head tying. Apply the same protocol to AR/URSA/ELF with matched supervision budgets.
+
+**why**
+它直接检验Qwen3+IBQ‘理解生成统一’是否真实成立，比共享Transformer或CKA升高更有辨别力；GLM-Omni采用X-Omni式离散token，另含MoT与NEO-unify端点，与你的AR/URSA/ELF比较高度相关。建议精读任务构造与信息隔离。
+
+This is a direct audit of Qwen3 + IBQ unification, stronger than shared weights or CKA alone. Its model set includes an X-Omni-style discrete tokenizer, MoT, and NEO-unify. Deep-read the information-isolation protocol.
+
+**inspiration**
+把OCR字符、牌号、对象身份及风险关系设计成仅视觉监督可见的虚构知识，分别测‘能画出’、‘能读出’、‘能在纯文本回忆’。这是对当前实验的迁移建议，不是论文已证明IBQ或ELF会改善知识转移。
+
+Proposed adaptation: teach synthetic glyphs, identity tags, and risk relations only visually, then separate drawing, reading, and text-only recall. This is a hypothesis for IBQ/URSA/ELF, not an established result.
+
+**experiment**
+固定Qwen3、IBQ、数据实体、参数量与FLOPs，比较AR/URSA/ELF×无对齐/纯文本对齐/交错图文对齐。alignment与test按实体隔离，答案不得出现在caption。报告visual/text accessibility gap、生成文字OCR、OCRBench/DocVQA/TextVQA及通用T2I退化；QA模板控制相同。
+
+Fix Qwen3, IBQ, entities, parameters, and FLOPs. Cross AR/URSA/ELF with no, textual, or interleaved alignment. Split alignment/test entities and prevent caption leakage. Report visual/text access gap, generated-text OCR, OCRBench, DocVQA, TextVQA, and general T2I regression under matched QA templates.
+
+**open**
+已核对官方项目页与仓库：训练/评测JSONL、图像包与scoring scripts公开；不等于三套完整训练代码、数据配方与新checkpoint全部开放。
+
+Official repository exposes data JSONL, image archives, and scoring scripts. This does not establish full training code or new checkpoints for all three models.
+
+### Cross-Modal Forgetting: Cross-Modal Forgetting and Transfer in Unified Multimodal Post-Training
+
+2026-10-05 · v1 · curated 2026-10-20
+
+https://arxiv.org/abs/2610.23918
+
+
+https://github.com/kaj04/multimodal-peft
+
+**summary**
+论文在Janus-Pro-7B上按文本与图像能力连续做LoRA后训练。单次适配看似安全，但串联三次会摧毁前一轮新学能力，并使通用文本困惑度上升一到两个数量级；仅约束当前模态head的KL不足以保护另一head。
+
+Sequential LoRA post-training on Janus-Pro-7B looks safe after one run but can erase the capability learned one run earlier and raise general-text perplexity by one to two orders of magnitude after a three-run chain. A KL constraint on only the trained head leaves the other head exposed.
+
+**state**
+Janus-Pro使用理解侧SigLIP连续feature与生成侧VQ离散ID；共享7B Transformer但视觉encoder、tokenizer与输出head分开。
+
+Janus-Pro uses continuous SigLIP understanding features and discrete VQ generation IDs with one shared 7B Transformer but separate visual encoders, tokenizers, and output heads.
+
+**objective**
+目标能力用CE后训练；可选对冻结参考模型的文本或图像head logits做KL锚定。无新forward corruption、noise或velocity目标。
+
+CE adaptation plus optional KL from current text or image-head logits to a frozen reference; no new corruption, noise, or velocity target.
+
+**decoding**
+理解与文本沿原AR解码，图像沿原VQ-token AR解码；研究变量是顺序LoRA适配，不改变采样步数。代码说明实验需单张80GB GPU，链式实验使用H100与100GB主存。
+
+Original AR text/understanding and VQ-image decoding are unchanged. The variable is sequential LoRA adaptation. The repository states one 80 GB GPU is required, with chained runs using an H100 and 100 GB host memory.
+
+**sharing**
+共享Transformer并未带来自动跨模态迁移；Welsh文本学习仅弥合约3%的英—威图像生成差距。公平对照需逐项声明tokenizer、embedding、Transformer与head是否共享。
+
+A shared Transformer does not guarantee transfer: Welsh text learning closed only about 3% of the English-Welsh image-generation gap. Audit tokenizer, embeddings, Transformer, and heads separately.
+
+**why**
+Qwen3+IBQ从理解、OCR、T2I到ELF继续训练时，‘单阶段没掉点’不能证明配方安全。它给出了一套比只看最终平均分更严格的顺序适配审计，特别适合检查URSA→ELF切换后的隐性遗忘。
+
+A single stable checkpoint does not validate a Qwen3 + IBQ post-training recipe. This provides a stricter audit for the understanding-to-URSA-to-ELF sequence and its hidden cross-head regressions.
+
+**inspiration**
+每个阶段保存独立能力快照，并同时锚定文本head、视觉ID head和连续Flow head；再用OCRBench/DocVQA/TextVQA、生成文字OCR与T2I共同检查跨head漂移。论文结论来自Janus-Pro，迁移到Qwen3+IBQ仍需实证。
+
+Snapshot every capability after each stage and anchor text, visual-ID, and continuous-Flow heads together. Transfer from Janus-Pro to Qwen3 + IBQ remains a hypothesis that must be tested.
+
+**experiment**
+固定Qwen3、IBQ、LoRA rank、数据量和每阶段FLOPs，依次训练OCR理解→URSA图像生成→ELF连续生成。比较无锚定、当前head KL、所有旧head KL与少量replay；每阶段及最终报告旧/新任务、head-logit KL、权重变化、code coverage、GenEval、OCRBench和生成文字CER。
+
+Fix Qwen3, IBQ, LoRA rank, samples, and per-stage FLOPs. Train OCR understanding, URSA generation, then ELF generation. Compare no anchor, current-head KL, all-old-head KL, and small replay. After every stage report old/new tasks, head-logit KL, weight change, code coverage, GenEval, OCRBench, and generated-text CER.
+
+**open**
+论文、完整训练/评测脚本与表格映射已公开；仓库明确不含模型权重、LoRA adapters和评测输出，需自行运行重建结果。
+
+Paper plus training/evaluation code and table-to-script mappings are public. Model weights, LoRA adapters, and evaluation outputs are deliberately omitted and must be regenerated.
+
+### RecaP: Same Tokenizer, Better Tokens: Choosing Image Tokens by MAP Inference
+
+2026-11-24 · v1 · checked/curated 2026-11-26
+
+https://arxiv.org/abs/2611.33261
+
+
+https://github.com/gmum/recap
+
+**summary**
+固定encoder/codebook/decoder，用重建loss加AR prior联合选择每个位置的code。对邻近候选做softmax退火、优化mixture logits，最后argmax得到离散图；它改变训练标签，不是新tokenizer架构或新生成范式。
+
+Freeze encoder,codebook and decoder; choose codes using reconstruction loss plus an AR prior. Annealed softmax mixtures over nearby codes optimize assignment logits before final argmax. This changes training labels rather than codec architecture or generation paradigm.
+
+**state**
+生成模型仍读离散ID；搜索内部用每位置16邻近code的simplex mixture与连续expected embedding，最终argmax。该soft relaxation是编码优化，不是DFM probability path/URSA forward kernel；不改变词表维度。
+
+Generators still consume discrete IDs. Search uses a16-candidate simplex mixture and continuous expected embeddings,then argmax. This encoding relaxation is neither a DFM probability path nor a URSA forward kernel; vocabulary size stays fixed.
+
+**objective**
+MAP=decoder重建能量+AR序列prior的mean-field rate，冻结所有模型仅优化assignment logits。IBQ实验用L1+LPIPS-VGG+0.01rate、50搜索步/16候选；下游AR依然CE，不能把搜索梯度等同ELF velocity。
+
+MAP combines decoder reconstruction energy and mean-field AR prior rate; only assignment logits update. IBQ usesL1+LPIPS-VGG+0.01rate,50search steps/16candidates. Downstream AR still usesCE; search gradients are not ELF velocity supervision.
+
+**decoding**
+一次性离线标签搜索后，生成照原AR/对应模型decode，不在每次生成执行50步搜索。论文ImageNet结果：早期training-reference FID收益更大，held-out较小；单个generator含编码成本更贵，跨多run摊销才可能省。无Qwen或URSA/ELF初始化实证。
+
+One-time offline label search; generation retains the underlying model’s decoder,without50search steps per generated image. Early training-reference FID gains are larger than held-out gains. Including encoding costs,one generator is more expensive; savings may require reuse across runs. No Qwen/URSA/ELF initialization demonstration.
+
+**sharing**
+encoder/codebook/decoder/prior均冻结，改变同codec的标签分布；没有统一理解/生成Transformer或head的新证明。可作为所有范式共同数据端点，先固定重选标签再比较AR/URSA/ELF。masked生成端点未显示明确收益，不能宣称普适。
+
+Encoder,codebook,decoder and prior stay frozen while label distributions change. No new shared understanding/generation Transformer/head demonstration. Supply identical reassigned labels across AR/URSA/ELF for a fair data endpoint. The masked generator shows no clear gain,limiting universality.
+
+**why**
+直接诊断IBQ→ELF palette问题：nearest encoder code不一定是decoder最优组合，容易预测的ID也不一定生成更好。原文更强prior权重反而恶化FID，提示低CE/低entropy不能独立作为成功指标。
+
+Directly diagnoses IBQ-to-ELF palette problems: nearest encoder codes need not form the best decoder combination, and easier IDs need not generate better images. Stronger prior weighting worsens FID in the paper; lower CE/entropy is not sufficient evidence of progress.
+
+**inspiration**
+研究假设：给Qwen3+IBQ离线构造NN、纯重建重选、重建+prior三套标签；保持原codec不动，比较glyph与稀有ID是否被prior抹掉，再分别训练AR/URSA/ELF。AR prior可能偏袒AR，需加入matched非AR prior或无prior端点。
+
+Hypothesis: build NN,reconstruction-only and reconstruction-plus-prior label sets for frozen Qwen3+IBQ experiments. Audit erased glyphs/rare IDs before training AR/URSA/ELF. An AR prior may favor AR; include a no-prior or matched non-AR-prior endpoint.
+
+**experiment**
+先用同一批文档/OCR/威胁帧固定IBQ，只改assignment；prior权重0/小/大，候选与搜索预算相同。测tokenizer-only重建OCR、LPIPS、每图unique IDs、稀有code与邻接误差；再固定Qwen3/数据/训练FLOPs比较下游生成、OCRBench/DocVQA/TextVQA、GenEval、coverage。报告离线编码和prior训练成本，训练集reference FID与held-out FID分开。
+
+Fix IBQ and identical document/OCR/threat frames; vary assignment with zero/small/large prior weights under equal search budgets. Measure codec-only OCR,LPIPS,unique IDs,rare-code retention and adjacency errors. Then fix Qwen3,data/training FLOPs and compare generation,OCRBench/DocVQA/TextVQA,GenEval and coverage. Count offline encoding/prior training; separate training-reference and held-out FID.
+
+**open**
+论文给出gmum/recap链接，本次网页与GitHub App API均404，故代码未可访问；权重/数据发布未核验。精读§3/4.4/5与IBQ附录。与旧条目RECAP activation解释同名但不同方法，已按标题/arXiv全量去重。
+
+Paper links togmum/recap,but both webpage and GitHub App API returned404 on2026-11-26; code not accessible. Weights/data release unverified. Deep-read Sections3/4.4/5 and IBQ appendix. Distinct from the archived activation-explanation RECAP despite the similar name.
+
+### UniTok: UniTok: A Unified Tokenizer for Visual Generation and Understanding
+
+2025-02-27 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2502.20321
+
+https://foundationvision.github.io/UniTok/
+https://github.com/FoundationVision/UniTok
+
+**summary**
+以multi-codebook quantization扩大离散容量，同时联合视觉重建与语义监督；接入Liquid框架验证理解生成。它首先是tokenizer研究，不应作为仅改变生成范式的公平baseline。
+
+Multi-codebook quantization expands discrete capacity under reconstruction and semantic supervision; Liquid integration validates understanding/generation. Primarily a tokenizer study,not a generation-paradigm-only control.
+
+**state**
+将每个视觉向量划分为多个channel chunks，各自用小sub-codebook量化；组合词表指数扩展。multi-codebook通道分块不等于四个空间IBQ ID或residual-depth codes。
+
+Splits visual channels into chunks quantized by separate small sub-codebooks,exponentially expanding the composite vocabulary. Channel factorization is neither four spatial IBQ IDs nor residual-depth coding.
+
+**objective**
+tokenizer侧联合重建与语义对齐，multi-codebook扩容，非AR/Flow采样目标本身；下游Liquid用离散next-token CE。必须区分codec训练和LLM训练预算。
+
+Tokenizer reconstruction and semantic alignment with multi-codebook capacity expansion,not itself an AR/Flow sampling objective. Downstream Liquid uses discrete next-token CE. Separate codec and LLM training budgets.
+
+**decoding**
+tokenizer输出多个sub-codebook ID并重建像素，下游生成顺序由Liquid或其它AR模型决定。精确LLM生成步数、初始化与显存不应归给tokenizer；本次未统一复核各配置成本。
+
+The tokenizer emits sub-codebook IDs and reconstructs pixels; downstream Liquid/AR models determine generation order. LLM sampling counts,initialization and memory are not intrinsic tokenizer properties. Common-budget configurations were not re-audited.
+
+**sharing**
+同一tokenizer可供理解/生成使用，但完整UMM的Transformer与head由下游Liquid配置决定；tokenizer的共同空间不能自动证明所有生成/理解参数绑权。
+
+One tokenizer can serve both tasks,but Transformer/head sharing depends on downstream Liquid configuration. A shared codec space does not establish universal parameter tying.
+
+**why**
+直接涉及离散UMM瓶颈：语义与重建loss并非必然冲突，离散表示容量不足可能是根因。必须把codebook/瓶颈维度变化与AR、Mask或metric-path模型目标分开。
+
+Directly addresses discrete-UMM bottlenecks: reconstruction/semantic losses need not inherently conflict; limited discrete capacity can be responsible. Separate codebook/bottleneck changes from AR,masking or metric-path targets.
+
+**inspiration**
+研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。
+
+Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.
+
+**experiment**
+固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。
+
+Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.
+
+**open**
+论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。
+
+Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. 
+
+### QLIP: QLIP: Text-Aligned Visual Tokenization Unifies Auto-Regressive Multimodal Understanding and Generation
+
+2025-02-07 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2502.05178
+
+https://nvlabs.github.io/QLIP/
+https://github.com/NVlabs/QLIP
+
+**summary**
+动态平衡对齐与重建，并用两阶段训练适应大batch contrastive与高显存重建的不同需求；分别接入LLaVA、LlamaGen及统一mixed-modality AR验证。
+
+Dynamically balances alignment/reconstruction through two stages accommodating large-batch contrastive learning and memory-intensive reconstruction. Evaluates LLaVA,LlamaGen and unified mixed-modality AR uses.
+
+**state**
+Binary Spherical Quantization在单位球面超立方体角点构造implicit离散code；不是learned dense IBQ查表，也不是连续embedding diffusion。
+
+Binary Spherical Quantization uses implicit discrete codes at spherical-hypercube corners,not a learned dense IBQ lookup or continuous embedding diffusion.
+
+**objective**
+stage1对齐loss+MSE；stage2移除text encoder并冻结visual encoder，只优化quantizer/decoder细化重建。下游统一模型用AR CE。不是依靠离散diffusion修复token语义。
+
+Stage1 combines alignment and MSE;stage2 drops the text encoder,freezes the visual encoder and refines quantizer/decoder reconstruction. Downstream unified modeling uses AR CE,not discrete diffusion to repair semantic tokens.
+
+**decoding**
+BSQ编码/decoder重建与下游AR采样分开；没有tokenizer自带的ODE NFE。训练大batch与重建显存开销分阶段核算；本次未复核所有下游LLM初始化/延迟。
+
+Separate BSQ encoding/reconstruction from downstream AR sampling;the tokenizer has no intrinsic ODE NFE. Account for large-batch alignment and reconstruction memory separately. Not all downstream LLM initializations/timings were re-audited.
+
+**sharing**
+是理解生成共享离散codec的enabler；不同下游实验不代表单一Transformer在所有任务中完全共享。其统一AR模型与独立LLaVA/LlamaGen结果要分列。
+
+An enabler for a shared discrete codec; separate downstream experiments do not imply one fully shared Transformer across all tasks. Distinguish unified AR results from standalone LLaVA/LlamaGen uses.
+
+**why**
+离散token语义对齐必须引用：BSQ重建和language-image alignment能通过分阶段训练共存。用它审计OCR与重建特征冲突时，应保持token容量与训练监督一致。
+
+Important discrete semantic-alignment reference: BSQ reconstruction and language-image alignment coexist through staged training. For OCR/reconstruction tradeoffs,control token capacity and supervision.
+
+**inspiration**
+研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。
+
+Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.
+
+**experiment**
+固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。
+
+Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.
+
+**open**
+论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。
+
+Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. 
+
+### Lumina-mGPT 2.0: Lumina-mGPT 2.0: Stand-Alone AutoRegressive Image Modeling
+
+2025-07-23 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2507.17801
+
+https://github.com/Alpha-VLLM/Lumina-mGPT-2.0
+https://github.com/Alpha-VLLM/Lumina-mGPT-2.0
+
+**summary**
+从零训练stand-alone AR图像模型，覆盖编辑、subject-driven、controllable与dense prediction；加入inference-time scaling和speculative Jacobi decoding提升质量/速度。
+
+Trains a stand-alone AR image model from scratch for editing,subject-driven/control tasks and dense prediction,adding inference-time scaling and speculative Jacobi decoding for quality/speed.
+
+**state**
+统一离散图像token序列加decoder-only AR；图像tokenizer与model训练设置按2.0配置，不能拿1.0预训练状态替代。Jacobi的临时候选是解码状态，不是新的视觉codebook。
+
+Unified discrete image tokens with decoder-only AR under the2.0configuration;do not substitute1.0initialization. Jacobi candidates are decoding states,not a new visual codebook.
+
+**objective**
+LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。
+
+The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. 
+
+**decoding**
+从零训练，而非1.0的multimodal pretrained初始化；推理使用标准AR或speculative Jacobi，另有候选选择/测试时scaling。必须计draft、验证和全部候选；精确匹配预算延迟本次未复核。
+
+Trained from scratch,unlike1.0multimodal-pretrained initialization. Uses standard AR or speculative Jacobi,with optional candidate selection/test-time scaling. Count drafts,verification and every candidate;common-budget latency not re-audited.
+
+**sharing**
+统一生成任务的token化/主干，但主任务是multimodal generation而非已全面验证的通用理解生成共享。作为并行解码/训练初始化的邻域enabler，不替代Chameleon/Emu3等理解基线。
+
+Shares tokenization/backbone across visual generation tasks,but emphasizes multimodal generation rather than fully validated general understanding-generation sharing. A neighboring decoding/initialization enabler,not a replacement for Chameleon/Emu3 understanding baselines.
+
+**why**
+对离散UMM的并行解码和图像多任务是重要邻域：speculative Jacobi通过预测/验证加速AR，不等于masked diffusion。主要证据是图像生成与dense prediction，不能自动视作强通用VQA基线。
+
+Important neighboring work for discrete-UMM decoding and visual multitasking: speculative Jacobi accelerates AR via prediction/verification,not masked diffusion. Evidence centers on generation/dense prediction,not automatically strong general VQA.
+
+**inspiration**
+研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。
+
+Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.
+
+**experiment**
+固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。
+
+Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.
+
+**open**
+论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。
+
+Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. 
+
+## boundary
+
+### ELF: ELF: Embedded Language Flows
+
+2026-05-12
+
+https://arxiv.org/abs/2605.10938
+
+
+https://github.com/lillian039/ELF
+
+**summary**
+把语言生成主要保持在连续 embedding 空间，通过 continuous-time Flow Matching 从高斯噪声运输到 clean embedding，只在最终时刻映射回离散 token。
+
+This resource is indexed as an image-generation method centered on ELF. It is useful for comparing state space, prediction targets, and decoding order.
+
+**state**
+连续 token embedding
+
+Discrete image-token IDs, continuous embeddings, simplex states, or VAE latents depending on the method.
+
+**objective**
+Flow Matching + L2 / 辅助 CE
+
+Clean-token CE, embedding regression, noise prediction, or velocity prediction depending on the method.
+
+**decoding**
+32–64 步 ODE/SDE，末步离散化
+
+Autoregressive, iterative refinement, diffusion, flow, or hybrid decoding.
+
+**sharing**
+共享权重解码器；T5 encoder 提供 embedding
+
+Compare tokenizer, embedding, vocabulary, Transformer, and output-head sharing explicitly.
+
+**why**
+它是 URSA 离散 metric path 最干净的连续对照：两者都进行全局迭代修正，但一个在词表概率几何中移动，另一个在 embedding 流形中移动。
+
+It provides a controlled endpoint for separating the generation mechanism from tokenizer quality and backbone capacity.
+
+**inspiration**
+可把 IBQ code embedding 直接作为目标空间，检验连续轨迹是否比离散 CE 更容易表达图像 token 之间的相似性；同时要警惕 embedding 回投 token 时的边界模糊和 codebook collapse。
+
+Map the method onto Qwen3 + IBQ while keeping the tokenizer and data fixed, then measure whether gains come from the path, target, head, or sampling procedure.
+
+**experiment**
+固定 Qwen3-1.7B、IBQ tokenizer、30M 数据与训练 token 数，仅把 URSA 的 metric-path CE 替换为 ELF-style velocity/L2；共同报告 GenEval、DPG、OCR、VQA、2/4/8/16/32 步曲线和 token 回投错误率。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+代码、PyTorch 分支、权重已公开
+
+The original source and an official code or project repository are linked below.
+
+### LLaDA2.0-Uni: LLaDA2.0-Uni: Unifying Multimodal Understanding and Generation with dLLM
+
+2026-04-22 · 重要补读
+
+https://arxiv.org/abs/2604.20796
+
+
+https://github.com/inclusionAI/LLaDA2.0-Uni
+
+**summary**
+把 SigLIP 语义特征量化为离散视觉 token，并让文本和视觉都在 MoE dLLM 中进行 block-level masked diffusion；生成端再通过少步蒸馏的 diffusion decoder恢复高保真图像。
+
+This resource is indexed as an image-generation method centered on LLaDA2.0-Uni. It is useful for comparing state space, prediction targets, and decoding order.
+
+**state**
+SigLIP-VQ 离散视觉 token + 离散文本 token
+
+Discrete image-token IDs, continuous embeddings, simplex states, or VAE latents depending on the method.
+
+**objective**
+masked clean-token logits / CE + diffusion decoder
+
+Clean-token CE, embedding regression, noise prediction, or velocity prediction depending on the method.
+
+**decoding**
+分块并行去掩码；视觉 decoder 再做少步生成
+
+Autoregressive, iterative refinement, diffusion, flow, or hybrid decoding.
+
+**sharing**
+文本/视觉共享 MoE dLLM 主干；统一 diffusion 目标，视觉另接 decoder
+
+Compare tokenizer, embedding, vocabulary, Transformer, and output-head sharing explicitly.
+
+**why**
+它是 URSA 最关键的离散对照：两者都保留 clean-token CE 和并行 refinement，但 LLaDA2.0-Uni 使用 mask corruption 与分块生成，URSA 使用全词表 metric path。比较两者可以判断收益来自 metric-aware transition，还是仅来自并行双向建模。
+
+It provides a controlled endpoint for separating the generation mechanism from tokenizer quality and backbone capacity.
+
+**inspiration**
+对你的 Qwen3+IBQ 系统，最有价值的不是直接复现其 MoE 规模，而是把同一 IBQ token 序列分别放入 metric-path 与 mask-only corruption：若 OCR/DocVQA 差异很小，瓶颈更可能在 tokenizer/projector；若 metric path 显著更稳，说明 token 距离确实提供了额外归纳偏置。
+
+Map the method onto Qwen3 + IBQ while keeping the tokenizer and data fixed, then measure whether gains come from the path, target, head, or sampling procedure.
+
+**experiment**
+固定 Qwen3、IBQ、数据和视觉词表，比较 URSA metric path、纯 mask diffusion、block-mask diffusion；统一 clean-token CE，报告 OCRBench/DocVQA/TextVQA、GenEval、8/16/32 步吞吐、显存、稳定时间与 AR 初始化后遗忘。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+代码、模型与推理示例已公开
+
+The original source and an official code or project repository are linked below.
+
+### Transfusion: Transfusion: Predict the Next Token and Diffuse Images with One Multi-Modal Model
+
+2024-08-20 · 基础补读
+
+https://arxiv.org/abs/2408.11039
+
+
+https://github.com/facebookresearch/transfusion
+
+**summary**
+在一个 Transformer 内同时训练文本 next-token prediction 与图像 diffusion：文本保持离散 AR，图像保持连续表示和并行去噪，不强迫两种模态共用同一种状态空间或输出 head。
+
+This resource studies how multimodal understanding and generation can share or coordinate visual representations under the Transfusion design.
+
+**state**
+离散文本 token + 连续图像 patch / VAE latent
+
+Discrete visual tokens, continuous visual features, or a hybrid representation; see the original source for the exact configuration.
+
+**objective**
+文本 next-token CE + 图像 diffusion denoising loss
+
+Joint or coordinated understanding and generation objectives.
+
+**decoding**
+文本顺序生成；图像块在同一上下文中并行去噪
+
+Task-dependent autoregressive, diffusion, flow, or hybrid decoding.
+
+**sharing**
+共享单一 Transformer 与混合序列上下文；模态编码器和输出目标分离
+
+Audit tokenizer, embedding, vocabulary, Transformer, and output-head sharing separately.
+
+**why**
+它是 URSA 与 ELF 之外最有价值的混合对照。URSA追求视觉 token 与语言接口尽量统一，ELF把生成整体搬到连续流；Transfusion则只共享主干与上下文，把每种模态留在更自然的损失空间。它能检验“完全统一”是否真的优于“共享 Transformer、保留模态特化 head”。
+
+It helps define which parts of a UMM should truly be shared and which interfaces should remain task-specific.
+
+**inspiration**
+对 Qwen3 + IBQ，可保留文本 AR 与理解路径，同时把图像生成分支换成连续 VAE/IBQ embedding diffusion；再与共享词表 CE 的 URSA比较。若混合模型生成更好但理解不退化，说明共享主干可能比共享 vocabulary/output head 更重要。
+
+Use it to audit whether IBQ tokens carry bidirectionally usable concepts inside Qwen3, rather than treating shared parameters as sufficient evidence of unification.
+
+**experiment**
+固定 Qwen3 主干、数据、视觉 token 数和训练 FLOPs，比较：共享词表 URSA、ELF 连续 flow、Transfusion 式双目标。分别冻结/解冻视觉 decoder，并记录 OCRBench、TextVQA、T2I、梯度冲突、峰值显存和跨模态 attention 利用率。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文与官方代码已公开
+
+The original source and an official code or project repository are linked below.
+
+### MAR: Autoregressive Image Generation without Vector Quantization
+
+2024-06-17 · 基础补读
+
+https://arxiv.org/abs/2406.11838
+
+
+https://github.com/LTH14/mar
+
+**summary**
+Kaiming He 团队证明 AR 的关键是因果/序列依赖，而不是必须预测离散类别：MAR直接对连续图像 token 建模，并用每个位置上的 diffusion loss 表达多峰条件分布，同时支持标准 AR 与随机顺序 masked AR。
+
+This resource is indexed as an image-generation method centered on MAR. It is useful for comparing state space, prediction targets, and decoding order.
+
+**state**
+连续图像 token embedding
+
+Discrete image-token IDs, continuous embeddings, simplex states, or VAE latents depending on the method.
+
+**objective**
+每个 token 的条件 diffusion loss
+
+Clean-token CE, embedding regression, noise prediction, or velocity prediction depending on the method.
+
+**decoding**
+顺序 AR 或 masked AR；每个位置内部进行连续去噪
+
+Autoregressive, iterative refinement, diffusion, flow, or hybrid decoding.
+
+**sharing**
+序列级 Transformer 可共享；离散 LM head 被 diffusion head 取代
+
+Compare tokenizer, embedding, vocabulary, Transformer, and output-head sharing explicitly.
+
+**why**
+MAR把“生成顺序”和“状态空间/损失”拆开，是设计公平对照时非常关键的思想。它能避免把 AR 等同于离散 CE，也避免把连续生成等同于全局 Flow Matching，为 URSA→ELF 提供一个中间点。
+
+It provides a controlled endpoint for separating the generation mechanism from tokenizer quality and backbone capacity.
+
+**inspiration**
+你可以保留 URSA/IBQ 的 token 序列与 Qwen3 主干，只把分类 head 替换为连续 code-embedding diffusion head；这样能单独测试提升来自连续目标，还是来自 ELF 的全局同步 flow。MAR也提示 masked order 本身可以独立于 token 表示进行消融。
+
+Map the method onto Qwen3 + IBQ while keeping the tokenizer and data fixed, then measure whether gains come from the path, target, head, or sampling procedure.
+
+**experiment**
+同一 IBQ encoder/decoder 下比较：token-ID AR+CE、continuous MAR diffusion loss、URSA metric-path CE、ELF global velocity。统一采样预算后，额外测 codebook 最近邻回投错误、OCR 字符稳定性与不同位置的累计误差。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文、训练代码与模型已公开
+
+The original source and an official code or project repository are linked below.
+
+### Libra-2: Decoupled Vision-Language System for Multimodal Understanding and Generation
+
+2026-06-29 · 2026-08-24 cs.CV cross-list
+
+https://arxiv.org/abs/2608.20382
+
+
+https://github.com/YifanXu74/Libra
+
+**summary**
+Libra-2不把统一等同于全部绑权：视觉与语言各自保存自模态计算路径，只在每层用cross-modal bridge交互；理解和生成又通过Switch-FFN分流。它以同一连续视觉空间承担I2T与T2I，联合训练相较单任务同时改善VQA/MMB与GenEval，并明确暴露生成文字、细节和空间关系仍是弱项。
+
+This resource studies how multimodal understanding and generation can share or coordinate visual representations under the Libra-2 design.
+
+**state**
+文本离散ID；视觉为16×下采样VAE连续latent，理解时以SigLIP cross-attention语义增强，生成时保持可解码VAE latent
+
+Discrete visual tokens, continuous visual features, or a hybrid representation; see the original source for the exact configuration.
+
+**objective**
+文本next-token CE；视觉位置先随机MASK，再由轻量token-level diffusion head预测连续clean latent/denoising target
+
+Joint or coordinated understanding and generation objectives.
+
+**decoding**
+文本因果AR；图像外层迭代提交masked positions，内层逐token diffusion，最终VAE decoder并可选SDXL refiner
+
+Task-dependent autoregressive, diffusion, flow, or hybrid decoding.
+
+**sharing**
+视觉系统与语言系统各自self-modal attention/FFN；switch attention与cross-modal bridge逐层交互，switch FFN区分理解和生成；不共享词表、tokenizer或输出head
+
+Audit tokenizer, embedding, vocabulary, Transformer, and output-head sharing separately.
+
+**why**
+这直接对应Qwen3+IBQ的共享边界选择。当前若强迫IBQ embedding、Qwen self-attention、FFN与Stage3生成head全部共用，OCR证据与像素生成梯度可能互相拉扯；Libra提供了比完全共享或完全级联更可控的中间点。
+
+It helps define which parts of a UMM should truly be shared and which interfaces should remain task-specific.
+
+**inspiration**
+保留Qwen3语言主干和IBQ codec contract，为视觉self-modal路径增加轻量专家，仅让跨模态bridge共享概念；再把理解FFN、生成FFN和cross-modal FFN分开。可检验URSA→ELF收益究竟来自连续状态，还是来自减少了理解/生成梯度冲突。
+
+Use it to audit whether IBQ tokens carry bidirectionally usable concepts inside Qwen3, rather than treating shared parameters as sufficient evidence of unification.
+
+**experiment**
+固定Qwen3、IBQ、数据、总参数量与FLOPs，比较全共享、仅FFN专家、Libra式switch attention+FFN、完全双塔四种边界；每种再固定同一AR/URSA或ELF生成目标。报告OCRBench/DocVQA/TextVQA、GenEval、生成文字OCR、双向concept export、逐层CKA/梯度夹角、吞吐、显存与训练稳定性。
+
+Hold Qwen3, the visual tokenizer, training data, parameter count, and compute fixed. Change only the target method; report understanding benchmarks, generation quality, OCR, code usage, sampling steps, throughput, memory, and training stability.
+
+**open**
+论文与作者官方仓库已公开；仓库当前主要是ICML 2024 Libra-1实现，论文注明Libra-2代码将发布
+
+The original source and an official code or project repository are linked below.
+
+### UMM-JEPA: UMM-JEPA: Generative Pretraining via Masked Next-Scale Representation Prediction for Unified Multimodal Models
+
+2026-10-26 · v1 · checked/curated 2026-11-17
+
+https://arxiv.org/abs/2611.18668
+
+
+
+
+**summary**
+补录近期材料。将生成预训练目标从合成code/latent改为理解路径使用的连续感知表征；像素renderer后接。论文报告16项视觉均值51.71，对照46.36；更依赖视觉证据不等于更抗遮挡。
+
+Recent backfill. Predicts understanding-side perceptual features during generative pretraining, attaching pixel rendering afterward. The reported 16-task visual mean is 51.71 versus 46.36; greater visual dependence is not occlusion robustness.
+
+**state**
+冻结SigLIP2 layer-23连续表征，64/128/256/512尺度对应4/16/64/256 tokens；不是one-hot/simplex或VAE latent。
+
+Frozen SigLIP2 layer-23 continuous features at 64/128/256/512 image scales, with 4/16/64/256 tokens; neither categorical states nor VAE latents.
+
+**objective**
+随机partial/full masking；父hidden预测四个下一尺度child feature，以归一化cosine监督，同时保留文本CE；无Gaussian diffusion forward path或velocity target。
+
+Partial/full masking and normalized cosine prediction of four next-scale children per parent, plus text CE. No Gaussian forward path or velocity target.
+
+**decoding**
+尺度间递归，尺度内并行；训练使用GT粗尺度，推理回灌预测状态，存在exposure gap。可复用Qwen语言主干；总训练预算及renderer采样步数须查具体配置，当前未核实，不能当成零成本。
+
+Recursive between scales and parallel within each scale. GT coarse context in training becomes predicted context at inference. Qwen backbone reuse is feasible; total training cost and renderer steps were not verified here and must not be treated as free.
+
+**sharing**
+理解与表征生成共享多模态backbone和感知空间；语言词表/head与连续prediction head分离；后接connector与diffusion renderer，不共享IBQ视觉词表。与ELF同为连续状态但无ODE；与URSA不同state/path。只有固定表示与预算后才是公平目标消融。
+
+Shared multimodal backbone and perceptual space; separate language vocabulary/head, feature head, connector and diffusion renderer. Continuous like ELF but no ODE; unlike URSA IDs. A fair objective control requires matching state and budget.
+
+**why**
+它直接挑战Qwen3+IBQ/URSA→ELF中默认只更换生成loss的做法：即便共享主干，生成目标若与理解表征不同，也可能难以反哺OCR、DocVQA和TextVQA。
+
+For Qwen3+IBQ and URSA-to-ELF, changing a loss alone may not improve OCR or DocVQA if generation supervises a different representation from understanding.
+
+**inspiration**
+研究假设：保留IBQ重建接口，增加理解空间的next-scale监督；四个child feature并行预测可与当前2×2四原始ID head对应，但不能把连续feature误称为IBQ ID。
+
+Hypothesis: retain IBQ reconstruction while adding next-scale supervision in understanding space. Four child features offer a controlled analogue to the four original IDs in a 2x2 head, without conflating features and IDs.
+
+**experiment**
+固定Qwen3、IBQ、图文数据、参数量和总FLOPs，比较URSA clean-ID CE、ELF clean-embedding/velocity、next-scale感知cosine。先冻结同一renderer，再单测renderer适配成本；报告OCRBench/DocVQA/TextVQA、GenEval、文字OCR、code coverage、wrong-image/patch干预、吞吐显存与稳定性。
+
+Fix Qwen3, IBQ, data, parameters and total FLOPs. Compare clean-ID CE, ELF embedding/velocity, and perceptual next-scale cosine. Freeze the renderer first and account separately for adaptation. Measure OCRBench, DocVQA, TextVQA, GenEval, text OCR, coverage, wrong-image interventions, throughput, memory and stability.
+
+**open**
+论文原文公开；本次未在原文或摘要核验到官方项目、代码、权重链接，标记未披露。精读方法与视觉证据干预；结论不能直接外推为多帧因果预测。
+
+Paper public; official code, project and weights not verified in the original. Deep-read the objective and evidence interventions. This is not evidence of temporal causal prediction.
+
+### UniSpark: UniSpark: Exploring Hybrid Attention for Multimodal Understanding and Generation
+
+2026-11-12 · v1 · checked/curated 2026-11-17
+
+https://arxiv.org/abs/2611.16517
+
+https://lucaria-academy.github.io/UniSpark/
+
+
+**summary**
+近期补录。全注意力与GatedDeltaNet混合，联合文本AR和视觉Flow；用mask及recurrent-state保留规则隔离private noisy target，只把完成后的clean视觉内容提交为后续公共上下文。
+
+Recent backfill. Combines full attention and GatedDeltaNet with AR text and visual Flow. Visibility masks and recurrent-state retention isolate private noisy targets; only completed clean visuals become reusable context.
+
+**state**
+理解输入为语义视觉feature，生成状态为连续VAE latent；语言为token ID。不是共享IBQ ID词表；近似每分支9B MoT。
+
+Semantic visual features for understanding, continuous VAE latents for generation, and language IDs; no common IBQ vocabulary. MoT has about 9B parameters per branch.
+
+**objective**
+z_t=(1-t)z0+t*noise，预测noise-z0瞬时velocity/MSE，联合文本next-token CE；公开clean context与private noisy targets分离。
+
+Linear Gaussian interpolation z_t=(1-t)z0+t*noise; instantaneous noise-minus-data velocity MSE plus next-text-token CE, with private targets isolated from public context.
+
+**decoding**
+文本AR、视觉block内ODE，block间顺序生成；从Qwen3.5混合backbone初始化，完成图像re-encode后写入公共KV/recurrent state。四阶段训练；具体累计optimizer步数与采样NFE本次未核验。
+
+AR text, within-block visual ODE, sequential blocks. Initialized from Qwen3.5; completed images are re-encoded and committed to public KV/recurrent state. Four-stage training; aggregate optimizer steps and inference NFE not verified here.
+
+**sharing**
+共享交互框架与上下文，理解/生成专家参数分开；语义encoder与VAE、输入adapter、语言vocabulary/head与velocity输出分开。与ELF连续Flow相近，与URSA categorical metric path不同。主干类型、表示、预算同时改变，原始分数不能作公平loss对照。
+
+Shared interaction framework and context, separate expert parameters, semantic encoder/VAE, adapters, language vocabulary/head and velocity output. Related to ELF continuous Flow, unlike URSA categorical paths. Original scores confound backbone, state and budget.
+
+**why**
+对Qwen3+IBQ/ELF，多图与多帧回灌不只需要正确attention mask，还要防止临时去噪状态污染长期memory；这可能影响OCR细节和威胁身份跨帧保持。
+
+Qwen3+IBQ/ELF needs correct recurrent memory handling as well as attention masks. Temporary denoising states could contaminate OCR detail or identity evidence across images and frames.
+
+**inspiration**
+研究假设：同一ELF采样过程使用scratch recurrent state，每个NFE后回滚；完成图像再提交clean状态。视频理解与视频生成的优势应分开验证，定性视频示例不能代替world-model闭环。
+
+Hypothesis: use scratch recurrent state during ELF sampling, roll it back between steps, and commit only clean completed content. Qualitative video synthesis does not demonstrate a closed-loop world model.
+
+**experiment**
+固定Qwen、IBQ或同一连续映射、数据、参数及FLOPs，比较full-attention、hybrid+naive state retention、hybrid+private-target rollback；扫NFE和序列长度。报告OCRBench、DocVQA、TextVQA、GenEval、生成文字OCR、身份漂移、code coverage、KV/state显存与延迟。
+
+Fix backbone, codec/mapping, data, parameters and FLOPs. Compare full attention, hybrid with naive retention, and hybrid with private-target rollback across NFE and sequence lengths. Measure OCRBench, DocVQA, TextVQA, GenEval, text OCR, identity drift, coverage, KV/state memory and latency.
+
+**open**
+官方技术报告与项目展示公开；项目页未提供经核验的训练代码或checkpoint下载。精读public/private边界与视频适配；内存收益须实测，不由linear attention名称推断。
+
+Official report and project showcase public; training code and checkpoint downloads not verified. Deep-read public/private boundaries and video adaptation; measure rather than assume memory savings.
+
+### ViLFlow: ViLFlow: Parallel Vision-Language Generation with Continuous Latent Flows
+
+2026-11-18 · v1 · checked/curated 2026-11-19
+
+https://arxiv.org/abs/2611.24240
+
+
+
+
+**summary**
+直接从ELF初始化，以冻结图像feature条件化连续文本embedding生成；蒸馏image-present/image-zeroed差异，把双分支guidance折入单次预测。随后冻结denoiser，单独训练读取其预测状态的并行token decoder。
+
+Initializes from ELF, conditions continuous text generation on frozen visual features, and distills image guidance into one conditioned prediction. A separate parallel token decoder then learns to read predictions from the frozen denoiser.
+
+**state**
+冻结T5文本encoder产生normalized连续输出embedding；冻结SigLIP视觉feature作condition。生成的是答案/caption，不是图像ID、VAE latent或visual Flow。
+
+Normalized continuous T5 text embeddings with frozen SigLIP image conditioning. Outputs answers/captions, not image IDs or visual VAE latents.
+
+**objective**
+Z_t=tX+(1-t)*sigma*noise；head预测clean X，经(Xhat-Z)/(1-t)转换velocity回归，加token CE；第二阶段蒸馏image guidance，第三阶段对prediction与clean embedding混合做CE。
+
+Gaussian interpolation Z_t=tX+(1-t)*sigma*noise; predict clean embeddings, convert to velocity using remaining time, and combine regression with token CE. Then guidance distillation and prediction/clean mixture decoder CE.
+
+**decoding**
+所有输出位置并行迭代，默认32步；VQA方法节写final-only readout，caption可在末10步decode→T5 re-encode反馈。Table1 caption与VQA描述不一致，应复现时核对。直接ELF-B初始化，非本次由Qwen AR等预算转换。
+
+Parallel whole-response refinement, default 32 steps. Method says final-only VQA readout; captioning may decode/re-encode in the last ten steps. Table-1 caption conflicts with the VQA description and needs replication checks. Direct ELF-B initialization, not equal-budget Qwen conversion.
+
+**sharing**
+stage1 denoiser/reconstruction共享Transformer；stage3复制独立Transformer和vocabulary head，冻结原denoiser/projector。视觉encoder与文本tokenizer分离，无统一IBQ词表。ELF同源，URSA为离散路径；GPT2/MDLM基线参数、预训练及guidance预算不同，非严格因果证明。
+
+Shared stage-1 transformer; stage 3 copies a separate decoder transformer/head and freezes denoiser/projector. Separate visual encoder/text tokenizer, no IBQ vocabulary. ELF-derived, unlike URSA categorical transport. GPT2/MDLM comparisons differ in size/pretraining/guidance.
+
+**why**
+它与URSA→ELF最直接相关：clean embedding重建好不代表自由生成状态能可靠回投ID。可用分阶段实验拆开IBQ几何、velocity质量、guidance和Stage3读出，不能把captioning方法当T2I UMM。
+
+Clean reconstruction does not ensure reliable IBQ-ID readout from generated states. Separate geometry, velocity, guidance and Stage-3 readout; this is image-to-text generation, not a T2I UMM.
+
+**inspiration**
+研究假设：保持Qwen3+IBQ/ELF不变，采集不同t的teacher-forced prediction与free-running terminal state，单独训练ID decoder；比较clean-only、prediction-only和mixed输入，测是否恢复低频code及文字笔画。
+
+Hypothesis: fix Qwen3+IBQ/ELF and adapt only the ID decoder using clean, teacher-forced predicted and free-running terminal states. Test low-frequency coverage and glyph recovery.
+
+**experiment**
+固定Qwen3、IBQ、数据、denoiser、NFE与总适配FLOPs，做clean/prediction/mixed decoder × 无/有late feedback；另独立蒸馏CFG。报告ID回投、coverage、OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、校准/幻觉、decoder额外参数、总NFE、吞吐显存。retrieval选择单列并计成本。
+
+Fix Qwen3, IBQ, data, denoiser, NFE and adaptation FLOPs. Compare clean/prediction/mixed decoder training with and without late feedback; distill CFG separately. Report ID projection, coverage, OCRBench/DocVQA/TextVQA, generated OCR, GenEval, hallucination/calibration, decoder parameters and total NFE/latency/memory. Separate retrieval selection cost.
+
+**open**
+原文公开，未核验官方代码/权重链接。精读prediction-adapted decoder及matched controls；111.16 CIDEr只胜sampled AR，greedy AR为114.66，retrieval后114.69须独立报告。训练步数/硬件总预算本次未核验。
+
+Paper public; official code/weights not verified. Deep-read decoder and matched controls. Base 111.16 CIDEr beats sampled AR, not greedy AR 114.66; retrieval 114.69 is separate. Total training/hardware budget not verified.
+
+### HiUni: HiUni: Harmonizing Understanding and Generation in Shared Visual Space
+
+2026-11-19 · v1 · checked/curated 2026-11-21
+
+https://arxiv.org/abs/2611.26107
+
+https://ernie-research.github.io/HiUni/
+https://github.com/ernie-research/HiUni
+
+**summary**
+以Qwen3-VL-4B-Instruct初始化，理解与生成共用语言对齐ViT和dense backbone，仅输出侧分任务；Pixel Diffusion Head直接生成像素，HiGate把被merger压缩的raw-pixel细节绕接到输出侧。
+
+Extends Qwen3-VL-4B-Instruct with shared language-aligned ViT and dense backbone. Task-specific output heads handle language and clean pixels; HiGate bypasses compressed semantics with local raw-pixel detail.
+
+**state**
+Gaussian到连续RGB pixel，非ID/simplex或VAE latent；noisy image也经同一ViT+merger。有效32×32 visual区域来自16×16 patch的2×2合并，HiGate保留该区域原始像素，非创建新的merged ID。
+
+Continuous RGB pixels along a Gaussian path, not IDs/simplex/VAE latents. Noisy images use the shared ViT/merger. A 32-by-32 region merges four 16-by-16 patches; HiGate preserves its pixels, not a new merged code ID.
+
+**objective**
+x_t=t*x0+(1-t)*scaled-noise；head预测clean x0，经(x0hat-x_t)/max(1-t,0.05)转velocity做MSE，文本CE。noise按token数缩放，logit-normal t。不能把clean参数化写成直接velocity head或MeanFlow。
+
+Linear pixel/noise interpolation; predict clean x0, convert through (x0hat-x_t)/max(1-t,0.05), and train velocity MSE plus text CE. Token-count-dependent noise and logit-normal time sampling. Not a direct velocity head or MeanFlow.
+
+**decoding**
+图像全局迭代、文本AR；30k warmup冻结VLM，310k全量联合预训练，22k SFT加入编辑。OneIG25步CFG6每prompt4图；LongText100步CFG8每prompt4图；编辑50步Euler。head为10层2560维约0.9B，不能忽略额外参数与每步ViT成本。
+
+Parallel image refinement and AR text. 30k frozen-VLM warmup, 310k joint updates, 22k editing-inclusive SFT. OneIG: 25 steps/CFG6/four images; LongText: 100/CFG8/four images; editing: 50 Euler steps. Ten 2560-wide head blocks add about 0.9B parameters; count repeated ViT and CFG cost.
+
+**sharing**
+ViT、merger与dense Transformer共享；文本tokenizer/embedding/vocabulary/LM head不等于视觉pixel输出head。无VAE但有ViT，不是encoder-free。可从VLM初始化；与ELF同连续运输、与URSA不同状态/目标；固定IBQ时只能借其残差/共享策略公平对照。
+
+Shares ViT, merger and dense Transformer. Text tokenizer/embeddings/vocabulary/LM head remain distinct from pixel outputs. VAE-free is not encoder-free. VLM initialization is demonstrated. ELF-like continuous transport in a different state; unlike URSA categorical targets. Residual/sharing adaptations under fixed IBQ are the fair controls.
+
+**why**
+它为Qwen3+IBQ的共享边界提供强相关对照：共享视觉入口与Transformer并不要求共享离散visual词表或head。对OCR，语义充分不等于字形充分；但pixel生成与IBQ生成改变了表示，不能直接归因于Flow。
+
+A direct sharing-boundary reference for Qwen3+IBQ: common visual input and Transformer do not require tied visual vocabulary or heads. Semantic adequacy is not glyph fidelity. Pixel versus IBQ generation changes representation, so gains cannot be attributed to Flow alone.
+
+**inspiration**
+研究假设：先保留IBQ与URSA/ELF，只给Stage3增加对齐的低层feature残差gate，测试文字笔画和小目标；再独立比较pixel-space head。不要把跨tokenizer的重建收益误认为生成目标收益。
+
+Hypothesis: retain IBQ and URSA/ELF, add an aligned low-level residual gate to Stage 3, and test glyphs/small objects. Compare a pixel head separately, isolating reconstruction/representation gains from target choice.
+
+**experiment**
+固定Qwen3、IBQ、数据、参数与FLOPs，做无残差/merger前feature/raw-pixel残差 × 固定/学习gate；URSA与ELF分别运行。另列pixel-head表示对照，不混入同codec结论。报tokenizer-only重建OCR、code覆盖、OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、采样步数/CFG调用、吞吐显存及多帧身份/威胁保持。
+
+Fix Qwen3, IBQ, data, parameters and FLOPs. Compare no residual, pre-merger features and raw-pixel residuals with fixed/learned gates, separately under URSA and ELF. Keep pixel-head representation controls separate. Report codec-only OCR, coverage, OCRBench/DocVQA/TextVQA, generated OCR, GenEval, NFE/CFG calls, throughput/memory and multi-frame identity/threat preservation.
+
+**open**
+官方repo可见Megatron训练与HF inference路径，项目页200，HF模型链接公开；完整权重未下载、原始训练数据未核验公开。精读§3/AppendixA/C。去AdaLN稳定性曲线来自不同开发阶段和分辨率，不是严格单变量证据；理解均值持平不证明每项或双向迁移都改善。
+
+Official repo exposes Megatron training and HF inference paths; project page returns 200 and model links are public. Full weights not downloaded; raw training-data release unverified. Deep-read Section 3 and Appendices A/C. AdaLN stability curves use different development stages/resolutions, not an isolated causal test; average understanding retention does not prove bidirectional transfer.
+
+### Integral: Let Vision-Language Models Generate Images through Their Representations
+
+2026-11-23 · v1 · checked/curated 2026-11-24
+
+https://arxiv.org/abs/2611.31237
+
+https://thejb.ai/integral
+
+
+**summary**
+Abstraction Fusion聚合冻结Qwen3.5视觉encoder的多层feature，构造可重建且语义对齐的共同latent；生成stream只在VLM block边界读取条件KV。理解主干冻结，noisy visual latent只进生成stream，不是全层共享denoising。
+
+Abstraction Fusion aggregates frozen Qwen3.5 visual features into reconstructable semantic latents. A generative stream reads conditioning KV only at VLM block boundaries; noisy latents stay in that stream while the understanding backbone remains frozen.
+
+**state**
+冻结视觉encoder28层表示（含patch embedding）fusion后进入256维Gaussian variational bottleneck；生成目标用posterior mean并按channel标准化。不是离散IBQ ID/one-hot；semantic projector把2×2 latent合并给VLM，pixel decoder另重建。
+
+Fuses28 visual representations including patch embeddings into a256-dimensional Gaussian variational bottleneck. Generation targets standardized posterior means, not IBQ IDs/simplex states. A semantic projector merges2-by2 latents for the VLM; a separate pixel decoder reconstructs images.
+
+**objective**
+tokenizer用pixel L1/LPIPS、semantic MSE（含RMS-normalized项）和KL；pixel decoder末阶段单独对抗微调不改latent。生成用continuous Flow velocity，logit-normal t与shift4；无metric-path CE或average velocity。
+
+Tokenizer uses pixel L1/LPIPS, semantic MSE including RMS-normalized features, and KL. Final adversarial decoder tuning freezes latents. Generation predicts continuous Flow velocity with logit-normal time/shift4, not metric-path CE or average velocity.
+
+**decoding**
+Qwen3.5-9B的32层每4层配1个generation block，共8个；generation hidden2048加2层3072 prediction head。tokenizer200k/400k/50k，generation200k/50k/350k updates；训练8至64H100，非低成本小head。具体评测NFE本次未核验，不能由每step latency推断整图速度。
+
+Qwen3.5-9B: eight generation blocks at four-layer intervals in32 VLM layers, width2048 plus two3072-wide prediction-head blocks. Tokenizer200k/400k/50k and generation200k/50k/350k updates on8-64H100s. Not a tiny-head training budget. Evaluation NFE unverified here; per-step latency is not full-image latency.
+
+**sharing**
+理解/生成共用visual representation与冻结VLM知识，不共享text vocabulary/LM head与视觉Flow head；noisy latent不进VLM。非encoder-free。可从预训练VLM扩展；与ELF连续空间相关但额外codec/stream，与URSA状态/监督不同；固定codec后才能公平比较bridge/生成目标。
+
+Shares visual representation and frozen VLM knowledge, not text vocabulary/LM head and visual Flow head. Noisy latents never enter the VLM; not encoder-free. Extends pretrained VLMs. ELF-like continuous space with extra codec/stream, unlike URSA states/objectives. Fix codec before comparing bridges/targets.
+
+**why**
+直接对应Qwen3+IBQ/URSA→ELF与MoT路由：重建PSNR接近不代表可用的生成语义相同。其无semantic监督tokenizer重建更好却生成更差，是拆分codec质量与生成空间的关键证据；更换AF不能与换Flow混在一次实验。
+
+Directly relevant to Qwen3+IBQ/URSA-to-ELF and MoT routing: comparable reconstruction does not imply equally useful generative semantics. Removing semantic supervision improves reconstruction but harms generation. Separate codec changes from changing Flow or routing.
+
+**inspiration**
+研究假设：保持IBQ codec不变，在Qwen visual入口加多层语义fusion；先比较固定每4层边界与全层MoT，再测学习Router。对glyph/OCR单独保留浅层信息，不能只按平均理解保持率判断成功。
+
+Hypothesis: keep IBQ fixed and add hierarchical semantic fusion at the Qwen visual input. Compare fixed four-layer boundaries and full MoT before learned routing. Preserve shallow glyph cues and audit OCR separately from average understanding retention.
+
+**experiment**
+分两阶段：先固定Qwen3、IBQ、数据、参数/FLOPs，仅改single-layer/多层fusion与semantic loss；再固定最优入口及URSA/ELF目标，比较全层MoT、每4层bridge、固定Router/动态Router。报tokenizer-only重建/文字、code coverage、OCRBench/DocVQA/TextVQA、生成OCR、GenEval、知识迁移、收敛与NFE/显存/吞吐；AF连续codec作独立表示端点。
+
+First fix Qwen3, IBQ, data, parameters/FLOPs and vary single/hierarchical fusion and semantic loss. Then fix the interface and URSA/ELF target, comparing full MoT, four-layer bridges and fixed/dynamic routing. Report codec-only glyph reconstruction, coverage, OCRBench/DocVQA/TextVQA, generated OCR, GenEval, knowledge transfer, convergence and NFE/memory/throughput. AF continuous codec is a separate representation endpoint.
+
+**open**
+原文公开，项目URL本次403，官方代码/权重未核验，不标开源。精读§2/3.4/AppendixA/C；AF平均20任务保持99.8%但OCRBench88.1→87.3。8-block对31-block同设置报告2.5倍compute/3.1倍latency改善，不能外推AR对ELF结论。
+
+Paper public; project URL returns403 and official code/weights are unverified. Deep-read Sections2/3.4 and AppendicesA/C. Average20-task retention99.8%, but OCRBench88.1 to87.3. Eight versus31 generation blocks improve matched-setting compute2.5x/latency3.1x, not evidence about AR versus ELF.
+
+### CoRe: CoRe: Jointly Learning Contextual Representations for Understanding and Generation
+
+2026-11-23 · v1 · checked/curated 2026-11-25
+
+https://arxiv.org/abs/2611.31397
+
+
+
+
+**summary**
+从零联合学习图像与文本各自的contextual representation：同一表示用于理解、跨模态条件和生成状态。383M模型在CC12M训练，不在推理依赖预训练LLM/文本encoder/VAE；不是把所有模态合成一个词表或同一个denoiser。
+
+CoRe jointly learns one contextual representation per modality, using it for understanding, cross-modal conditioning and generation. The 383M model trains from scratch on CC12M, with no pretrained LLM, text encoder or VAE at inference. This is not one vocabulary or one denoiser for all modalities.
+
+**state**
+每模态encoder输出经投影/LayerNorm形成256维连续contextual token，非IBQ ID、simplex或VAE latent。前向VP Gaussian：Zγ=αγZ+σγε，α²=sigmoid(-γ)、σ²=sigmoid(γ)；无离散MASK。
+
+Projected, LayerNorm-normalized 256-dimensional contextual tokens per modality; not IBQ IDs, simplex states or VAE latents. VP Gaussian corruption uses Zgamma=alpha*Z+sigma*noise with alpha²=sigmoid(-gamma) and sigma²=sigmoid(gamma), without categorical masking.
+
+**objective**
+denoiser预测clean Z；图像observable head预测RGB，文本head预测词表logits，以固定观测锚定移动表示；clean-state回归为采样辅助，另有SigLIP对齐和感知项。不能因连续flow就标成velocity/average-velocity监督。
+
+Denoisers predict clean Z. RGB and vocabulary-logit observable heads anchor the moving representation to fixed observations; clean-state regression assists sampling, alongside SigLIP alignment and perceptual terms. Continuous transport does not imply velocity or average-velocity supervision.
+
+**decoding**
+双向并行迭代生成，图文有各自denoiser和head。125K updates、batch8192；GenEval/DPG 128steps=257NFE，FID64steps=128NFE；蒸馏8jumps=9NFE含最终readout。无AR初始化实证；将Qwen权重接入是迁移假设。
+
+Parallel iterative generation with separate modality denoisers/heads. Training:125K updates,batch8192. GenEval/DPG:128steps/257NFE; FID:64steps/128NFE. Eight distilled jumps require9NFE including readout. No AR initialization experiment; Qwen transfer is a proposal.
+
+**sharing**
+每模态内部的理解/条件/生成共享Z；image/text encoder、denoiser、RGB/vocabulary head分开，不共享统一视觉ID词表。与ELF同属连续运输但目标与VP path不同；与URSA离散metric path不同。架构/数据控制不是FLOP匹配：原文未训练额外计算匹配的contrastive-only基线。
+
+Understanding, conditioning and generation share each modality’s Z; image/text encoders, denoisers and RGB/vocabulary heads remain distinct. Continuous like ELF but with different targets/VP path; unlike URSA categorical metric paths. Same architecture/data is not FLOP matching: the paper did not train a compute-matched contrastive-only control.
+
+**why**
+对Qwen3+IBQ/URSA→ELF，最关键的是理解究竟读到哪个生成空间。CoRe以同数据/架构消融隔离语义对齐与生成监督，提示应先审计共享状态的可读性，再讨论共享Transformer；结果尚不能证明IBQ上同样有效。
+
+For Qwen3+IBQ and URSA-to-ELF, first ask which generative state understanding actually reads. Same-data/architecture interventions separate alignment from generative supervision, motivating a shared-state audit before more Transformer sharing. Transfer to IBQ remains unproven.
+
+**inspiration**
+研究假设：在冻结IBQ的Qwen视觉embedding上，把理解probe与生成clean-state head接到同一位置；显式比较detach与允许生成梯度回流，并以glyph/OCR保真约束语义压缩。可将probe用于诊断ELF中间状态，但自评分不能代替独立评测。
+
+Hypothesis: attach understanding probes and a clean-state generation head at the same frozen-IBQ/Qwen visual interface. Compare detached versus returning generation gradients, protecting glyph/OCR detail. Probe intermediate ELF states, but evaluate self-ranking with independent judges.
+
+**experiment**
+固定Qwen3、IBQ、数据、可训练参数/FLOPs、noise path与NFE，做生成梯度detach/回流×仅clean-embedding回归/加固定观测锚点。先用同一个连续path比较velocity与x0，再另列URSA clean-ID CE。报重建/OCR、code coverage、有效秩、OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、吞吐/显存/稳定性；世界模型扩展另测horizon误差。
+
+Fix Qwen3, IBQ, data, trainable parameters/FLOPs, noise path and NFE. Cross detached/returning gradients with clean-embedding regression alone/observable anchoring. Compare velocity and x0 on the same continuous path, then list URSA clean-ID CE separately. Report reconstruction/OCR, code coverage, effective rank, OCRBench/DocVQA/TextVQA, generated-text OCR, GenEval, throughput, memory and stability; evaluate temporal horizon separately.
+
+**open**
+11月25日核对原文，未核验CoRe专属代码/权重/项目页；文中MiniT2I链接是基线，不能当作本方法发布。精读§3、Appendix7/8/12；训练含冻结感知网络成本，推理无预训练VAE不等于训练无外部监督。
+
+Checked2026-11-25: no verified CoRe-specific code, weights or project page. Linked MiniT2I repositories are baselines, not its release. Deep-read Section3 and Appendices7/8/12. Count frozen perceptual networks during training; no pretrained VAE at inference does not mean no external training supervision.
+
+### SEED-LLaMA: Making LLaMA SEE and Draw with SEED Tokenizer
+
+2023-10-02 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2310.01218
+
+https://ailab-cvc.github.io/seed/seed_llama.html
+https://github.com/AILab-CVC/SEED
+
+**summary**
+用兼顾判别与重建的语义离散token，让LLaMA通过标准next-word prediction处理交错图文；图像最终由独立预训练UNet diffusion decoder渲染。
+
+Semantic discrete tokens trained for discriminativeness and reconstruction let LLaMA model interleaved image/text through next-word prediction. A separate pretrained UNet diffusion decoder renders pixels.
+
+**state**
+ViT+Causal Q-Former+VQ产生1D语义ID；扩展8192视觉词表，预测离散code后映射到unCLIP-SD条件。不是dense pixel-grid VQ codec。
+
+ViT,Causal Q-Former and VQ produce1D semantic IDs with8192added visual codes,then map them to unCLIP-SD conditioning. Not a dense pixel-grid VQ codec.
+
+**objective**
+LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。
+
+The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. 
+
+**decoding**
+先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。
+
+AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.
+
+**sharing**
+共用LLM、扩展词表和语义视觉ID，pixel renderer不共享AR head；LLaMA初始化、embedding/head新增视觉参数。属于离散语义接口+连续renderer边界。
+
+Shares LLM,expanded vocabulary and semantic visual IDs,but not the AR head with its pixel renderer. LLaMA initialization adds visual embeddings/head rows. Discrete semantic interface plus continuous renderer boundary.
+
+**why**
+离散语义token统一理解生成的早期基础，必须与IBQ像素重建ID区分：低序列长度可能来自语义瓶颈与额外diffusion renderer，而非更高效的同任务离散建模。
+
+Early semantic-token UMM foundation. Unlike reconstruction-oriented IBQ IDs,its short sequence depends on a semantic bottleneck and external diffusion rendering,not necessarily cheaper modeling of the same detail.
+
+**inspiration**
+研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。
+
+Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.
+
+**experiment**
+固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。
+
+Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.
+
+**open**
+论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。
+
+Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. 
+
+### AnyGPT: AnyGPT: Unified Multimodal LLM with Discrete Sequence Modeling
+
+2024-02-19 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2402.12226
+
+https://junzhan2000.github.io/AnyGPT.github.io/
+https://github.com/OpenMOSS/AnyGPT
+
+**summary**
+将各模态作为可组合离散序列进行统一AR训练和any-to-any instruction tuning；图像最终沿SEED的独立renderer恢复，不是所有模态都由同一pixel decoder生成。
+
+Unified AR training and any-to-any instruction tuning over composable discrete modality sequences. Image rendering follows the separate SEED decoder,not one universal pixel decoder.
+
+**state**
+各模态独立codec离散化；图像采用SEED，32 ID/image、8192词表；语音音乐有各自RVQ token。多codec不是一个物理共享codebook。
+
+Modality-specific discrete codecs; images useSEED with32IDs/image and8192entries,while speech/music use their own RVQ tokens. Several codecs do not imply one shared physical codebook.
+
+**objective**
+LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。
+
+The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. 
+
+**decoding**
+先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。
+
+AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.
+
+**sharing**
+统一LLM序列建模与扩展token接口，模态tokenizer/detokenizer分开；图像部分属于离散语义接口加外部renderer，不能归类为全像素离散重建UMM。
+
+Unified LLM sequence modeling/expanded token interface with separate modality tokenizers/detokenizers. The image path is a discrete semantic interface plus external renderer,not fully discrete pixel reconstruction UMM.
+
+**why**
+展示图像/语音/音乐/文本都可进入统一离散序列，是Omni与离散UMM的共享词表参照。其图像语义token与decoder成本不能直接和IBQ dense重建系统比较。
+
+Shows how image,speech,music and text enter a unified discrete sequence,an Omni/discrete-UMM vocabulary precedent. Its semantic image tokens/decoder costs are not directly comparable to dense IBQ reconstruction.
+
+**inspiration**
+研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。
+
+Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.
+
+**experiment**
+固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。
+
+Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.
+
+**open**
+论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。
+
+Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. 
+
+### LaVIT: Unified Language-Vision Pretraining in LLM with Dynamic Discrete Visual Tokenization
+
+2023-09-09 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2309.04669
+
+https://github.com/jy0205/LaVIT
+https://github.com/jy0205/LaVIT
+
+**summary**
+将图像token视为另一种语言，动态长度tokenizer使同一LLM能够理解与生成；生成code再经visual detokenizer的diffusion过程恢复图像。
+
+Treats visual tokens as a foreign language with dynamic-length tokenization,allowing one LLM to understand and generate them. A diffusion visual detokenizer renders generated codes.
+
+**state**
+动态selector/merger后的视觉features量化为离散code，图文按统一AR序列处理；像素恢复需要独立训练的denoising UNet。搜索/选择与AR解码长度分开记账。
+
+Dynamically selected/merged visual features are quantized into discrete codes in a unified AR sequence. An independent denoising UNet renders pixels. Count selection and AR sequence costs separately.
+
+**objective**
+LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。
+
+The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. 
+
+**decoding**
+先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。
+
+AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.
+
+**sharing**
+理解生成共享离散接口与AR LLM，视觉tokenizer和denoising renderer独立；基于预训练LLaMA扩展。属于离散接口+连续渲染，不是纯VQ decoder端点。
+
+Shares a discrete interface and AR LLM across tasks,but has separate visual tokenizer/denoising renderer. Extends pretrained LLaMA. Discrete interface plus continuous rendering,not a pure VQ-decoder endpoint.
+
+**why**
+动态token长度与语义选择是固定网格/2×2 merger的重要历史参照。需区分减少视觉序列冗余和改善离散生成概率模型，OCR等细粒度信息可能被语义选择丢弃。
+
+Historical baseline for dynamic token lengths and semantic selection versus fixed grids/merging. Separate redundancy reduction from improved generative modeling; semantic selection may discard OCR detail.
+
+**inspiration**
+研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。
+
+Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.
+
+**experiment**
+固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。
+
+Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.
+
+**open**
+论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。
+
+Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. 
+
+### UniCode²: UniCode²: Cascaded Large-scale Codebooks for Unified Multimodal Understanding and Generation
+
+2025-06-25 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2506.20214
+
+https://arxiv.org/abs/2506.20214
+
+
+**summary**
+级联大codebook保存语义对齐并改善使用率/稳定性；生成离散视觉语义token后可接预训练diffusion decoder。属于离散接口+连续renderer边界，而非纯离散像素重建模型。
+
+Cascaded large codebooks preserve semantics and target utilization/stability. Discrete semantic tokens interface with a pretrained diffusion decoder. Boundary model:discrete interface plus continuous renderer,not purely discrete pixel reconstruction.
+
+**state**
+通过聚类SigLIP sequence embeddings得到500K语义视觉code；冻结anchor codebook与可训练refinement级联。并非把IBQ重建词表等比例扩大即可复现。
+
+Clusters SigLIP sequence embeddings into500Ksemantic codes with frozen anchor and trainable refinement codebooks. Not equivalent to simply enlarging an IBQ reconstruction codebook.
+
+**objective**
+LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。
+
+The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. 
+
+**decoding**
+先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。
+
+AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.
+
+**sharing**
+理解与生成利用对齐语义code接口，pixel diffusion decoder独立；LLM与视觉词表embedding是否完全绑权本次未逐项核验，不能由统一名称推断。
+
+Understanding/generation use aligned semantic codes with an independent pixel diffusion decoder. Complete LLM/visual-embedding tying was not audited; the unified label does not establish it.
+
+**why**
+对大视觉词表使用率和稳定性是直接相关工作：从SigLIP语义构建500K codebook，并用冻结/可训练级联降低空间漂移。需检查提升来自token语义和decoder，还是AR本身。
+
+Directly relevant to large-vocabulary utilization/stability:500K semantic codes from SigLIP and a frozen/trainable cascade to anchor geometry. Separate semantic-code/decoder gains from AR modeling.
+
+**inspiration**
+研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。
+
+Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.
+
+**experiment**
+固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。
+
+Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.
+
+**open**
+原文已核对；本次未核验官方代码/权重下载链接，不标已开源。基础相关工作补录，精读codebook构建与两级训练消融；decoder替换和500K输出head成本需要独立报告。
+
+Paper verified; no official implementation/weight download verified in this audit. Foundational related-work backfill. Deep-read codebook construction/cascade ablations; report decoder changes and500K-head cost separately.
+
+### SenseNova-U1 / NEO-unify: SenseNova-U1: Unifying Multimodal Understanding and Generation with NEO-unify Architecture
+
+2026-05-12 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2605.12500
+
+https://huggingface.co/blog/sensenova/neo-unify
+https://github.com/OpenSenseNova/SenseNova-U1
+
+**summary**
+将文本AR与pixel-space Flow放入原生MoT；8B dense与30B-A3B MoE理解基线扩展为理解生成联合模型。它是连续生成边界对照，不计入严格离散UMM。
+
+Native MoT couples text AR with pixel-space Flow on8Bdense and30B-A3B understanding baselines. A continuous-generation boundary comparator,not strict discrete UMM.
+
+**state**
+near-lossless原生pixel interface，视觉状态为连续像素/patch，不用预训练VE或VAE，也不经离散视觉codebook；从分辨率相关Gaussian noise沿线性path生成。
+
+Near-lossless native pixel interface with continuous pixels/patches,no pretrained VE/VAE or discrete visual codebook. Resolution-adapted Gaussian noise supplies a linear generation path.
+
+**objective**
+文本使用AR CE；视觉网络直接预测clean pixels，再换算velocity计算v-space MSE。该x-prediction参数化+velocity loss与纯clean-ID CE不同；不是离散masked diffusion或URSA metric path。
+
+Text uses AR CE. The visual network predicts clean pixels,then converts them to velocity for v-space MSE. This x-prediction parameterization with velocity loss differs from clean-ID CE and is neither masked discrete diffusion nor URSA metric paths.
+
+**decoding**
+文本因果AR，视觉并行迭代Flow；原文训练/推理预算需按8B/MoE与分辨率分别比较，本次未复核全部配置。官方当前U1.6示例base50步，另有4/8步distilled变体，不能把新版速度写成U1原文结果。
+
+Text is causal AR;vision uses parallel iterative Flow. Match dense/MoE model,resolution and budget; not all original configurations were re-audited. Current U1.6 examples use50base steps and separate4/8-step distilled variants; do not attribute later timings to the U1 paper.
+
+**sharing**
+理解与生成通过MoT交互，保留不同学习目标/输出head；不是共享视觉ID词表的证据。encoder-free不等于tokenizer全部共享。其连续pixel接口需要先与固定离散codec控制分开。
+
+Understanding/generation interact through MoT with distinct objectives/heads,not a shared visual-ID vocabulary. Encoder-free does not imply all tokenizer sharing. Separate continuous pixel interfaces from fixed-codec controls.
+
+**why**
+必须纳入离散UMM论文的外部架构对照：原生MoT与near-lossless输入可同时保留语义与像素，但视觉生成是pixel Flow，不是离散ID。共享机制的收益不能与AR/Mask/metric-path目标混写。
+
+Important external architecture comparator for discrete UMM: native MoT and near-lossless input preserve semantics/pixels,but visual generation is pixel Flow rather than IDs. Separate sharing architecture from AR/masked/metric-path targets.
+
+**inspiration**
+研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。
+
+Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.
+
+**experiment**
+固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。
+
+Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.
+
+**open**
+原文、官方Blog与OpenSenseNova/SenseNova-U1代码库可访问，仓库有inference/training目录与checkpoint链接；2026-11-24已发布U1.6。EvolvingLMMs-Lab/NEO为家族入口，不能把NEO理解权重当成U1生成权重。精读原文§3和对应版本文档。
+
+Paper,official blog and OpenSenseNova/SenseNova-U1 repository verified,including inference/training directories and checkpoint links. U1.6 released2026-11-24. EvolvingLMMs-Lab/NEO is a family entry; NEO understanding weights are not U1 generative weights. Deep-read Section3 and version-specific documentation.
+
+### Video-LaVIT: Video-LaVIT: Unified Video-Language Pre-training with Decoupled Visual-Motional Tokenization
+
+2024-02-05 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2402.03161
+
+https://video-lavit.github.io/
+https://github.com/jy0205/LaVIT
+
+**summary**
+在LaVIT基础上解耦visual/motional tokenization，以统一AR预训练处理图像、视频和文本理解生成；keyframe先恢复，再以keyframe+motion为条件生成后续帧。
+
+Extends LaVIT with decoupled visual/motional tokenization for unified image,video and text understanding/generation. Render the keyframe first,then condition subsequent frames on keyframe plus motion.
+
+**state**
+视频拆为keyframe与temporal motion，分别离散tokenizer后与文本交错；视频像素恢复另用conditional denoising UNet。不是所有帧都共享同一种dense重建ID。
+
+Decomposes videos into keyframe and temporal-motion tokens,discretized separately and interleaved with text. Conditional denoising UNets render video pixels. Not one dense reconstruction-ID type for every frame.
+
+**objective**
+LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。
+
+The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. 
+
+**decoding**
+先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。
+
+AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.
+
+**sharing**
+主LLM共享AR文本/visual/motion序列，各tokenizer与图像/视频denoising renderer独立。属于离散时序接口+连续渲染，非action-conditioned world-model闭环证据。
+
+Shares the LLM AR sequence for text,visual and motion tokens,but uses separate codecs and image/video denoising renderers. Discrete temporal interface plus continuous rendering,not demonstrated action-conditioned closed-loop world modeling.
+
+**why**
+对多帧威胁检测与视频离散UMM重要：静态keyframe和时间motion分开，减少重复外观token；但motion code不是可执行action，也不能由视频清晰度推断闭环物理正确。
+
+Relevant to video discrete UMM and multi-frame threat analysis: separate keyframe appearance from temporal motion to avoid redundant static tokens. Motion codes are not executable actions,and visual quality does not establish closed-loop physics.
+
+**inspiration**
+研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。
+
+Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.
+
+**experiment**
+固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。
+
+Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.
+
+**open**
+论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。
+
+Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. 
+
+### MIO: MIO: A Foundation Model on Multimodal Tokens
+
+2024-09-26 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2409.17692
+
+https://github.com/MIO-Team/MIO
+https://github.com/MIO-Team/MIO
+
+**summary**
+以四模态离散token训练any-to-any AR模型，依次进行alignment、interleaved、speech-enhanced预训练与综合SFT，支持交错video-text和visual guideline等任务。
+
+Any-to-any AR over four modality-token types,using alignment,interleaved,speech-enhanced pretraining and comprehensive SFT,supporting interleaved video/text and visual guidelines.
+
+**state**
+图像用SEED tokenizer：224²图像压为32语义ID、8192词表；视频按frame sequence处理，语音用独立SpeechTokenizer。图像renderer沿SEED路径，非dense IBQ直接解码。
+
+SEED encodes224²images into32semantic IDs over8192entries;videos become frame sequences and speech uses a separate SpeechTokenizer. Image rendering follows SEED rather than direct dense-IBQ decoding.
+
+**objective**
+LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。
+
+The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. 
+
+**decoding**
+先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。
+
+AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.
+
+**sharing**
+LLM统一离散token序列，各模态codec/detokenizer独立；SEED图像语义接口需另计diffusion renderer。属于离散语义UMM+外部渲染，不是纯离散像素世界模型。
+
+One LLM models discrete modality sequences with separate codecs/detokenizers. SEED images require external rendering costs. Semantic-token UMM plus rendering,not a purely discrete pixel world model.
+
+**why**
+补齐Omni离散序列与交错视频/语音的直接相关工作；训练阶段与多任务数据会影响统一效果，不能只把生成收益归给离散token建模。
+
+Fills the any-to-any discrete sequence and interleaved video/speech branch. Staged training and multimodal data matter; do not attribute all gains to discrete-token modeling.
+
+**inspiration**
+研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。
+
+Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.
+
+**experiment**
+固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。
+
+Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.
+
+**open**
+论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。
+
+Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. 
+
+### Orthus: Orthus: Autoregressive Interleaved Image-Text Generation with Modality-Specific Heads
+
+2024-11-28 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2412.00127
+
+https://github.com/SJTU-DENG-Lab/Orthus
+https://github.com/SJTU-DENG-Lab/Orthus
+
+**summary**
+AR backbone建模跨模态序列；语言head输出文本类别，modality-specific diffusion head在backbone条件下生成连续图像feature，减少noise对理解backbone的干扰。
+
+An AR backbone models cross-modal sequences;the LM head predicts text categories and a modality-specific diffusion head generates continuous image features conditioned on backbone outputs.
+
+**state**
+文字是离散ID，图像是VAE连续patch features；从已有UMM把VQ替换为soft alternative。视觉不是离散codebook ID，不计入strict discrete UMM。
+
+Text uses IDs;images use continuous VAE patch features after replacing hard VQ with a soft alternative. Visual states are not codebook IDs;exclude from strict discrete UMM.
+
+**objective**
+文字next-token CE，图像局部diffusion head建模连续feature分布；不是视觉clean-ID CE。具体diffusion参数化本次未完整复核，不强标ELF velocity/average velocity。
+
+Text next-token CE plus a local diffusion head over continuous image features,not visual clean-ID CE. Exact diffusion parameterization not fully re-audited;do not label it ELF velocity/average velocity.
+
+**decoding**
+跨模态/patch顺序保持AR，局部图像feature由diffusion head采样，额外迭代必须计入；72A100-hours是base构造示例，不代表总训练预算。精确NFE/统一延迟未核验。
+
+Cross-modal/patch ordering remains AR while the diffusion head samples local image features;count its extra iterations.72A100-hours describes base construction,not total training. Exact NFE/common latency unverified.
+
+**sharing**
+共AR backbone，文本head与图像diffusion head分开，visual codec连续；可由已有离散UMM转化，但并非只替换CE目标而保持状态不变。
+
+Shares an AR backbone with separate LM/diffusion heads and continuous visual codec. Conversion from a discrete UMM changes states as well as targets,not only CE supervision.
+
+**why**
+直接审查离散视觉量化损失的外部对照：保留AR跨模态依赖，却把visual ID改为连续feature与局部diffusion head。AR顺序与视觉输出离散性是两个独立轴。
+
+External comparator for quantization loss: retains AR cross-modal dependencies but replaces visual IDs with continuous features and a local diffusion head. AR order and discrete output state are independent axes.
+
+**inspiration**
+研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。
+
+Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.
+
+**experiment**
+固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。
+
+Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.
+
+**open**
+论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。
+
+Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. 
+
+### UniToken: UniToken: Harmonizing Multimodal Understanding and Generation through Unified Visual Encoding
+
+2025-04-06 · foundational backfill · checked/curated 2026-11-27
+
+https://arxiv.org/abs/2504.04423
+
+https://github.com/SxJyJay/UniToken
+https://github.com/SxJyJay/UniToken
+
+**summary**
+统一visual encoding融合高层语义和低层细节，用共享AR模型实现理解生成，并分析任务数据比例与表示选择对干扰的影响。
+
+Unified visual encoding combines high-level semantics and detail in shared AR modeling,studying task-data ratios and representation choice as causes of interference.
+
+**state**
+视觉输入组合连续feature与VQ离散ID embedding，输出仍AR视觉类别；是mixed-input/discrete-output，不是单一离散视觉token同时承担所有理解信息。
+
+Visual inputs combine continuous features and VQ-ID embeddings,with AR categorical visual output. Mixed input/discrete output,not purely discrete visual information for all understanding.
+
+**objective**
+LLM侧为离散视觉/文本token的next-token logits与CE，按序列顺序预测；无视觉ID前向加噪/掩码链，也非embedding velocity或average velocity。codec与renderer训练目标另计。
+
+The LLM predicts discrete visual/text IDs with next-token logits and CE, without a visual-ID corruption chain or embedding/average-velocity target. Account for codec and renderer objectives separately. 
+
+**decoding**
+先AR预测视觉ID序列，再由该方法的visual decoder恢复图像；串行调用数随序列长度增长，不能把每个ID称作一次整图NFE。精确训练FLOPs、统一硬件延迟与峰值显存本次未复核；若有额外renderer迭代必须计入。
+
+AR visual-ID generation precedes the method-specific image decoder. Serial calls scale with sequence length; one ID is not one whole-image NFE. Exact training FLOPs, common-hardware latency and peak memory were not re-audited. Include any iterative renderer cost.
+
+**sharing**
+共享视觉输入融合和prediction head，但连续visual encoder仍提供额外信息；需做离散only/连续only/混合三臂，固定backbone和数据比例。CVPR2025Workshop工作，勿与UniTok论文混淆。
+
+Shares visual fusion/prediction while the continuous encoder supplies extra information. Compare discrete-only,continuous-only and mixed inputs at fixed backbone/data ratios. CVPR2025Workshop work,not UniTok.
+
+**why**
+必须与UniTok区分：该工作把连续语义与离散细节同时注入统一视觉输入，提示理解提升可能来自额外连续路径，不能归给离散ID本身。
+
+Distinct from UniTok: combines continuous semantics and discrete detail at visual input. Understanding gains may come from the added continuous path rather than discrete IDs alone.
+
+**inspiration**
+研究假设：以该工作为相关工作与共享边界参照，在固定LLM/视觉codec的系统中只改变AR、masked prediction或metric-path采样。将语义入口、输出ID分布和decoder三处分别审计，不把换表示的收益归为解码范式优势。
+
+Hypothesis: use this model to audit sharing boundaries, then fix the LLM and visual codec while changing AR,masked prediction or metric-path sampling. Audit semantic input,output-ID distribution and decoder separately rather than attributing representation changes to decoding.
+
+**experiment**
+固定LLM主干、离散codec、数据、参数与训练FLOPs，对比AR、masked token恢复与metric-path解码；先保持token标签和head相同，再独立改变共享方式。报OCRBench/DocVQA/TextVQA、生成文字OCR、GenEval、code coverage、邻接共现、采样调用、吞吐/显存/稳定性；若换codec先测重建上限。
+
+Fix backbone,discrete codec,data,parameters and training FLOPs. Compare AR,masked-token recovery and metric-path decoding with identical labels/heads before independently changing sharing. Report OCRBench/DocVQA/TextVQA,generated-text OCR,GenEval,code coverage,adjacency,model calls,throughput,memory and stability. Measure reconstruction ceilings before codec changes.
+
+**open**
+论文与官方代码仓库已核对可访问；原始训练数据、完整预训练流程与所有权重可复现性未逐项复核，不能仅由README认定全部开放。作为基础文献补录，非今日新论文。精读方法/训练设计并检查repo的具体checkpoint限制。
+
+Paper and official repository checked accessible. Complete pretraining,data and every checkpoint were not exhaustively audited; README access alone does not establish full reproducibility. Foundational backfill,not a new publication. Deep-read architecture/training and check release-specific checkpoint restrictions. 

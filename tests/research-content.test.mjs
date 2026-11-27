@@ -11,7 +11,7 @@ const source = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8")
 const issueDate = source.match(/<time dateTime="(\d{4}-\d{2}-\d{2})"/)?.[1]?.replaceAll("-", ".");
 assert.ok(issueDate, "the current issue must declare its date");
 const js = ts.transpileModule(
-  source + "\nexport { papers, englishOverrides, getEnglishCopy, inferDomain, sourceLabel, PAGE_SIZE, selectResources };",
+  source + "\nexport { papers, englishOverrides, getEnglishCopy, inferDomain, sourceLabel, PAGE_SIZE, selectResources, discreteCatalog, directions };",
   { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 } },
 ).outputText;
 
@@ -37,11 +37,11 @@ function loadPage({ language = "en", active = "全部内容", page = 1 } = {}) {
 }
 
 const data = loadPage();
-const newIds = ["scanar-row-parallel-umm", "recap-decoder-aware-token-map", "splatwam-gaussian-shortcut-dynamics"];
+const newIds = ["cm3-causal-infilling", "ofa-seq2seq-discrete-output", "unified-io-original", "magvlt-masked-vl", "cm3leon-retrieval-ar", "4m-multimodal-masked", "unified-io2-anytoany", "4m21-anytoany-discrete", "chameleon-early-fusion-discrete", "vila-u-rq-unified-ar", "seed-llama-semantic-discrete", "anygpt-discrete-anytoany", "lavit-dynamic-discrete-umm", "janus-decoupled-original", "anole-open-chameleon-extension", "lwm-million-context-discrete", "lumina-mgpt-unirep-omnisft", "unicode2-cascaded-codebooks", "sensenova-u1-neo-unify-boundary", "liquid-shared-discrete-space", "unitok-multicodebook-umm", "qlip-text-aligned-bsq", "video-lavit-visual-motion-discrete", "lumina-mgpt2-speculative-jacobi", "mio-multimodal-discrete-tokens", "orthus-continuous-local-diffusion", "unitoken-mixed-visual-encoding", "emu35-dida-native-discrete", "unidisc-joint-discrete-diffusion", "mmada-unified-masked-diffusion", "fudoki-metric-discrete-umm", "muddit-unified-discrete-diffusion", "lumina-dimoo-discrete-umm", "mmada-parallel-joint-denoising", "omni-diffusion-anytoany-discrete", "lavida-o-elastic-discrete-umm", "sparse-lavida-register-truncation", "gestalt-ibq-interplay-diffusion", "unidflow-mora-discrete-flow", "nld-uni-self-refining-discrete", "unid3-foundation-joint-discrete"];
 const preservedBlogId = "blog-google-coherent-long-form-video";
 
 test("archive is retained and new resources are unique and complete", () => {
-  assert.ok(data.papers.length >= 292);
+  assert.ok(data.papers.length >= 333);
   assert.equal(new Set(data.papers.map(p => p.id)).size, data.papers.length);
   assert.equal(new Set(data.papers.map(p => p.index)).size, data.papers.length);
   const featured = data.papers.filter(p => p.featured);
@@ -84,7 +84,7 @@ test("Chinese branch, Blog source, explicit arXiv links, and six tracks remain",
   const blogHtml = renderToStaticMarkup(React.createElement(zhBlogs.default));
   assert.match(html, /为什么推荐/);
   assert.match(html, /世界模型：状态、动作与动力学矩阵/);
-  assert.match(html, /arXiv · 2611\.33761/);
+  assert.match(html, /arXiv · 2505\.20147/);
   assert.match(blogHtml, /阅读 Blog/);
   const tracks = new Set(data.papers.map(data.inferDomain));
   for (const track of ["UMM", "图像生成", "视频生成", "World Model", "可解释性", "评测诊断"]) {
@@ -103,9 +103,31 @@ test("source, category, bilingual search, saved reads, and publication sorting c
   const world = data.selectResources("World Model", "", "Paper", "published", []);
   assert.ok(world.every(p => data.inferDomain(p) === "World Model" && p.kind !== "Blog"));
   assert.ok(world.every((p, i) => i === 0 || world[i - 1].date.slice(0, 10) >= p.date.slice(0, 10)));
-  assert.deepEqual(data.selectResources("已保存", "", "all", "curated", [newIds[0]]).map(p => p.id), [newIds[0]]);
-  assert.ok(data.selectResources("全部内容", "2611.33761", "all", "curated", []).some(p => p.id === newIds[0]));
-  assert.ok(data.selectResources("全部内容", "annealed softmax", "all", "curated", []).some(p => p.id === newIds[1]));
-  assert.ok(data.selectResources("全部内容", "softmax退火", "all", "curated", []).some(p => p.id === newIds[1]));
+  assert.deepEqual(data.selectResources("已保存", "", "all", "curated", ["scanar-row-parallel-umm"]).map(p => p.id), ["scanar-row-parallel-umm"]);
+  assert.ok(data.selectResources("全部内容", "2611.33761", "all", "curated", []).some(p => p.id === "scanar-row-parallel-umm"));
+  assert.ok(data.selectResources("全部内容", "annealed softmax", "all", "curated", []).some(p => p.id === "recap-decoder-aware-token-map"));
+  assert.ok(data.selectResources("全部内容", "softmax退火", "all", "curated", []).some(p => p.id === "recap-decoder-aware-token-map"));
   assert.equal(data.selectResources("全部内容", "no-such-paper-837521", "all", "curated", []).length, 0);
+});
+
+ test("Discrete UMM is nested, scoped, bilingual and excludes unrelated worlds", () => {
+  assert.equal(data.directions.length,6);
+  for (const id of Object.keys(data.discreteCatalog)) assert.ok(data.papers.some(p=>p.id===id),id);
+  const all=data.selectResources("离散 UMM","","all","published",[]);
+  assert.equal(all.length,Object.keys(data.discreteCatalog).length);
+  const core=data.selectResources("离散 UMM","","Paper","published",[],"core");
+  assert.ok(core.some(p=>p.id==="emu3"));
+  assert.ok(!core.some(p=>["elf","ursa","janus-pro"].includes(p.id)));
+  assert.equal(data.discreteCatalog.ursa.scope,"enabler");
+  assert.equal(data.discreteCatalog["janus-pro"].scope,"decoupled");
+  assert.equal(data.discreteCatalog.elf.scope,"boundary");
+  const metric=data.selectResources("离散 UMM","","all","curated",[],"all","metric");
+  assert.ok(metric.some(p=>p.id==="fudoki-metric-discrete-umm"));
+  for(const language of ["en","zh"]){
+    const m=loadPage({language,active:"离散 UMM"});
+    const html=renderToStaticMarkup(React.createElement(m.default));
+    assert.ok(html.includes("discrete-umm"));
+    if(language==="en") assert.doesNotMatch(html,/[\u3400-\u9fff]/u);
+    assert.ok(html.includes("discrete-umm-reading-list.md"));
+  }
 });
